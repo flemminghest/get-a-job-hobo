@@ -47,6 +47,22 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .import-action button{margin-top:auto}
 .network-footer-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 @media(max-width:620px){.import-actions{grid-template-columns:1fr}.import-action{padding:15px}}
+/* Grøn farveidentitet for LinkedIn & netværk — kun denne side påvirkes */
+#page-network .hero{background:linear-gradient(118deg,#153d32 0%,#17664b 55%,#15966f 100%)}
+#page-network .hero .eyebrow{color:#a9f0ce}
+#page-network .kpi strong{color:#176b4d}
+#page-network .kpi label{color:#39745e}
+#page-network .import-action .action-icon{background:#e1f6e9;color:#167649}
+#page-network .import-action{border-color:#d7ebdf;background:linear-gradient(180deg,#ffffff 0%,#f5fbf7 100%)}
+#page-network .import-action button:not(.secondary):not(.warn),
+#page-network .network-footer-actions button:not(.secondary):not(.warn){background:#168254;color:#fff}
+#page-network .import-action button:not(.secondary):not(.warn):hover,
+#page-network .network-footer-actions button:not(.secondary):not(.warn):hover{background:#116a44}
+#page-network .nav button.active[data-page="network"]{background:#e5f6ec;color:#176b45}
+#page-network .nav button.active[data-page="network"]:hover{background:#d5f0df}
+#page-network input:focus,#page-network textarea:focus,#page-network select:focus{border-color:#219663;box-shadow:0 0 0 3px #21966322}
+#page-network .match-type.recruiter{border-color:#b8e8ce;background:linear-gradient(180deg,#fcfffd,#eefaf2);color:#176d45}
+#page-network .match-type.recruiter .match-icon{background:#d8f4e3;color:#157e4e}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand">✳ <b>Get a Job</b> Hobo</div><nav class="nav" id="nav">
 <button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal demo · Ingen AI eller live-research tilkoblet<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>

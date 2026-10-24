@@ -35,6 +35,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .cv-persistence{display:flex;gap:10px;align-items:flex-start;padding:13px 14px;border-radius:13px;background:#f0f8f6;border:1px solid #d0ebe3;color:#315c55;font-size:13px;line-height:1.5}
 .cv-persistence strong{display:block;color:#21564b;margin-bottom:2px}
 @media(max-width:620px){.network-card{grid-template-columns:1fr;gap:12px}.network-match-list{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;min-width:0}.match-type{max-width:150px;min-width:120px}.network-date{margin-bottom:9px}}
+/* Production polish: network page hierarchy, action panel, and accessible interactions */
+button,a,input,textarea,select{transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease,transform .16s ease}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #56b8bd;outline-offset:2px}
+.network-hero-copy{max-width:900px}
+.import-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.import-action{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:18px;border:1px solid #dfe8ef;border-radius:16px;background:linear-gradient(180deg,#fff,#f7fafc)}
+.import-action .action-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:#e4f4f3;color:#087f86;font-size:22px}
+.import-action h3{margin:0;font-size:16px}
+.import-action p{margin:0 0 6px;color:#65758a;font-size:13px;line-height:1.55}
+.import-action button{margin-top:auto}
+.network-footer-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+@media(max-width:620px){.import-actions{grid-template-columns:1fr}.import-action{padding:15px}}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand">✳ <b>Get a Job</b> Hobo</div><nav class="nav" id="nav">
 <button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal demo · Ingen AI eller live-research tilkoblet<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
@@ -50,7 +62,53 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 <section class="section" id="page-panel"><div class="hero purple"><div class="eyebrow">SPØRG PANELET</div><h1>Få kritik, ikke bare ros.</h1><p>Vælg de rådgivere, du vil bruge. Denne version giver lokal, regelbaseret feedback og foregiver ikke at være AI.</p></div><div class="card stack"><div class="formrow"><div class="wide"><label for="paneltext">Tekst, der skal vurderes</label><textarea id="paneltext" rows="8" placeholder="Indsæt din ansøgning eller tekst…"></textarea></div><div class="wide"><label for="paneljob">Jobopslag (valgfrit)</label><textarea id="paneljob" rows="5" placeholder="Indsæt jobopslaget for at sammenholde teksten med det…"></textarea></div></div><label>Vælg rådgivere</label><div class="checkgrid"><label class="checkline"><input type="checkbox" value="Recruiter" checked> Recruiter</label><label class="checkline"><input type="checkbox" value="Copywriter" checked> Copywriter</label><label class="checkline"><input type="checkbox" value="CMO"> CMO</label><label class="checkline"><input type="checkbox" value="CEO"> CEO</label></div><div class="toolbar"><button onclick="runPanel()">Vurder teksten</button><button class="secondary" onclick="usePanelRevision()">Brug revision i ansøgning</button></div><div id="panelResults" class="list"><div class="empty">Vælg tekst og rådgivere for at begynde.</div></div><div><label for="panelrevision">Samlet revisionskladde</label><textarea id="panelrevision" rows="8" placeholder="Dine forbedringer vises her, når du beder panelet vurdere teksten."></textarea></div></div></section>
 
-<section class="section active" id="page-network"><div class="hero"><div class="eyebrow">DIN NETVÆRKSMULIGHED</div><h1>Du behøver ikke starte fra nul.</h1><p>Importér din egen LinkedIn-forbindelsesfil. Filen behandles lokalt i browseren og sendes ikke til en server.</p><div class="actions"><button onclick="document.getElementById('csvfile').click()">Importér Connections.csv →</button><button class="secondary" onclick="document.getElementById('savedjobsfile').click()">Importér gemte job (valgfrit)</button><input type="file" id="csvfile" accept=".csv,text/csv" hidden onchange="importConnections(event)"><input type="file" id="savedjobsfile" accept=".csv,text/csv" hidden onchange="importSavedJobs(event)"></div></div><div class="kpis"><div class="kpi"><label>Forbindelser</label><strong id="netCount">0</strong><span>Indlæst fra CSV</span></div><div class="kpi"><label>Mulige rekrutteringskontakter</label><strong id="recruiterCount">0</strong><span>Match på tekstfelter</span></div><div class="kpi"><label>Virksomheder</label><strong id="companyCount">0</strong><span>Unikke navne</span></div><div class="kpi"><label>Gemte job</label><strong id="savedJobCount">0</strong><span>Valgfrit CSV-import</span></div></div><div class="card stack"><div class="formrow"><div><label for="netsearch">Søg i netværket</label><input id="netsearch" placeholder="Navn, virksomhed eller stilling…" oninput="renderNetwork()"></div><div><label for="netfilter">Filter</label><select id="netfilter" onchange="renderNetwork()"><option value="all">Alle forbindelser</option><option value="recruiter">Mulige rekrutteringskontakter</option><option value="company">Med virksomhedsnavn</option><option value="url">Med profillink</option></select></div></div><div class="notice">Mulige rekrutteringskontakter er kun foreslag baseret på titel/virksomhedstekst. Tjek oplysningerne på LinkedIn, før du kontakter nogen.</div><div id="networkList" class="list"><div class="empty">Importér LinkedIn-filen for at se dine forbindelser.</div></div><div class="toolbar"><button class="secondary" onclick="exportNetwork()">Eksportér filtreret liste</button><button class="warn" onclick="clearNetwork()">Slet importerede forbindelser</button></div></div></section>
+<section class="section active" id="page-network">
+<div class="hero">
+  <div class="eyebrow">DIT NETVÆRK · DINE NÆSTE MULIGHEDER</div>
+  <div class="network-hero-copy">
+    <h1>Gør dine forbindelser til nye jobmuligheder.</h1>
+    <p>Find relevante rekrutteringskontakter, se hvem der arbejder i virksomheder, du er interesseret i, og gør din næste henvendelse mere målrettet. Importér eller opdatér dine LinkedIn-data nederst på siden — de bliver i din browser.</p>
+  </div>
+</div>
+<div class="kpis">
+  <div class="kpi"><label>Forbindelser</label><strong id="netCount">0</strong><span>Indlæst fra Connections.csv</span></div>
+  <div class="kpi"><label>Mulige rekrutteringskontakter</label><strong id="recruiterCount">0</strong><span>Forslag baseret på stillingstitel</span></div>
+  <div class="kpi"><label>Virksomheder</label><strong id="companyCount">0</strong><span>Unikke virksomhedsnavne</span></div>
+  <div class="kpi"><label>Gemte job</label><strong id="savedJobCount">0</strong><span>Valgfri import af gemte job</span></div>
+</div>
+<div class="card stack">
+  <div class="formrow">
+    <div><label for="netsearch">Søg i dit netværk</label><input id="netsearch" placeholder="Søg på navn, virksomhed eller stilling…" oninput="renderNetwork()"></div>
+    <div><label for="netfilter">Vis forbindelser</label><select id="netfilter" onchange="renderNetwork()"><option value="all">Alle forbindelser</option><option value="recruiter">Mulige rekrutteringskontakter</option><option value="company">Med virksomhedsnavn</option><option value="url">Med profillink</option></select></div>
+  </div>
+  <div class="notice">Matchene er forslag ud fra oplysningerne i din eksport — ikke en bekræftelse af personens aktuelle rolle. Tjek profilen, før du kontakter nogen.</div>
+  <div id="networkList" class="list"><div class="empty">Importér dine forbindelser nederst på siden for at starte. Du kan derefter søge og filtrere i listen.</div></div>
+  <div class="network-footer-actions">
+    <button class="secondary" onclick="exportNetwork()">Eksportér filtreret liste</button>
+    <button class="warn" onclick="clearNetwork()">Slet importerede forbindelser</button>
+  </div>
+</div>
+<div class="card stack" style="margin-top:16px">
+  <div><div class="eyebrow" style="color:#087f86">OPDATÉR DIT NETVÆRK</div><h2 style="margin-bottom:6px">Tilføj eller opdatér dine LinkedIn-data</h2><p class="muted" style="margin-top:0">Vælg CSV-filerne fra din udpakkede LinkedIn-eksport. Importen sker lokalt. Hvis du importerer Connections.csv igen, erstatter den den nuværende forbindelsesliste.</p></div>
+  <div class="import-actions">
+    <div class="import-action">
+      <span class="action-icon" aria-hidden="true">↥</span>
+      <h3>Forbindelser</h3>
+      <p>Importer <b>Connections.csv</b> for at opdatere kontakter, virksomheder, stillingstitler og profillinks.</p>
+      <button onclick="document.getElementById('csvfile').click()">Vælg Connections.csv</button>
+      <input type="file" id="csvfile" accept=".csv,text/csv" hidden onchange="importConnections(event)">
+    </div>
+    <div class="import-action">
+      <span class="action-icon" aria-hidden="true">▣</span>
+      <h3>Gemte job (valgfrit)</h3>
+      <p>Importer filen med gemte job, så vi kan finde mulige navnematch mellem jobvirksomheder og dit netværk.</p>
+      <button class="secondary" onclick="document.getElementById('savedjobsfile').click()">Vælg gemte job-CSV</button>
+      <input type="file" id="savedjobsfile" accept=".csv,text/csv" hidden onchange="importSavedJobs(event)">
+    </div>
+  </div>
+  <div class="notice">Privatliv: CSV-filerne sendes ikke til en server. De importerede data gemmes i den browser, du bruger. Brug “Historik & backup” til at eksportere en sikkerhedskopi.</div>
+</div>
+</section>
 
 <section class="section" id="page-history"><div class="hero purple"><div class="eyebrow">DIT ARBEJDSRUM</div><h1>Gem, eksportér og gendan.</h1><p>Dine data gemmes lokalt i browseren. Brug backup, hvis du vil flytte dem eller beskytte dig mod tab.</p></div><div class="grid"><div class="card stack"><h2>Backup</h2><p class="muted">Eksportér lokale data til en JSON-fil. Backup kan indeholde dit CV, ansøgninger og forbindelser — opbevar den privat.</p><button onclick="exportBackup()">Eksportér backup</button><label for="backupfile">Gendan backup</label><input type="file" id="backupfile" accept=".json,application/json" onchange="restoreBackup(event)"><button class="warn" onclick="clearAll()">Slet alle lokale data</button><div id="backupmsg" class="notice" hidden></div></div><div class="card stack"><h2>Historik</h2><div id="historyList" class="list"><div class="empty">Ingen gemte analyser endnu.</div></div><button class="secondary" onclick="exportHistory()">Eksportér historik som tekst</button></div></div><div class="card" style="margin-top:16px"><h2>Om denne version</h2><div class="statline"><span>CV, kladder og CSV-import</span><span class="pill">Lokal funktion</span></div><div class="statline"><span>Jobmatch / panel</span><span class="chip">Regelbaseret demo</span></div><div class="statline"><span>AI / live-research / LinkedIn API</span><span class="chip">Ikke tilkoblet</span></div><div class="statline"><span>Synkronisering mellem enheder</span><span class="chip">Ikke tilkoblet</span></div></div></section>
 

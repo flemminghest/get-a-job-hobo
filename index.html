@@ -117,8 +117,28 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 <script>
 const KEY='gajh_demo_v18';
 const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelJob:'',panelRevision:''};
+function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
+function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
+function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
+function normalizeState(raw){
+ const out={...blank,proposalTexts:[],history:[],connections:[],savedJobs:[],sources:[]};
+ if(!raw||typeof raw!=='object'||Array.isArray(raw))return out;
+ const limits={cv:300000,jobtitle:500,company:500,jobtext:150000,application:30000,panelText:30000,panelJob:50000,panelRevision:50000};
+ for(const key of Object.keys(limits))if(typeof raw[key]==='string')out[key]=raw[key].slice(0,limits[key]);
+ out.proposalTexts=Array.isArray(raw.proposalTexts)?raw.proposalTexts.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,30000)):[];
+ out.selectedProposal=Number.isInteger(raw.selectedProposal)&&raw.selectedProposal>=0&&raw.selectedProposal<3?raw.selectedProposal:-1;
+ if(raw.activeJob&&typeof raw.activeJob==='object'&&!Array.isArray(raw.activeJob)){
+  const j=raw.activeJob;
+  out.activeJob={id:Number.isFinite(Number(j.id))?Number(j.id):Date.now(),title:typeof j.title==='string'?j.title.slice(0,500):'',company:typeof j.company==='string'?j.company.slice(0,500):'',job:typeof j.job==='string'?j.job.slice(0,150000):'',contentScore:clampScore(j.contentScore),appScore:clampScore(j.appScore),matched:Array.isArray(j.matched)?j.matched.slice(0,100).filter(v=>typeof v==='string').map(v=>v.slice(0,100)):[],gaps:Array.isArray(j.gaps)?j.gaps.slice(0,100).filter(v=>typeof v==='string').map(v=>v.slice(0,100)):[],created:typeof j.created==='string'?j.created.slice(0,80):new Date().toISOString(),sources:[]};
+ }
+ out.history=Array.isArray(raw.history)?raw.history.slice(0,50).filter(h=>h&&typeof h==='object'&&!Array.isArray(h)).map((h,i)=>({id:Number.isSafeInteger(Number(h.id))?Number(h.id):Date.now()+i,title:typeof h.title==='string'?h.title.slice(0,500):'',company:typeof h.company==='string'?h.company.slice(0,500):'',created:typeof h.created==='string'?h.created.slice(0,80):new Date().toISOString(),contentScore:h.contentScore==null?null:clampScore(h.contentScore),appScore:h.appScore==null?null:clampScore(h.appScore),job:typeof h.job==='string'?h.job.slice(0,30000):'',savedOnly:!!h.savedOnly})): [];
+ out.connections=Array.isArray(raw.connections)?raw.connections.slice(0,10000).filter(c=>c&&typeof c==='object'&&!Array.isArray(c)).map(c=>({first:typeof c.first==='string'?c.first.slice(0,300):'',last:typeof c.last==='string'?c.last.slice(0,300):'',url:safeProfileUrl(c.url),email:typeof c.email==='string'?c.email.slice(0,400):'',company:typeof c.company==='string'?c.company.slice(0,600):'',position:typeof c.position==='string'?c.position.slice(0,800):'',date:typeof c.date==='string'?c.date.slice(0,100):'',raw:null})): [];
+ out.savedJobs=Array.isArray(raw.savedJobs)?raw.savedJobs.slice(0,10000).filter(j=>j&&typeof j==='object'&&!Array.isArray(j)).map(j=>({title:typeof j.title==='string'?j.title.slice(0,1000):'',company:typeof j.company==='string'?j.company.slice(0,1000):'',url:safeHttpUrl(j.url)})).filter(j=>j.title||j.company||j.url): [];
+ out.sources=Array.isArray(raw.sources)?raw.sources.slice(0,500).filter(x=>x&&typeof x==='object'&&!Array.isArray(x)).map(x=>{const url=safeHttpUrl(x.url);if(!url)return null;const u=new URL(url);let path=u.pathname;while(path.endsWith('/'))path=path.slice(0,-1);return {title:typeof x.title==='string'?x.title.slice(0,1000):u.hostname,url,canonical:u.origin+path,host:u.hostname,domain:registrableDomain(u.hostname),verified:false}}).filter(Boolean): [];
+ return out;
+}
 let state=loadState();
-function loadState(){try{return Object.assign({},blank,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return {...blank}}}
+function loadState(){try{return normalizeState(JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return normalizeState({})}}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));document.getElementById('storageStatus').textContent='Data gemt lokalt i denne browser';return true}catch(e){document.getElementById('storageStatus').textContent='Lokal lagring fuld/blokeret — eksportér backup';return false}}
 function el(id){return document.getElementById(id)}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}

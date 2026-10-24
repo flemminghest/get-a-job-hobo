@@ -70,9 +70,59 @@ function renderSources(){const box=el('sources');if(!state.sources.length){box.i
 function removeSource(i){state.sources.splice(i,1);persist();sourceSummary()}
 function runPanel(){const text=el('paneltext').value.trim(),job=el('paneljob').value.trim();if(!text){alert('Indsæt en tekst, der skal vurderes.');return}state.panelText=text;state.panelJob=job;const selected=[...document.querySelectorAll('#page-panel .checkline input:checked')].map(e=>e.value);if(!selected.length){alert('Vælg mindst én rådgiver.');return}const lower=text.toLowerCase(),results=[];selected.forEach(role=>{let strengths=[],weak=[],advice=[];if(text.length>250)strengths.push('Teksten indeholder nok materiale til en indledende vurdering.');else weak.push('Teksten er kort; det kan være svært at vurdere motivation og dokumentation.');if(/resultat|%|forøg|reducer|konverter|omsætning|vækst/i.test(text))strengths.push('Der ser ud til at være omtale af resultat eller effekt; kontrollér at eksemplerne er konkrete og korrekte.');else weak.push('Få konkrete resultater eller dokumenterede eksempler frem.');if(/jeg er passioneret|dynamisk miljø|brænder for/i.test(text))weak.push('Formuleringer som “passioneret” eller “dynamisk miljø” kan blive generiske uden et konkret eksempel.');if(job&&!terms.some(t=>lower.includes(t)&&job.toLowerCase().includes(t)))weak.push('Der er få tydelige overlap mellem tekstens faglige ord og jobopslaget.');if(role==='Recruiter'){advice.push('Sørg for at motivation, relevant erfaring og grund til at vælge dig fremgår tidligt.');if(!/stilling|rolle|jeres|virksomhed/i.test(text))weak.push('Knyt ansøgningen tydeligere til den konkrete stilling og arbejdsgiver.')}if(role==='Copywriter'){advice.push('Gør hver sætning specifik, fjern floskler, og variér sætningsrytmen.');if(text.split(/\s+/).length<100)weak.push('Overvej om du har nok konkrete oplysninger til at underbygge budskabet.')}if(role==='CMO'){advice.push('Forbind kompetencerne med marketingmål, kanaler, data, læring eller forretningsresultat.')}if(role==='CEO'){advice.push('Vis hvorfor din erfaring kan gøre en forskel for virksomhedens mål — og giv et konkret eksempel.')}if(!advice.length)advice.push('Sæt de vigtigste argumenter i rækkefølge, og underbyg dem med fakta fra din erfaring.');const score=Math.max(25,Math.min(90,70+strengths.length*5-weak.length*9));results.push({role,score,strengths,weak,advice})});el('panelResults').innerHTML=results.map(r=>'<div class="item"><div class="row"><h3>'+r.role+'</h3><div class="fit"><span class="chip">Demo-score '+r.score+'/100</span></div></div><b>Styrker</b><ul>'+r.strengths.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul><b>Svagheder</b><ul>'+r.weak.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul><b>Forslag</b><ul>'+r.advice.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div>').join('')+'<div class="notice warnbox">Regelbaseret demo-feedback. Ikke AI-vurdering.</div>';state.panelRevision='';state.panelRevision=text+'\n\n[Revider efter feedback]\n'+results.flatMap(r=>r.advice).map(x=>'• '+x).join('\n');el('panelrevision').value=state.panelRevision;persist()}
 function usePanelRevision(){const txt=el('panelrevision').value.trim();if(!txt){alert('Kør først panelet eller skriv en revision.');return}state.application=txt;el('apptext').value=txt;persist();updateOverview();go('application');notify('proposalState','Revisionskladden er overført. Gennemgå og redigér før brug.','goodbox')}
-function parseCSV(text){text=String(text||'').replace(/^\uFEFF/,'');const first=text.split(/\r?\n/,1)[0]||'';const delim=(first.match(/;/g)||[]).length>(first.match(/,/g)||[]).length?';':',';const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'&&quoted&&text[i+1]==='"'){cell+='"';i++}else if(c==='"'){quoted=!quoted}else if(c===delim&&!quoted){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=c}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);if(!rows.length)return[];const headers=rows.shift().map(x=>x.trim().toLowerCase());return rows.map(r=>{const obj={};headers.forEach((h,i)=>obj[h]=(r[i]||'').trim());return obj})}
+function parseCSV(text){
+ text=String(text||'').replace(/^\\uFEFF/,'');
+ const firstLines=text.split(/\\r?\\n/).filter(x=>x.trim()).slice(0,8).join('\\n');
+ const delim=(firstLines.match(/;/g)||[]).length>(firstLines.match(/,/g)||[]).length?';':',';
+ const rows=[];let row=[],cell='',quoted=false;
+ for(let i=0;i<text.length;i++){
+  const c=text[i];
+  if(c==='"'&&quoted&&text[i+1]==='"'){cell+='"';i++}
+  else if(c==='"'){quoted=!quoted}
+  else if(c===delim&&!quoted){row.push(cell);cell=''}
+  else if((c==='\\n'||c==='\\r')&&!quoted){if(c==='\\r'&&text[i+1]==='\\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}
+  else cell+=c
+ }
+ row.push(cell);if(row.some(x=>x.trim()))rows.push(row);
+ if(!rows.length)return [];
+ const norm=x=>String(x||'').replace(/^\\uFEFF/,'').trim().toLowerCase().replace(/\\s+/g,' ');
+ const keys=rows.map(r=>r.map(norm));
+ const known=new Set(['first name','last name','url','email address','company','position','connected on','saved date','job url','job title','company name','title','profile url','email','connection date']);
+ let headerIndex=keys.findIndex(h=>{
+   const set=new Set(h);
+   const isConnections=set.has('first name')&&set.has('last name')&&(set.has('url')||set.has('company')||set.has('position'));
+   const isSavedJobs=set.has('saved date')&&set.has('job url')&&set.has('job title');
+   const isGenericJob=set.has('job title')&&(set.has('company name')||set.has('job url'));
+   const hits=h.filter(x=>known.has(x)).length;
+   return isConnections||isSavedJobs||isGenericJob||hits>=4;
+ });
+ if(headerIndex<0)headerIndex=0;
+ const headers=keys[headerIndex];
+ return rows.slice(headerIndex+1).map(r=>{
+   const obj={};headers.forEach((h,i)=>{if(h)obj[h]=(r[i]||'').trim()});return obj
+ }).filter(o=>Object.values(o).some(v=>String(v).trim()));
+}
 function field(o,...names){for(const n of names){if(o[n]!=null&&o[n]!=='')return o[n]}return ''}
-function importConnections(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const rows=parseCSV(r.result);state.connections=rows.map(o=>({first:field(o,'first name','firstname','first_name'),last:field(o,'last name','lastname','last_name'),url:field(o,'url','profile url','linkedin url'),email:field(o,'email address','email','e-mail'),company:field(o,'company','company name'),position:field(o,'position','job title','title'),date:field(o,'connected on','connected_on'),raw:o})).filter(c=>c.first||c.last||c.company||c.position);persist();updateOverview();renderNetwork();alert('Importeret '+state.connections.length+' forbindelser lokalt. Filen blev ikke sendt til en server.')} ;r.readAsText(f);ev.target.value=''}
+function importConnections(ev){
+ const f=ev.target.files[0];if(!f)return;
+ const r=new FileReader();
+ r.onerror=()=>{alert('Filen kunne ikke læses. Prøv at hente Connections.csv ud af ZIP-arkivet først.');ev.target.value=''};
+ r.onload=()=>{
+  try{
+   const rows=parseCSV(r.result);
+   const contacts=rows.map(o=>({first:field(o,'first name','firstname','first_name'),last:field(o,'last name','lastname','last_name'),url:field(o,'url','profile url','linkedin url'),email:field(o,'email address','email','e-mail'),company:field(o,'company','company name'),position:field(o,'position','job title','title'),date:field(o,'connected on','connected_on','connection date'),raw:o})).filter(c=>c.first||c.last||c.company||c.position);
+   if(!contacts.length){
+    const headers=String(r.result||'').replace(/^\\uFEFF/,'').split(/\\r?\\n/).filter(x=>x.trim()).slice(0,5).join(' | ');
+    alert('Jeg fandt ingen forbindelser i filen. Vælg Connections.csv — ikke ZIP-filen eller en anden LinkedIn-CSV. Jeg kunne ikke genkende kolonnerne. Filens første linjer: '+headers.slice(0,500));
+    return;
+   }
+   state.connections=contacts;persist();updateOverview();renderNetwork();
+   alert('Importeret '+state.connections.length+' forbindelser lokalt. Filen blev ikke sendt til en server.');
+  }catch(err){alert('Importen fejlede: '+(err&&err.message?err.message:'ukendt fejl'))}
+  finally{ev.target.value=''}
+ };
+ r.readAsText(f,'UTF-8')
+}
 function importSavedJobs(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.savedJobs=parseCSV(r.result).map(o=>({title:field(o,'title','job title','job title'),company:field(o,'company','company name','company name'),url:field(o,'url','job url')})).filter(j=>j.title||j.company);persist();updateOverview();renderNetwork();alert('Importeret '+state.savedJobs.length+' gemte job lokalt.')} ;r.readAsText(f);ev.target.value=''}
 function safeProfileUrl(raw){try{const u=new URL(raw);return u.protocol==='https:'&&/(^|\.)linkedin\.com$/i.test(u.hostname)?u.href:''}catch(e){return ''}}
 function isRecruiter(c){return /recruit|rekrutt|headhunt|talent acquisition|talent partner|staffing|headhunter|hr consultant|recruitment consultant/i.test((c.position||'')+' '+(c.company||''))}

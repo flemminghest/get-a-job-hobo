@@ -4,7 +4,7 @@ Dansk, statisk browser-app til jobsøgning, CV, ansøgninger og LinkedIn-netvær
 https://flemminghest.github.io/get-a-job-hobo/
 
 ## Live-websøgning i jobanalyse
-Når brugeren vælger **Analyser job**, søger appen i Purilis offentlige webindeks fra browseren. Ingen API-nøgle er påkrævet. Appen søger på jobtitel, virksomhedsnavn og relaterede termer — ikke på brugerens CV eller LinkedIn-forbindelser.
+Når brugeren vælger **Analyser job**, søger appen i Purilis offentlige webindeks fra browseren. Ingen API-nøgle er påkrævet. Appen sender jobtitel, virksomhedsnavn og udvalgte søgeord fra jobopslaget til søge-API’et — ikke brugerens CV, ansøgningstekst eller LinkedIn-forbindelser.
 
 ### Aftalte kildeområder
 1. Det originale jobopslag / arbejdsgiverens karriereside; hvis brugeren har indsat en URL, forsøges der også en domænemålrettet søgning.
@@ -16,11 +16,11 @@ Når brugeren vælger **Analyser job**, søger appen i Purilis offentlige webind
 7. Årsrapporter og regnskabsoplysninger.
 8. Fagmedier og specialkilder, der passer til stillingens branche.
 
-Hver kildekategori forsøges med en målrettet søgning og, hvis den giver 0 resultater eller fejler, en bredere søgning. Resultater deduplikeres på URL, vurderes efter virksomhed/titel/domæne og vises sammen med kategoristatus, søgeforespørgsel, eventuelle fejl, uddrag og links. Et fremdrifts-modal viser status under søgningen.
+Hver kildekategori forsøges med en målrettet søgning og, hvis den giver 0 resultater eller fejler, en bredere søgning. UI’et skelner mellem resultater fra det målrettede site-forsøg og resultater fra den bredere fallback, så et generelt resultat ikke fejlagtigt præsenteres som en Jobindex- eller LinkedIn-kilde. Resultater deduplikeres på URL, vurderes efter virksomhed/titel/domæne og vises sammen med kategoristatus, søgeforespørgsel, eventuelle fejl, uddrag og links. Et fremdrifts-modal viser status under søgningen.
 
 Målet er mindst 6 potentielt relevante søgeresultater fra mindst 4 hoveddomæner. Det er et dækningskrav — ikke automatisk faktaverifikation. Søgeindekset kan have ældre data; /api/context returnerer lagret indekstekst og henter ikke den oprindelige side live. Appen skal derfor aldrig hævde, at opslaget stadig er aktivt, uden at det er kontrolleret på selve kildesiden.
 
-## Status i “Hvad er tilkoblet?”
+## Automatisk smoke-test\nGitHub Actions kører en smoke-test på hvert push til `main`. Den kalder det offentlige søge-API, kontrollerer JSON-formatet, at mindst én forespørgsel returnerer resultater, og at CORS-headeren tillader GitHub Pages. Det tester API-tilgængelighed; det garanterer ikke, at alle jobrelaterede søgninger finder relevante resultater.\n\n## Status i “Hvad er tilkoblet?”
 Live-søgestatus skifter dynamisk efter den seneste søgning:
 - **Afventer test** før første søgning.
 - **Søge-API svarer** når mindst én forespørgsel har fået et gyldigt HTTP-svar.
@@ -36,4 +36,4 @@ Direkte validering af kildesider, AI-generering, OCR/PDF-udtræk, sikker konto-/
 - Historik, backup/restore, eksport og sletning af lokale data.
 
 ## Privatliv
-CV, ansøgningstekst og importerede LinkedIn-data forbliver i browserens lokale lager. Live-søgning sender jobtitel, virksomhedsnavn og de genererede søgeforespørgsler til Purilis offentlige websøge-API. Ingen private CV- eller netværksdata sendes med. Offentlig kildekode indeholder ikke brugerens private data.
+CV, ansøgningstekst og importerede LinkedIn-data forbliver i browserens lokale lager. Live-søgning sender jobtitel, virksomhedsnavn og udvalgte søgeord fra jobopslaget til Purilis offentlige websøge-API. Ingen private CV- eller netværksdata sendes med. Offentlig kildekode indeholder ikke brugerens private data.

@@ -278,6 +278,114 @@ function download(name,content,type){const blob=new Blob([content],{type:type||'
 function demoJob(){el('jobtitle').value='Digital Marketing Manager';el('company').value='Eksempelvirksomhed';el('jobtext').value='Vi søger en Digital Marketing Manager til at udvikle digital marketingstrategi, marketing automation og CRM. Du arbejder med dataanalyse, kampagneoptimering, SEO, konvertering og tværfagligt samarbejde med salg og IT. Erfaring med ledelse, budget og måling af performance er en fordel.';el('sourcetitle').value='Eksempel på jobopslag';el('sourceurl').value='';notify('jobmsg','Demoopslag indsat. Det er fiktivt og bruger ingen eksterne kilder.','')}
 const terms=['marketing','crm','automation','data','analyse','seo','ux','konvertering','kampagne','strategi','projektledelse','kommunikation','content','ai','teknologi','ledelse','budget','salg','digital','performance','e-mail','email','stakeholder','google analytics','ga4','cvr'];
 function words(t){return (String(t||'').toLowerCase().match(/[a-zæøå0-9+#.-]{2,}/g)||[]).filter(x=>x.length>2)}
+
+const LIVE_SEARCH_API='https://puri.li/api/search';
+const LIVE_CONTEXT_API='https://puri.li/api/context';
+function normalizeSearchText(v){return String(v||'').toLocaleLowerCase('da-DK').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9æøå ]/g,' ').replace(/\s+/g,' ').trim()}
+function searchPhrase(v){return String(v||'').replace(/["\\]/g,' ').replace(/\s+/g,' ').trim()}
+async function fetchJsonTimeout(url,timeoutMs=10000){
+ const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),timeoutMs);
+ try{const response=await fetch(url,{method:'GET',credentials:'omit',headers:{Accept:'application/json'},signal:controller.signal});if(!response.ok)throw new Error('HTTP '+response.status);return await response.json()}
+ finally{clearTimeout(timeout)}
+}
+function buildLiveQueries(title,company,job){
+ const t=searchPhrase(title)||searchPhrase(words(job).slice(0,5).join(' '));
+ const c=searchPhrase(company);
+ const qs=[];
+ if(t||c)qs.push({kind:'Jobopslag og rolle',q:('"'+t+'" "'+c+'" job stilling jobs careers').trim()});
+ if(c)qs.push({kind:'Arbejdsgiver',q:('"'+c+'" official website about careers Denmark').trim()});
+ if(c)qs.push({kind:'LinkedIn',q:('site:linkedin.com/company "'+c+'"').trim()});
+ if(c)qs.push({kind:'Nyheder og presse',q:('"'+c+'" nyheder news press release strategy').trim()});
+ if(c)qs.push({kind:'Virksomhedsoplysninger',q:('"'+c+'" årsrapport CVR annual report Denmark').trim()});
+ if(t)qs.push({kind:'Branche og kompetencer',q:('"'+t+'" Denmark job requirements skills industry').trim()});
+ if(t)qs.push({kind:'Jobportaler',q:('"'+t+'" Denmark jobs jobindex jobnet').trim()});
+ const seen=new Set();return qs.filter(x=>{const k=x.q.toLowerCase();if(!x.q.replace(/["\s]/g,'')||seen.has(k))return false;seen.add(k);return true}).slice(0,7);
+}
+function liveResultRelevance(result,title,company,kind){
+ const hay=normalizeSearchText([result.title,result.url,result.description,result.displayUrl].join(' '));
+ const cTokens=[...new Set(words(company).filter(x=>x.length>2&&!['danmark','denmark','company','group','holding','a/s','aps','the'].includes(x)))];
+ const tTokens=[...new Set(words(title).filter(x=>x.length>2&&!['manager','senior','junior','specialist','lead','position','stilling','job','jobs','role','rolle'].includes(x)))];
+ const cHits=cTokens.filter(x=>hay.includes(normalizeSearchText(x))).length;
+ const tHits=tTokens.filter(x=>hay.includes(normalizeSearchText(x))).length;
+ let score=cHits*3+tHits*1.4;
+ if(cTokens.length&&cHits===cTokens.length)score+=2;
+ if(/job|career|careers|jobs|stillinger|position|vacancy|vacancies/i.test((result.url||'')+' '+(result.title||'')))score+=1.4;
+ if(/linkedin|annual report|årsrapport|press|news|nyhed|company|about|karriere|career/i.test((result.url||'')+' '+(result.title||'')))score+=.4;
+ if(/Arbejdsgiver|LinkedIn|Nyheder|Virksomhedsoplysninger/.test(kind)&&cTokens.length)score+=.35;
+ const relevant=cTokens.length?(cHits>0||tHits>=2):tHits>=1;
+ return {score,relevant};
+}
+function canonicalSearchUrl(raw){
+ const safe=safeHttpUrl(raw);if(!safe)return '';
+ try{const u=new URL(safe);u.hash='';['utm_source','utm_medium','utm_campaign','utm_content','utm_term','trk','trackingId','refId'].forEach(k=>u.searchParams.delete(k));let p=u.pathname;while(p.length>1&&p.endsWith('/'))p=p.slice(0,-1);u.pathname=p;return u.href}catch(e){return ''}
+}
+async function performLiveResearch(title,company,job){
+ const searchedAt=new Date().toISOString();
+ const queries=buildLiveQueries(title,company,job);
+ const queryResults=await Promise.allSettled(queries.map(async q=>{
+  const url=LIVE_SEARCH_API+'?'+new URLSearchParams({q:q.q,page:'1',exact:'0'}).toString();
+  const data=await fetchJsonTimeout(url,12000);
+  return {query:q,results:Array.isArray(data.results)?data.results.slice(0,10):[]};
+ }));
+ const successful=queryResults.filter(x=>x.status==='fulfilled');
+ const failures=queryResults.filter(x=>x.status==='rejected');
+ if(!successful.length)return {status:'error',searchedAt,queryCount:queries.length,successfulQueries:0,queries:queries.map(q=>q.kind+': '+q.q),sources:[],error:'Kunne ikke hente søgeresultater fra det eksterne webindeks. Kontrollér internetforbindelsen eller prøv igen.',provider:'Purili webindeks',note:'Ingen live-research-resultater blev hentet.'};
+ const byUrl=new Map();
+ for(const item of successful){
+  for(const raw of item.value.results){
+   const url=canonicalSearchUrl(raw.url);if(!url)continue;
+   const u=new URL(url);if(['puri.li','www.puri.li'].includes(u.hostname.toLowerCase()))continue;
+   const candidate={title:String(raw.title||u.hostname).slice(0,500),url,domain:registrableDomain(u.hostname),displayUrl:String(raw.displayUrl||u.hostname).slice(0,250),description:String(raw.description||'').slice(0,1200),kind:item.value.query.kind,coverage:'search-snippet-fallback',relevance:0,searchedLive:true};
+   const rank=liveResultRelevance(candidate,title,company,candidate.kind);candidate.relevance=rank.score;candidate._relevant=rank.relevant;
+   const old=byUrl.get(url);
+   if(old){if(!old.kinds.includes(candidate.kind))old.kinds.push(candidate.kind);if(candidate.description.length>old.description.length)old.description=candidate.description;if(candidate.relevance>old.relevance){old.relevance=candidate.relevance;old.title=candidate.title;old.displayUrl=candidate.displayUrl;old.kind=candidate.kind;old._relevant=candidate._relevant}}
+   else byUrl.set(url,{...candidate,kinds:[candidate.kind]});
+  }
+ }
+ const candidates=[...byUrl.values()].filter(x=>x._relevant).sort((a,b)=>b.relevance-a.relevance);
+ const chosen=[],domainCounts=new Map(),used=new Set();
+ for(const item of candidates){if(!domainCounts.has(item.domain)&&chosen.length<12){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,1)}}
+ for(const item of candidates){if(chosen.length>=12)break;if(used.has(item.url))continue;const count=domainCounts.get(item.domain)||0;if(count<2){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,count+1)}}
+ const contexts=await Promise.allSettled(chosen.slice(0,8).map(async item=>{
+  const url=LIVE_CONTEXT_API+'?'+new URLSearchParams({url:item.url}).toString();
+  const ctx=await fetchJsonTimeout(url,9000);
+  const text=String(ctx.content||ctx.summary||ctx.description||'').replace(/\s+/g,' ').trim();
+  return {url:item.url,excerpt:text.slice(0,850),coverage:String(ctx.coverage||'unknown'),liveFetch:ctx.liveFetch===true,title:String(ctx.title||'').slice(0,500)};
+ }));
+ for(const res of contexts){
+  if(res.status!=='fulfilled')continue;
+  const item=chosen.find(x=>x.url===res.value.url);if(!item)continue;
+  if(res.value.excerpt)item.description=res.value.excerpt;
+  item.coverage=res.value.coverage;
+  item.pageTitle=res.value.title||item.title;
+  item.liveFetch=res.value.liveFetch;
+ }
+ const sources=chosen.map(x=>({title:x.pageTitle||x.title,url:x.url,domain:x.domain,displayUrl:x.displayUrl,description:x.description,kind:x.kinds.join(' · '),coverage:x.coverage||'search-snippet-fallback',searchedLive:true,relevance:Math.round(x.relevance*10)/10}));
+ const domains=[...new Set(sources.map(x=>x.domain))];
+ return {status:sources.length>=6&&domains.length>=4?'success':'partial',searchedAt,queryCount:queries.length,successfulQueries:successful.length,queries:queries.map(q=>q.kind+': '+q.q),sources,domains,error:failures.length?failures.length+' af '+queries.length+' søgninger fejlede.':'',provider:'Purili webindeks',note:'Søgningen blev udført ved analysen. Kildetekst er hentet fra søgeindekset og er ikke nødvendigvis direkte live-hentet fra kildesiden.'};
+}
+function renderLiveResearch(research){
+ if(!research)return '<div class="notice warnbox">Live-søgning er endnu ikke kørt for dette job.</div>';
+ const sourceList=Array.isArray(research.sources)?research.sources:[];
+ const domainCount=new Set(sourceList.map(s=>s.domain||'')).size;
+ const enough=sourceList.length>=6&&domainCount>=4;
+ const date=research.searchedAt?new Date(research.searchedAt).toLocaleString('da-DK'):'Tidspunkt ukendt';
+ const tone=research.status==='error'?'warnbox':enough?'goodbox':'warnbox';
+ let html='<div class="notice '+tone+'"><b>'+(research.status==='error'?'Live-søgning mislykkedes':enough?'Kildespredning nået i webindekset':'Foreløbigt kildegrundlag')+'</b><br>'+escapeHtml(String(sourceList.length)+' mulige kilder fra '+domainCount+' hoveddomæner · '+research.successfulQueries+'/'+research.queryCount+' søgninger gennemført · '+date)+'.<br>';
+ if(enough)html+='Antallet og domænespredningen opfylder minimumstærsklen på papiret, men kilderne er ikke uafhængigt verificeret, og webindekset kan være mindre aktuelt end den oprindelige hjemmeside.';
+ else html+='Der er ikke fundet mindst 6 relevante resultater fra 4 hoveddomæner. Vurderingen skal derfor betragtes som foreløbig.';
+ if(research.error)html+='<br>'+escapeHtml(research.error);
+ html+='</div><div class="notice" style="margin-top:10px">Søgningen blev udført nu via Purilis webindeks. Indholdet er indekseret eller lagret tekst — appen garanterer ikke, at selve kildesiden er hentet live ved analysen. Åbn vigtige kilder for at kontrollere dato og indhold.</div>';
+ if(!sourceList.length)return html+'<div class="empty">Ingen resultater at vise. Prøv igen, eller åbn en ekstern søgning manuelt.</div>';
+ html+='<div class="list" style="margin-top:12px">';
+ for(const source of sourceList){
+  const url=safeHttpUrl(source.url);
+  const coverage=source.coverage==='stored-extracted-passages'?'Indekstekst':source.coverage==='search-snippet-fallback'?'Søgeuddrag':'Webresultat';
+  html+='<article class="item live-source-card"><div class="row" style="align-items:flex-start"><div><h3>'+escapeHtml(source.title||source.domain||'Webkilde')+'</h3><p>'+escapeHtml(source.domain||source.displayUrl||'')+' · '+escapeHtml(source.kind||'Webresultat')+'</p></div><span class="chip">'+coverage+'</span></div>'+(source.description?'<p class="live-source-excerpt">'+escapeHtml(source.description)+'</p>':'<p class="muted">Intet uddrag tilgængeligt fra indekset.</p>')+(url?'<a class="profile-link" href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer"><span>Åbn kilde og kontrollér</span><span class="arrow" aria-hidden="true">↗</span></a>':'')+'</article>';
+ }
+ html+='</div>';
+ return html;
+}
 function analyzeJob(){const title=el('jobtitle').value.trim(),company=el('company').value.trim(),job=el('jobtext').value.trim(),cv=state.cv.trim();if(!job){notify('jobmsg','Indsæt et jobopslag først.');return}state.jobtitle=title;state.company=company;state.jobtext=job;const jt=new Set(words(job));const cvWords=new Set(words(cv));const matched=terms.filter(t=>jt.has(t)&&cvWords.has(t));const required=terms.filter(t=>jt.has(t));const gaps=required.filter(t=>!cvWords.has(t));const coverage=required.length?Math.round(matched.length/required.length*100):Math.min(70,Math.round((cv.length?40:15)+(job.length>500?20:10)));const lengthBonus=Math.min(12,Math.floor(cv.length/500));const contentScore=Math.max(10,Math.min(95,Math.round(coverage*.78+lengthBonus)));const appScore=Math.max(10,Math.min(90,Math.round(contentScore*.68+(job.length>350?12:3)+(title?5:0))));state.activeJob={id:Date.now(),title,company,job,contentScore,appScore,matched,gaps,created:new Date().toISOString(),sources:state.sources.slice()};state.history.unshift({id:state.activeJob.id,title,company,contentScore,appScore,created:state.activeJob.created,job});state.history=state.history.slice(0,50);state.application='';state.proposalTexts=[];state.selectedProposal=-1;el('apptext').value='';el('appPreview').hidden=true;makeProposals();renderJobResult();renderProposals();renderHistory();updateOverview();notify('jobmsg','Lokal demoanalyse gennemført. Ingen AI eller live-research er brugt.','goodbox')}
 function makeProposals(){const j=state.activeJob;if(!j)return;const match=(j.matched||[]).slice(0,4).join(', ')||'digital marketing, data og tværfagligt samarbejde';const gaps=(j.gaps||[]).slice(0,2).join(' og ');const who=j.company||'jeres virksomhed';const t=j.title||'stillingen';state.proposalTexts=[
 'Jeg søger stillingen som '+t+' hos '+who+', fordi kombinationen af faglig udvikling og konkrete forretningsresultater motiverer mig. Min erfaring med '+match+' giver mig et relevant udgangspunkt for at bidrage til jeres team.\n\nJeg arbejder gerne både strategisk og hands-on og lægger vægt på at omsætte indsigt til forbedringer, der kan mærkes i praksis. Jeg vil gerne uddybe, hvordan min erfaring kan skabe værdi i netop denne rolle.\n\nMange hilsner\n[Dit navn]',

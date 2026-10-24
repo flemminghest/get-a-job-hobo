@@ -153,6 +153,11 @@ label{font-size:14px;font-weight:750}
  #page-network .network-meta,#page-network .network-date,#page-network .profile-link,#page-network .network-no-link{margin-left:52px}
  #page-network .network-date{max-width:calc(100% - 52px)}
 }
+.live-source-card{padding:15px 16px;border-color:#dce7ed;background:linear-gradient(120deg,#fff,#fbfcfd)}
+.live-source-card h3{margin-bottom:4px;line-height:1.35;overflow-wrap:anywhere}
+.live-source-card .live-source-excerpt{color:#53667a;line-height:1.65;font-size:13px;margin:10px 0 13px;overflow-wrap:anywhere}
+.live-source-card .profile-link{margin-top:2px}
+#page-job #jobmsg{white-space:normal}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand">✳ <b>Get a Job</b> Hobo</div><nav class="nav" id="nav">
 <button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal demo · Ingen AI eller live-research tilkoblet<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
@@ -386,15 +391,59 @@ function renderLiveResearch(research){
  html+='</div>';
  return html;
 }
-function analyzeJob(){const title=el('jobtitle').value.trim(),company=el('company').value.trim(),job=el('jobtext').value.trim(),cv=state.cv.trim();if(!job){notify('jobmsg','Indsæt et jobopslag først.');return}state.jobtitle=title;state.company=company;state.jobtext=job;const jt=new Set(words(job));const cvWords=new Set(words(cv));const matched=terms.filter(t=>jt.has(t)&&cvWords.has(t));const required=terms.filter(t=>jt.has(t));const gaps=required.filter(t=>!cvWords.has(t));const coverage=required.length?Math.round(matched.length/required.length*100):Math.min(70,Math.round((cv.length?40:15)+(job.length>500?20:10)));const lengthBonus=Math.min(12,Math.floor(cv.length/500));const contentScore=Math.max(10,Math.min(95,Math.round(coverage*.78+lengthBonus)));const appScore=Math.max(10,Math.min(90,Math.round(contentScore*.68+(job.length>350?12:3)+(title?5:0))));state.activeJob={id:Date.now(),title,company,job,contentScore,appScore,matched,gaps,created:new Date().toISOString(),sources:state.sources.slice()};state.history.unshift({id:state.activeJob.id,title,company,contentScore,appScore,created:state.activeJob.created,job});state.history=state.history.slice(0,50);state.application='';state.proposalTexts=[];state.selectedProposal=-1;el('apptext').value='';el('appPreview').hidden=true;makeProposals();renderJobResult();renderProposals();renderHistory();updateOverview();notify('jobmsg','Lokal demoanalyse gennemført. Ingen AI eller live-research er brugt.','goodbox')}
+async function analyzeJob(){
+ const title=el('jobtitle').value.trim(),company=el('company').value.trim(),job=el('jobtext').value.trim(),cv=state.cv.trim();
+ if(!job){notify('jobmsg','Indsæt et jobopslag først.');return}
+ state.jobtitle=title;state.company=company;state.jobtext=job;
+ const buttons=[...document.querySelectorAll('button[onclick="analyzeJob()"]')];
+ buttons.forEach(button=>{button.disabled=true;button.dataset.oldLabel=button.textContent;button.textContent='Søger på nettet…'});
+ notify('jobmsg','Søger efter webkilder om stillingen og virksomheden. Dit CV og dine forbindelser sendes ikke til søgetjenesten.','');
+ let liveResearch;
+ try{liveResearch=await performLiveResearch(title,company,job)}
+ catch(error){liveResearch={status:'error',searchedAt:new Date().toISOString(),queryCount:0,successfulQueries:0,queries:[],sources:[],error:'Live-søgningen kunne ikke gennemføres: '+String(error&&error.message||error).slice(0,250),provider:'Purili webindeks',note:'Ingen live-research-resultater blev hentet.'}}
+ finally{buttons.forEach(button=>{button.disabled=false;button.textContent=button.dataset.oldLabel||'Analyser job';delete button.dataset.oldLabel})}
+ const jt=new Set(words(job));const cvWords=new Set(words(cv));
+ const matched=terms.filter(term=>jt.has(term)&&cvWords.has(term));
+ const required=terms.filter(term=>jt.has(term));
+ const gaps=required.filter(term=>!cvWords.has(term));
+ const coverage=required.length?Math.round(matched.length/required.length*100):Math.min(70,Math.round((cv.length?40:15)+(job.length>500?20:10)));
+ const lengthBonus=Math.min(12,Math.floor(cv.length/500));
+ const contentScore=Math.max(10,Math.min(95,Math.round(coverage*.78+lengthBonus)));
+ const appScore=Math.max(10,Math.min(90,Math.round(contentScore*.68+(job.length>350?12:3)+(title?5:0))));
+ const created=new Date().toISOString();
+ state.activeJob={id:Date.now(),title,company,job,contentScore,appScore,matched,gaps,created,sources:state.sources.slice(),liveResearch};
+ state.history.unshift({id:state.activeJob.id,title,company,contentScore,appScore,created,job,liveResearch});
+ state.history=state.history.slice(0,50);
+ state.application='';state.proposalTexts=[];state.selectedProposal=-1;el('apptext').value='';el('appPreview').hidden=true;
+ makeProposals();renderJobResult();renderProposals();renderHistory();updateOverview();
+ const sourceCount=liveResearch.sources.length;const domainCount=new Set(liveResearch.sources.map(source=>source.domain)).size;
+ if(liveResearch.status==='error')notify('jobmsg','CV-match beregnet, men live-søgning fejlede. Scorerne er foreløbige; se beskeden i kildeafsnittet.','warnbox');
+ else if(sourceCount>=6&&domainCount>=4)notify('jobmsg','Søgning fandt '+sourceCount+' mulige webkilder fra '+domainCount+' hoveddomæner. Kontrollér kilderne — scores er fortsat regelbaserede.','goodbox');
+ else notify('jobmsg','CV-match beregnet. Live-søgningen fandt '+sourceCount+' relevante kilder fra '+domainCount+' domæner, så researchgrundlaget er foreløbigt.','warnbox');
+}
 function makeProposals(){const j=state.activeJob;if(!j)return;const match=(j.matched||[]).slice(0,4).join(', ')||'digital marketing, data og tværfagligt samarbejde';const gaps=(j.gaps||[]).slice(0,2).join(' og ');const who=j.company||'jeres virksomhed';const t=j.title||'stillingen';state.proposalTexts=[
 'Jeg søger stillingen som '+t+' hos '+who+', fordi kombinationen af faglig udvikling og konkrete forretningsresultater motiverer mig. Min erfaring med '+match+' giver mig et relevant udgangspunkt for at bidrage til jeres team.\n\nJeg arbejder gerne både strategisk og hands-on og lægger vægt på at omsætte indsigt til forbedringer, der kan mærkes i praksis. Jeg vil gerne uddybe, hvordan min erfaring kan skabe værdi i netop denne rolle.\n\nMange hilsner\n[Dit navn]',
 'Det, der fangede min interesse ved stillingen hos '+who+', er muligheden for at forbinde marketing, teknologi og forretning. Jeg trives, når gode idéer bliver omsat til løsninger, der både fungerer for brugerne og understøtter virksomhedens mål.\n\nJeg har arbejdet med '+match+' og er vant til at samarbejde på tværs af fagligheder. Jeg vil gerne høre mere om jeres ambitioner og fortælle, hvordan jeg kan bidrage.\n\nMange hilsner\n[Dit navn]',
 'Jeg kan bidrage til rollen som '+t+' med erfaring inden for '+match+'. Mit fokus er at skabe målbare forbedringer gennem en kombination af analyse, tydelig prioritering og praktisk eksekvering.\n\nJeg vil især gerne undersøge, hvordan jeg kan hjælpe '+who+' med at udvikle arbejdet med de vigtigste mål i stillingen. '+(gaps?'Jeg er samtidig opmærksom på, at '+gaps+' kan kræve en nærmere afklaring. ':'')+'Jeg ser frem til at uddybe mit match ved en samtale.\n\nMange hilsner\n[Dit navn]'
 ];persist()}
-function renderJobResult(){const j=state.activeJob;if(!j){el('jobresult').innerHTML='<div class="empty">Indsæt et jobopslag og vælg “Analyser job” for at få en foreløbig vurdering.</div>';return}const src=sourceStats();el('jobresult').innerHTML='<div class="row" style="align-items:start"><div><h2 style="margin-bottom:4px">'+escapeHtml(j.title||'Jobanalyse')+'</h2><div class="muted">'+escapeHtml(j.company||'Virksomhed ikke angivet')+' · '+new Date(j.created).toLocaleString('da-DK')+'</div></div><button class="secondary fit" onclick="go(&quot;application&quot;)">Fortsæt til ansøgning →</button></div><div class="notice warnbox">Lokal demoanalyse — ingen live-research eller AI er udført. Scorerne er indikative og ikke statistiske sandsynligheder.</div><div class="scoregrid"><div class="score"><span>Indholdsmatch</span><strong>'+j.contentScore+'/100</strong><div class="bar"><i style="width:'+j.contentScore+'%"></i></div></div><div class="score alt"><span>Samtalepotentiale (vejledende)</span><strong>'+j.appScore+'/100</strong><div class="bar"><i style="width:'+j.appScore+'%"></i></div></div></div><div class="grid"><div class="result"><h3>Mulige match</h3>'+(j.matched.length?j.matched.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join(''):'CV mangler eller ingen nøgleord matchede')+'</div><div class="result"><h3>Mulige mangler / ikke dokumenteret</h3>'+(j.gaps.length?j.gaps.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join(''):'Ingen udvalgte nøgleord fremstår som mangler; gennemgå stadig jobkravene.')+'</div></div><div class="result"><h3>Kildegrundlag</h3>'+src.message+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';sourceSummary()}
+function renderJobResult(){
+ const job=state.activeJob;
+ if(!job){el('jobresult').innerHTML='<div class="empty">Indsæt et jobopslag og vælg “Analyser job” for at sammenligne CV og søge efter webkilder.</div>';return}
+ const manualSources=sourceStats();
+ const researchHtml=renderLiveResearch(job.liveResearch||null);
+ el('jobresult').innerHTML='<div class="row" style="align-items:start"><div><h2 style="margin-bottom:4px">'+escapeHtml(job.title||'Jobanalyse')+'</h2><div class="muted">'+escapeHtml(job.company||'Virksomhed ikke angivet')+' · '+new Date(job.created).toLocaleString('da-DK')+'</div></div><button class="secondary fit" onclick="go(&quot;application&quot;)">Fortsæt til ansøgning →</button></div><div class="notice warnbox">Scorerne er lokale, regelbaserede indikatorer — ikke AI og ikke en statistisk sandsynlighed. Websøgningen supplerer virksomhedskonteksten, men bekræfter ikke automatisk, at et jobopslag stadig er aktivt.</div><div class="scoregrid"><div class="score"><span>Foreløbigt indholdsmatch</span><strong>'+job.contentScore+'/100</strong><div class="bar"><i style="width:'+job.contentScore+'%"></i></div></div><div class="score alt"><span>Samtalepotentiale (vejledende)</span><strong>'+job.appScore+'/100</strong><div class="bar"><i style="width:'+job.appScore+'%"></i></div></div></div><div class="grid"><div class="result"><h3>Mulige match</h3>'+(job.matched.length?job.matched.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join(''):'CV mangler eller ingen nøgleord matchede')+'</div><div class="result"><h3>Mulige mangler / ikke dokumenteret</h3>'+(job.gaps.length?job.gaps.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join(''):'Ingen udvalgte nøgleord fremstår som mangler; gennemgå stadig jobkravene.')+'</div></div><div class="result"><h3>Live-søgning og webkilder</h3>'+researchHtml+'</div><div class="result"><h3>Manuelt registrerede kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
+ sourceSummary();
+}
 function saveJobOnly(){const job=el('jobtext').value.trim();if(!job){notify('jobmsg','Indsæt et jobopslag først.');return}state.jobtitle=el('jobtitle').value;state.company=el('company').value;state.jobtext=job;state.history.unshift({id:Date.now(),title:state.jobtitle,company:state.company,created:new Date().toISOString(),job:job,savedOnly:true});state.history=state.history.slice(0,50);persist();renderHistory();updateOverview();notify('jobmsg','Jobopslag gemt i historikken uden score.','goodbox')}
-function exportJob(){if(!state.activeJob)return;const j=state.activeJob;download('jobanalyse.txt','Jobanalyse: '+j.title+'\nVirksomhed: '+j.company+'\nIndholdsmatch: '+j.contentScore+'/100 (demo)\nSamtalepotentiale: '+j.appScore+'/100 (demo)\nMatch: '+j.matched.join(', ')+'\nMulige mangler: '+j.gaps.join(', ')+'\n\nJobopslag:\n'+j.job+'\n\nBemærk: lokal demo, ingen AI/live-research.')}
+function exportJob(){
+ if(!state.activeJob)return;
+ const job=state.activeJob;
+ const live=job.liveResearch;
+ const sources=live&&Array.isArray(live.sources)?live.sources:[];
+ const sourceText=sources.map(source=>'- '+source.title+' — '+source.url+' ['+source.domain+']\n  '+source.description).join('\n');
+ const text='Jobanalyse: '+job.title+'\nVirksomhed: '+job.company+'\nForeløbigt indholdsmatch: '+job.contentScore+'/100 (regelbaseret)\nSamtalepotentiale: '+job.appScore+'/100 (regelbaseret)\nMatch: '+job.matched.join(', ')+'\nMulige mangler: '+job.gaps.join(', ')+'\n\nLive-søgning udført: '+(live&&live.searchedAt||'nej')+'\nWebkilder:\n'+sourceText+'\n\nJobopslag:\n'+job.job+'\n\nVigtigt: Søgeresultater kommer fra et eksternt webindeks. Kildesider er ikke garanteret direkte live-hentet eller faktatjekket. Scorerne er lokale, regelbaserede indikatorer, ikke AI.';
+ download('jobanalyse.txt',text,'text/plain;charset=utf-8');
+}
 function renderProposals(){const p=state.proposalTexts||[];el('proposalState').textContent=p.length?'Vælg ét forslag. Ansøgningsteksten opdateres først, når du aktivt vælger et forslag.':'Ingen forslag endnu. Analysér et job under Jobopslag først. Der bliver ikke indsat tekst automatisk.';el('proposals').innerHTML=p.length?p.map((t,i)=>'<div class="item"><h3>Forslag '+(i+1)+'</h3><p>'+escapeHtml(t.slice(0,170))+'…</p><button onclick="chooseProposal('+i+')">Brug dette forslag</button></div>').join(''):'<div class="empty">Tre forslag vises her, når du har analyseret et job.</div>';el('apptext').value=state.application||''}
 function chooseProposal(i){if(!state.proposalTexts||!state.proposalTexts[i])return;state.selectedProposal=i;state.application=state.proposalTexts[i];el('apptext').value=state.application;el('appPreview').hidden=true;persist();updateOverview();notify('proposalState','Forslag '+(i+1)+' er valgt. Du kan nu redigere teksten.','goodbox')}
 function saveApplication(){state.application=el('apptext').value;persist();updateOverview();notify('proposalState',state.application.trim()?'Ansøgningen er gemt lokalt.':'Ansøgningen er stadig blank.','goodbox')}

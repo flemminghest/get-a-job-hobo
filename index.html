@@ -110,7 +110,7 @@ function importConnections(ev){
  r.onload=()=>{
   try{
    const rows=parseCSV(r.result);
-   const contacts=rows.map(o=>({first:field(o,'first name','firstname','first_name'),last:field(o,'last name','lastname','last_name'),url:field(o,'url','profile url','linkedin url'),email:field(o,'email address','email','e-mail'),company:field(o,'company','company name'),position:field(o,'position','job title','title'),date:field(o,'connected on','connected_on','connection date'),raw:o})).filter(c=>c.first||c.last||c.company||c.position);
+   const contacts=rows.map(o=>({first:field(o,'first name','firstname','first_name'),last:field(o,'last name','lastname','last_name'),url:field(o,'url','profile url','linkedin url'),email:field(o,'email address','email','e-mail'),company:field(o,'company','company name'),position:field(o,'position','job title','title'),date:field(o,'connected on','connected_on','connection date'),raw:o})).filter(c=>c.first||c.last||c.company||c.position||c.date);
    if(!contacts.length){
     const headers=String(r.result||'').replace(/^\\uFEFF/,'').split(/\\r?\\n/).filter(x=>x.trim()).slice(0,5).join(' | ');
     alert('Jeg fandt ingen forbindelser i filen. Vælg Connections.csv — ikke ZIP-filen eller en anden LinkedIn-CSV. Jeg kunne ikke genkende kolonnerne. Filens første linjer: '+headers.slice(0,500));

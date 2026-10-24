@@ -96,6 +96,21 @@ label{font-size:14px;font-weight:750}
 .persona-option:has(input:focus-visible){outline:3px solid #4abfc2;outline-offset:2px}
 .persona-option:has(input:checked) .persona-copy strong{color:#116d70}
 @media(max-width:620px){.persona-option{grid-template-columns:24px 42px minmax(0,1fr);gap:10px;padding:13px;min-height:78px}.persona-icon{width:42px;height:42px}.persona-copy small{font-size:11px}}
+/* Matchkort: ens mål og farver, hvor eksisterende forbindelse er grøn og muligt match er neutralt */
+#page-network .network-card{grid-template-columns:minmax(0,1fr) 190px;align-items:stretch}
+#page-network .network-match-list{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:190px;min-width:190px;align-content:start;align-items:stretch}
+#page-network .match-type{display:flex;box-sizing:border-box;width:100%;min-width:0;max-width:none;height:156px;min-height:156px;padding:12px 10px;gap:7px;overflow-wrap:anywhere}
+#page-network .match-type .match-label{max-width:100%;font-size:12px;line-height:1.35}
+#page-network .match-type small{max-width:100%;font-size:11px;line-height:1.35}
+#page-network .match-type.network{border-color:#b8e8ce;background:linear-gradient(180deg,#fcfffd,#eefaf2);color:#176d45}
+#page-network .match-type.network .match-icon{background:#d8f4e3;color:#157e4e}
+#page-network .match-type.recruiter{border-color:#dfe5ec;background:linear-gradient(180deg,#ffffff,#f2f5f8);color:#586a7e}
+#page-network .match-type.recruiter .match-icon{background:#e8edf3;color:#536a82}
+@media(max-width:620px){
+ #page-network .network-card{grid-template-columns:minmax(0,1fr);gap:12px}
+ #page-network .network-match-list{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}
+ #page-network .match-type{height:150px;min-height:150px}
+}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand">✳ <b>Get a Job</b> Hobo</div><nav class="nav" id="nav">
 <button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal demo · Ingen AI eller live-research tilkoblet<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
@@ -305,7 +320,7 @@ function matchIcon(type){
  return icons[type]||icons.network;
 }
 function matchTile(type,label,detail){
- const cls=type==='recruiter'?'recruiter':type==='company'?'company-match':'';
+ const cls=type==='recruiter'?'recruiter':type==='network'?'network':type==='company'?'company-match':'';
  return '<div class="match-type '+cls+'" role="img" aria-label="'+escapeHtml(label+(detail?' — '+detail:''))+'"><span class="match-icon">'+matchIcon(type)+'</span><span class="match-label">'+escapeHtml(label)+'</span>'+(detail?'<small>'+escapeHtml(detail)+'</small>':'')+'</div>';
 }
 function renderNetwork(){

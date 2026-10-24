@@ -254,17 +254,14 @@ function normalizeLiveResearch(raw){
  const allowed=['success','partial','error'];
  const status=allowed.includes(raw.status)?raw.status:'partial';
  const sources=Array.isArray(raw.sources)?raw.sources.slice(0,24).map(x=>{
-  if(!x||typeof x!=='object')return null;
-  const url=safeHttpUrl(x.url);if(!url)return null;
-  const u=new URL(url);
+  if(!x||typeof x!=='object')return null;const url=safeHttpUrl(x.url);if(!url)return null;const u=new URL(url);
   return {title:typeof x.title==='string'?x.title.slice(0,500):u.hostname,url,domain:typeof x.domain==='string'?x.domain.slice(0,200):registrableDomain(u.hostname),displayUrl:typeof x.displayUrl==='string'?x.displayUrl.slice(0,300):u.hostname,description:typeof x.description==='string'?x.description.slice(0,900):'',kind:typeof x.kind==='string'?x.kind.slice(0,250):'Webresultat',categoryId:typeof x.categoryId==='string'?x.categoryId.slice(0,100):'',categoryLabel:typeof x.categoryLabel==='string'?x.categoryLabel.slice(0,200):'',coverage:typeof x.coverage==='string'?x.coverage.slice(0,80):'search-snippet-fallback',searchedLive:!!x.searchedLive,relevant:!!x.relevant,relevance:Number.isFinite(Number(x.relevance))?Math.max(0,Math.min(100,Number(x.relevance))):0};
  }).filter(Boolean):[];
  const strings=(key,max)=>Array.isArray(raw[key])?raw[key].slice(0,max).filter(x=>typeof x==='string').map(x=>x.slice(0,600)):[];
- const queryLog=Array.isArray(raw.queryLog)?raw.queryLog.slice(0,30).filter(x=>x&&typeof x==='object').map(x=>({id:String(x.id||'').slice(0,100),label:String(x.label||'').slice(0,200),query:String(x.query||'').slice(0,600),fallbackQuery:String(x.fallbackQuery||'').slice(0,600),rawResults:Math.max(0,Number(x.rawResults)||0),relevantResults:Math.max(0,Number(x.relevantResults)||0),requests:Math.max(0,Number(x.requests)||0),status:String(x.status||'ukendt').slice(0,100),error:String(x.error||'').slice(0,500)})):[];
- const categoryStatuses=Array.isArray(raw.categoryStatuses)?raw.categoryStatuses.slice(0,20).filter(x=>x&&typeof x==='object').map(x=>({id:String(x.id||'').slice(0,100),label:String(x.label||'').slice(0,200),sites:String(x.sites||'').slice(0,300),query:String(x.query||'').slice(0,600),fallbackQuery:String(x.fallbackQuery||'').slice(0,600),rawResults:Math.max(0,Number(x.rawResults)||0),relevantResults:Math.max(0,Number(x.relevantResults)||0),errors:String(x.errors||'').slice(0,500),status:String(x.status||'ukendt').slice(0,100)})):[];
- const queries=strings('queries',30);
- const providedUrl=safeHttpUrl(raw.providedUrl||'');
- return {status,searchedAt:typeof raw.searchedAt==='string'?raw.searchedAt.slice(0,80):'',queryCount:Math.max(0,Math.min(50,Number(raw.queryCount)||queries.length)),successfulQueries:Math.max(0,Math.min(50,Number(raw.successfulQueries)||0)),rawResultCount:Math.max(0,Number(raw.rawResultCount)||sources.filter(x=>x.searchedLive).length),relevantSourceCount:Math.max(0,Number(raw.relevantSourceCount)||sources.filter(x=>x.searchedLive&&x.relevant).length),relevantDomainCount:Math.max(0,Number(raw.relevantDomainCount)||new Set(sources.filter(x=>x.searchedLive&&x.relevant).map(x=>x.domain)).size),error:typeof raw.error==='string'?raw.error.slice(0,700):'',queries,queryLog,categoryStatuses,sources,providedUrl,provider:'Purili webindeks',note:'Søgningen bruger Purilis crawler-baserede webindeks. Kontekst-API leverer lagret indekstekst og henter ikke kildesider live.'};
+ const queryLog=Array.isArray(raw.queryLog)?raw.queryLog.slice(0,30).filter(x=>x&&typeof x==='object').map(x=>({id:String(x.id||'').slice(0,100),label:String(x.label||'').slice(0,200),query:String(x.query||'').slice(0,600),fallbackQuery:String(x.fallbackQuery||'').slice(0,600),primaryResults:Math.max(0,Number(x.primaryResults)||0),fallbackResults:Math.max(0,Number(x.fallbackResults)||0),rawResults:Math.max(0,Number(x.rawResults)||0),relevantResults:Math.max(0,Number(x.relevantResults)||0),requests:Math.max(0,Number(x.requests)||0),status:String(x.status||'ukendt').slice(0,100),error:String(x.error||'').slice(0,500)})):[]; 
+ const categoryStatuses=Array.isArray(raw.categoryStatuses)?raw.categoryStatuses.slice(0,20).filter(x=>x&&typeof x==='object').map(x=>({id:String(x.id||'').slice(0,100),label:String(x.label||'').slice(0,200),sites:String(x.sites||'').slice(0,300),query:String(x.query||'').slice(0,600),fallbackQuery:String(x.fallbackQuery||'').slice(0,600),primaryResults:Math.max(0,Number(x.primaryResults)||0),fallbackResults:Math.max(0,Number(x.fallbackResults)||0),rawResults:Math.max(0,Number(x.rawResults)||0),relevantResults:Math.max(0,Number(x.relevantResults)||0),errors:String(x.errors||'').slice(0,500),status:String(x.status||'ukendt').slice(0,100)})):[]; 
+ const queries=strings('queries',30);const providedUrl=safeHttpUrl(raw.providedUrl||'');
+ return {status,searchedAt:typeof raw.searchedAt==='string'?raw.searchedAt.slice(0,80):'',queryCount:Math.max(0,Math.min(50,Number(raw.queryCount)||queries.length),),successfulQueries:Math.max(0,Math.min(50,Number(raw.successfulQueries)||0)),rawResultCount:Math.max(0,Number(raw.rawResultCount)||sources.filter(x=>x.searchedLive).length),relevantSourceCount:Math.max(0,Number(raw.relevantSourceCount)||sources.filter(x=>x.searchedLive&&x.relevant).length),relevantDomainCount:Math.max(0,Number(raw.relevantDomainCount)||new Set(sources.filter(x=>x.searchedLive&&x.relevant).map(x=>x.domain)).size),error:typeof raw.error==='string'?raw.error.slice(0,700):'',queries,queryLog,categoryStatuses,sources,providedUrl,provider:'Purili webindeks',note:'Søgningen bruger Purilis crawler-baserede webindeks. Kontekst-API leverer lagret indekstekst og henter ikke kildesider live.'};
 }
 function normalizeState(raw){
  const out={...blank,proposalTexts:[],history:[],connections:[],savedJobs:[],sources:[]};
@@ -380,16 +377,16 @@ async function performLiveResearch(title,company,job,sourceUrl,providedQueries){
   return {results,data};
  }
  const perQuery=await Promise.all(queries.map(async q=>{
-  let activeQuery=q.query,activeTarget=q.targetSite||'',fallbackUsed=false,primaryError='',fallbackError='',rows=[];
+  let activeQuery=q.query,activeTarget=q.targetSite||'',fallbackUsed=false,primaryError='',fallbackError='',rows=[],primaryResults=0,fallbackResults=0;
   setResearchModalQuery(q.id,'Søger…','Forespørgsel sendt');
   try{
    const response=await executeSearch(q.query);
-   rows=response.results;
+   rows=response.results;primaryResults=rows.length;
   }catch(e){primaryError=String(e&&e.message||e).slice(0,300)}
   if(rows.length===0&&q.fallbackQuery&&q.fallbackQuery!==q.query){
    fallbackUsed=true;activeQuery=q.fallbackQuery;activeTarget='';
-   setResearchModalQuery(q.id,'Prøver bredere søgning…','Det præcise opslag gav ingen resultater');
-   try{const fallback=await executeSearch(q.fallbackQuery);if(fallback.results.length)rows=fallback.results}
+   setResearchModalQuery(q.id,'Prøver bredere søgning…','Målrettet søgning gav 0 resultater');
+   try{const fallback=await executeSearch(q.fallbackQuery);fallbackResults=fallback.results.length;if(fallback.results.length)rows=fallback.results}
    catch(e){fallbackError=String(e&&e.message||e).slice(0,300)}
   }
   const unique=new Map();
@@ -397,7 +394,11 @@ async function performLiveResearch(title,company,job,sourceUrl,providedQueries){
    const url=canonicalSearchUrl(raw&&raw.url);if(!url)continue;
    const parsed=new URL(url);
    if(['puri.li','www.puri.li'].includes(parsed.hostname.toLowerCase()))continue;
-   const candidate={title:String(raw.title||parsed.hostname).slice(0,500),url,domain:registrableDomain(parsed.hostname),displayUrl:String(raw.displayUrl||parsed.hostname).slice(0,250),description:String(raw.description||'').slice(0,1500),categoryId:q.id,categoryLabel:q.label,kind:q.label,coverage:'search-snippet-fallback',searchedLive:true};
+   const host=parsed.hostname.toLowerCase().replace(/^www\./,'');
+   const target=String(q.targetSite||'').toLowerCase().replace(/^www\./,'');
+   const actualSiteMatch=!!target&&(host===target||host.endsWith('.'+target));
+   const resultKind=fallbackUsed&&q.targetSite&&!actualSiteMatch?'Bredere søgning for '+q.label:fallbackUsed?'Bredere søgning: '+q.label:q.label;
+   const candidate={title:String(raw.title||parsed.hostname).slice(0,500),url,domain:registrableDomain(parsed.hostname),displayUrl:String(raw.displayUrl||parsed.hostname).slice(0,250),description:String(raw.description||'').slice(0,1500),categoryId:q.id,categoryLabel:q.label,kind:resultKind,coverage:'search-snippet-fallback',searchedLive:true};
    const rank=liveResultRelevance(candidate,title,company,q.label,activeTarget);
    candidate.relevance=Math.round(rank.score*10)/10;
    candidate.relevant=!!rank.relevant;
@@ -408,21 +409,21 @@ async function performLiveResearch(title,company,job,sourceUrl,providedQueries){
   rawResultCount+=categoryRows.length;
   const relevantCount=categoryRows.filter(x=>x.relevant).length;
   let status='ingen resultater';
-  if(categoryRows.length)status=relevantCount?'fundet':'kontrollér relevans';
+  if(categoryRows.length)status=fallbackUsed?(relevantCount?'fundet via bred søgning':'kontrollér relevans via bred søgning'):(relevantCount?'fundet':'kontrollér relevans');
   if(!categoryRows.length&&(primaryError||fallbackError))status='fejl';
   const error=[primaryError,fallbackError].filter(Boolean).join(' / ');
-  const item={id:q.id,label:q.label,sites:q.sites,query:q.query,fallbackQuery:fallbackUsed?q.fallbackQuery:'',rawResults:categoryRows.length,relevantResults:relevantCount,errors:error,status};
+  const item={id:q.id,label:q.label,sites:q.sites,query:q.query,fallbackQuery:fallbackUsed?q.fallbackQuery:'',primaryResults,fallbackResults,rawResults:categoryRows.length,relevantResults:relevantCount,errors:error,status};
   categoryCounts.set(q.id,item);
   for(const candidate of categoryRows){
    const existing=resultsByUrl.get(candidate.url);
    if(existing){
-    if(!existing.kinds.includes(q.label))existing.kinds.push(q.label);
+    if(!existing.kinds.includes(candidate.kind))existing.kinds.push(candidate.kind);
     if(!existing.categories.includes(q.id))existing.categories.push(q.id);
     if(candidate.description.length>existing.description.length)existing.description=candidate.description;
     if(candidate.relevance>existing.relevance){existing.relevance=candidate.relevance;existing.relevant=candidate.relevant;existing.title=candidate.title;existing.displayUrl=candidate.displayUrl;existing.domain=candidate.domain}
-   }else resultsByUrl.set(candidate.url,{...candidate,kinds:[q.label],categories:[q.id]});
+   }else resultsByUrl.set(candidate.url,{...candidate,kinds:[candidate.kind],categories:[q.id]});
   }
-  const line={id:q.id,label:q.label,query:activeQuery,fallbackQuery:fallbackUsed?q.fallbackQuery:'',rawResults:categoryRows.length,relevantResults:relevantCount,requests:1+(fallbackUsed?1:0),status,error};
+  const line={id:q.id,label:q.label,query:q.query,fallbackQuery:fallbackUsed?q.fallbackQuery:'',primaryResults,fallbackResults,rawResults:categoryRows.length,relevantResults:relevantCount,requests:1+(fallbackUsed?1:0),status,error};
   queryLog.push(line);
   setResearchModalQuery(q.id,status,categoryRows.length+' resultater · '+relevantCount+' relevante');
   return line;
@@ -431,93 +432,57 @@ async function performLiveResearch(title,company,job,sourceUrl,providedQueries){
  const relevant=allResults.filter(x=>x.relevant).sort((a,b)=>b.relevance-a.relevance);
  const other=allResults.filter(x=>!x.relevant).sort((a,b)=>b.relevance-a.relevance);
  const chosen=[],used=new Set(),domainCounts=new Map();
- for(const item of relevant){
-  if(chosen.length>=16)break;
-  if(!domainCounts.has(item.domain)){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,1)}
- }
- for(const item of relevant){
-  if(chosen.length>=16)break;
-  if(used.has(item.url))continue;
-  const count=domainCounts.get(item.domain)||0;
-  if(count<2){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,count+1)}
- }
- for(const item of other){
-  if(chosen.length>=18)break;
-  if(!used.has(item.url)){chosen.push(item);used.add(item.url)}
- }
+ for(const item of relevant){if(chosen.length>=16)break;if(!domainCounts.has(item.domain)){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,1)}}
+ for(const item of relevant){if(chosen.length>=16)break;if(used.has(item.url))continue;const count=domainCounts.get(item.domain)||0;if(count<2){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,count+1)}}
+ for(const item of other){if(chosen.length>=18)break;if(!used.has(item.url)){chosen.push(item);used.add(item.url)}}
  const contexts=await Promise.allSettled(chosen.filter(x=>x.relevant).slice(0,8).map(async item=>{
   const url=LIVE_CONTEXT_API+'?'+new URLSearchParams({url:item.url}).toString();
   const ctx=await fetchJsonTimeout(url,9000);
   const text=String(ctx.content||ctx.summary||ctx.description||'').replace(/\s+/g,' ').trim();
   return {url:item.url,excerpt:text.slice(0,900),coverage:String(ctx.coverage||'unknown'),title:String(ctx.title||'').slice(0,500)};
  }));
- for(const result of contexts){
-  if(result.status!=='fulfilled')continue;
-  const item=chosen.find(x=>x.url===result.value.url);if(!item)continue;
-  if(result.value.excerpt)item.description=result.value.excerpt;
-  item.coverage=result.value.coverage;
-  item.title=result.value.title||item.title;
- }
+ for(const result of contexts){if(result.status!=='fulfilled')continue;const item=chosen.find(x=>x.url===result.value.url);if(!item)continue;if(result.value.excerpt)item.description=result.value.excerpt;item.coverage=result.value.coverage;item.title=result.value.title||item.title}
  const providedUrl=safeHttpUrl(sourceUrl||'');
  const sources=chosen.map(x=>({title:x.title,url:x.url,domain:x.domain,displayUrl:x.displayUrl,description:x.description,kind:x.kinds.join(' · '),categoryId:x.categories[0]||x.categoryId,categoryLabel:x.kinds.join(' · '),coverage:x.coverage||'search-snippet-fallback',searchedLive:true,relevant:!!x.relevant,relevance:x.relevance}));
- if(providedUrl){
-  const host=new URL(providedUrl).hostname;
-  if(!sources.some(x=>canonicalSearchUrl(x.url)===canonicalSearchUrl(providedUrl))){
-   sources.unshift({title:'Originalt jobopslag — link indsat af dig',url:providedUrl,domain:registrableDomain(host),displayUrl:host,description:'Linket er angivet manuelt og er ikke bekræftet som aktivt.',kind:'Originalt jobopslag',categoryId:'original',categoryLabel:'Originalt jobopslag',coverage:'user-provided-url',searchedLive:false,relevant:false,relevance:0});
-  }
- }
- const categoryStatuses=queries.map(q=>categoryCounts.get(q.id)||{id:q.id,label:q.label,sites:q.sites,query:q.query,fallbackQuery:'',rawResults:0,relevantResults:0,errors:'Forespørgslen blev ikke afsluttet.',status:'fejl'});
+ if(providedUrl){const host=new URL(providedUrl).hostname;if(!sources.some(x=>canonicalSearchUrl(x.url)===canonicalSearchUrl(providedUrl)))sources.unshift({title:'Originalt jobopslag — link indsat af dig',url:providedUrl,domain:registrableDomain(host),displayUrl:host,description:'Linket er angivet manuelt og er ikke bekræftet som aktivt.',kind:'Originalt jobopslag',categoryId:'original',categoryLabel:'Originalt jobopslag',coverage:'user-provided-url',searchedLive:false,relevant:false,relevance:0})}
+ const categoryStatuses=queries.map(q=>categoryCounts.get(q.id)||{id:q.id,label:q.label,sites:q.sites,query:q.query,fallbackQuery:'',primaryResults:0,fallbackResults:0,rawResults:0,relevantResults:0,errors:'Forespørgslen blev ikke afsluttet.',status:'fejl'});
  const relevantSources=sources.filter(x=>x.searchedLive&&x.relevant);
  const relevantDomains=[...new Set(relevantSources.map(x=>x.domain).filter(Boolean))];
  const queryErrors=queryLog.filter(x=>x.status==='fejl').length;
  const error=successfulRequestCount===0?'Ingen af søgeforespørgslerne fik et gyldigt svar fra Purili.':rawResultCount===0?'Søge-API’et svarede, men returnerede 0 resultater for alle kildeområder.':queryErrors?queryErrors+' kildeområder fejlede teknisk.':'';
  const status=successfulRequestCount===0?'error':relevantSources.length>=6&&relevantDomains.length>=4?'success':'partial';
- return {status,searchedAt,queryCount:requestCount,successfulQueries:successfulRequestCount,rawResultCount,relevantSourceCount:relevantSources.length,relevantDomainCount:relevantDomains.length,queries:queryLog.map(x=>x.label+': '+x.query),queryLog,categoryStatuses,sources,providedUrl,error,provider:'Purili webindeks',note:'Søgningen bruger Purilis crawler-baserede webindeks. Kontekst-API leverer lagret indekstekst og henter ikke kildesider live.'};
+ return {status,searchedAt,queryCount:requestCount,successfulQueries:successfulRequestCount,rawResultCount,relevantSourceCount:relevantSources.length,relevantDomainCount:relevantDomains.length,error,queryLog,categoryStatuses,sources,providedUrl,provider:'Purili webindeks',note:'Søgningen bruger Purilis crawler-baserede webindeks. Kontekst-API leverer lagret indekstekst og henter ikke kildesider live.'};
 }
 function renderLiveResearch(research){
  if(!research)return '<div class="notice warnbox">Live-søgning er endnu ikke kørt for dette job.</div>';
- const sources=Array.isArray(research.sources)?research.sources:[];
- const indexSources=sources.filter(x=>x.searchedLive);
- const relevantSources=indexSources.filter(x=>x.relevant);
- const domains=new Set(relevantSources.map(x=>x.domain).filter(Boolean));
- const enough=relevantSources.length>=6&&domains.size>=4;
- const date=research.searchedAt?new Date(research.searchedAt).toLocaleString('da-DK'):'Tidspunkt ukendt';
- const tone=research.status==='error'?'warnbox':enough?'goodbox':'warnbox';
- let html='<div class="notice '+tone+'"><b>'+(research.status==='error'?'Live-søgningen kunne ikke levere resultater':enough?'Kildetærsklen er nået i søgeresultaterne':'Researchgrundlaget er foreløbigt')+'</b><br>'+escapeHtml(indexSources.length+' søgeresultater samlet · '+relevantSources.length+' potentielt relevante kilder · '+domains.size+' hoveddomæner · '+research.successfulQueries+'/'+research.queryCount+' forespørgsler fik HTTP-svar · '+date)+'.<br>';
- if(enough)html+='Tærsklen er nået efter tekstlig relevans og domænespredning. Det er ikke det samme som uafhængig faktaverifikation.';
- else html+='Kravet er mindst 6 relevante kilder fra mindst 4 hoveddomæner. Det er ikke opfyldt, så resultatet må ikke betragtes som endeligt.';
+ const sources=Array.isArray(research.sources)?research.sources:[],indexSources=sources.filter(x=>x.searchedLive),relevantSources=indexSources.filter(x=>x.relevant),domains=new Set(relevantSources.map(x=>x.domain).filter(Boolean)),enough=relevantSources.length>=6&&domains.size>=4;
+ const date=research.searchedAt?new Date(research.searchedAt).toLocaleString('da-DK'):'Tidspunkt ukendt',tone=research.status==='error'?'warnbox':enough?'goodbox':'warnbox';
+ let html='<div class="notice '+tone+'"><b>'+(research.status==='error'?'Live-søgningen kunne ikke levere resultater':enough?'Kildetærsklen er nået i søgeresultaterne':'Researchgrundlaget er foreløbigt')+'</b><br>'+escapeHtml(indexSources.length+' unikke søgeresultater vist · '+relevantSources.length+' potentielt relevante kilder · '+domains.size+' hoveddomæner · '+research.successfulQueries+'/'+research.queryCount+' API-forespørgsler fik HTTP-svar · '+date)+'.<br>';
+ html+=enough?'Tærsklen er nået efter tekstlig relevans og domænespredning. Det er ikke det samme som uafhængig faktaverifikation.':'Kravet er mindst 6 relevante kilder fra mindst 4 hoveddomæner. Det er ikke opfyldt, så resultatet må ikke betragtes som endeligt.';
  if(research.error)html+='<br><b>Teknisk status:</b> '+escapeHtml(research.error);
- html+='</div>';
- html+='<div class="card research-plan" style="margin-top:12px"><h3>Kildeplan — hvad blev undersøgt?</h3><p class="muted">Her vises de aftalte kildeområder, hvor der blev søgt, hvilken forespørgsel der blev brugt, og om tjenesten returnerede resultater, ingen resultater eller en fejl.</p><div class="research-plan-list">';
+ html+='</div><div class="card research-plan" style="margin-top:12px"><h3>Kildeplan — hvad blev undersøgt?</h3><p class="muted">Hver række viser det aftalte kildeområde, det primære site-søgeforsøg og den bredere fallback. “Fundet via bred søgning” betyder, at den målrettede site-søgning ikke gav resultater; kontroller derfor altid det viste kildedomæne.</p><div class="research-plan-list">';
  const names={original:'Originalt jobopslag',employer:'Arbejdsgiverens officielle hjemmeside','linkedin-company':'LinkedIn — virksomhedsside','linkedin-jobs':'LinkedIn — jobopslag',jobindex:'Jobindex',jobnet:'Jobnet',workindenmark:'Workindenmark',news:'Virksomhedsnyheder og medier',registry:'CVR/Virk — officielle oplysninger','annual-report':'Årsrapport og regnskab',industry:'Fagmedier og specialkilder'};
  for(const category of (research.categoryStatuses||[])){
   const st=category.status||'ingen resultater';
-  const label=st==='fundet'?'Resultater fundet':st==='kontrollér relevans'?'Kontrollér relevans':st==='fejl'?'Teknisk fejl':'Ingen resultater';
-  const cls=st==='fundet'?'research-found':st==='kontrollér relevans'?'research-review':st==='fejl'?'research-error':'research-none';
-  html+='<div class="research-plan-row"><div class="research-plan-main"><strong>'+escapeHtml(names[category.id]||category.label||category.id)+'</strong><small>'+escapeHtml(category.sites||'Websøgning')+'</small><small class="research-query">Søgning: '+escapeHtml(category.query||'—')+'</small>';
-  if(category.fallbackQuery)html+='<small class="research-query">Bredere forsøg: '+escapeHtml(category.fallbackQuery)+'</small>';
+  const found=st==='fundet'||st==='fundet via bred søgning';
+  const review=st==='kontrollér relevans'||st==='kontrollér relevans via bred søgning';
+  const label=found?(st==='fundet via bred søgning'?'Fundet via bredere søgning':'Resultater fundet'):review?(st==='kontrollér relevans via bred søgning'?'Bred søgning — kontrollér relevans':'Kontrollér relevans'):st==='fejl'?'Teknisk fejl':'Ingen resultater';
+  const cls=found?'research-found':review?'research-review':st==='fejl'?'research-error':'research-none';
+  html+='<div class="research-plan-row"><div class="research-plan-main"><strong>'+escapeHtml(names[category.id]||category.label||category.id)+'</strong><small>'+escapeHtml(category.sites||'Websøgning')+'</small><small class="research-query">Målrettet søgning: '+escapeHtml(category.query||'—')+' · '+Number(category.primaryResults||0)+' fund</small>';
+  if(category.fallbackQuery)html+='<small class="research-query">Bredere søgning: '+escapeHtml(category.fallbackQuery)+' · '+Number(category.fallbackResults||0)+' fund</small>';
   if(category.errors)html+='<small class="research-error-text">'+escapeHtml(category.errors)+'</small>';
-  html+='</div><div class="research-plan-status"><span class="research-count">'+Number(category.rawResults||0)+' fund · '+Number(category.relevantResults||0)+' relevante</span><span class="research-status '+cls+'">'+label+'</span></div></div>';
+  html+='</div><div class="research-plan-status"><span class="research-count">'+Number(category.rawResults||0)+' unikke · '+Number(category.relevantResults||0)+' relevante</span><span class="research-status '+cls+'">'+label+'</span></div></div>';
  }
- html+='</div></div>';
- html+='<div class="notice" style="margin-top:10px">Kildebegrænsning: resultaterne kommer fra Purilis crawler-byggede webindeks. Indekstekst kan være ældre end originalsiden; appen bekræfter ikke automatisk, at et opslag stadig er aktivt. Åbn vigtige kilder for at kontrollere dato og indhold.</div>';
- if(!indexSources.length){
-  html+='<div class="empty">Ingen indeksresultater blev indsamlet. Brug kildeplanen ovenfor til at se, om forespørgslerne fejlede, eller om indekset returnerede 0 resultater.</div>';
- }else{
+ html+='</div></div><div class="notice" style="margin-top:10px">Kildebegrænsning: resultaterne kommer fra Purilis crawler-byggede webindeks. Indekstekst kan være ældre end originalsiden; appen bekræfter ikke automatisk, at opslaget stadig er aktivt. Åbn vigtige kilder for at kontrollere dato og indhold.</div>';
+ if(!indexSources.length)html+='<div class="empty">Ingen indeksresultater blev indsamlet. Brug kildeplanen ovenfor til at se, om forespørgslerne fejlede, eller om indekset returnerede 0 resultater.</div>';
+ else{
   html+='<div class="list" style="margin-top:12px">';
-  for(const source of sources){
-   const url=safeHttpUrl(source.url);
-   const cover=source.coverage==='stored-extracted-passages'?'Indekstekst':source.coverage==='search-snippet-fallback'?'Søgeuddrag':source.coverage==='user-provided-url'?'Link indsat af dig':'Webresultat';
-   const rel=source.coverage==='user-provided-url'?'Ikke verificeret':source.relevant?'Potentielt relevant':'Kontrollér relevans manuelt';
+  for(const source of sources){const url=safeHttpUrl(source.url),cover=source.coverage==='stored-extracted-passages'?'Indekstekst':source.coverage==='search-snippet-fallback'?'Søgeuddrag':source.coverage==='user-provided-url'?'Link indsat af dig':'Webresultat',rel=source.coverage==='user-provided-url'?'Ikke verificeret':source.relevant?'Potentielt relevant':'Kontrollér relevans manuelt';
    html+='<article class="item live-source-card"><div class="row" style="align-items:flex-start"><div><h3>'+escapeHtml(source.title||source.domain||'Webkilde')+'</h3><p>'+escapeHtml(source.domain||source.displayUrl||'')+' · '+escapeHtml(source.kind||'Webresultat')+'</p></div><span class="chip">'+cover+'</span></div>'+(source.description?'<p class="live-source-excerpt">'+escapeHtml(source.description)+'</p>':'<p class="muted">Intet uddrag tilgængeligt fra indekset.</p>')+'<p class="muted" style="font-size:12px">'+rel+'</p>'+(url?'<a class="profile-link" href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer"><span>Åbn kilde og kontrollér</span><span class="arrow" aria-hidden="true">↗</span></a>':'')+'</article>';
   }
   html+='</div>';
  }
- if(research.queryLog&&research.queryLog.length){
-  html+='<details class="result" style="margin-top:12px"><summary>Teknisk søgelog</summary>';
-  for(const q of research.queryLog)html+='<p><b>'+escapeHtml(q.label)+'</b><br>'+escapeHtml(q.query)+'<br>'+escapeHtml(q.status)+' · '+Number(q.rawResults||0)+' fund'+(q.error?' · '+escapeHtml(q.error):'')+'</p>';
-  html+='</details>';
- }
+ if(research.queryLog&&research.queryLog.length){html+='<details class="result" style="margin-top:12px"><summary>Teknisk søgelog</summary>';for(const q of research.queryLog)html+='<p><b>'+escapeHtml(q.label)+'</b><br>'+escapeHtml(q.query)+'<br>'+escapeHtml(q.status)+' · primær: '+Number(q.primaryResults||0)+' · fallback: '+Number(q.fallbackResults||0)+' · total: '+Number(q.rawResults||0)+(q.error?' · '+escapeHtml(q.error):'')+'</p>';html+='</details>';}
  return html;
 }
 function showResearchModal(queries){

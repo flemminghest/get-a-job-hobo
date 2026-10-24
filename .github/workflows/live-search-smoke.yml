@@ -1,0 +1,69 @@
+name: Live search API smoke test
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  purili-search-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verify public Purili search API
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          import time
+          import urllib.parse
+          import urllib.request
+
+          base = "https://puri.li/api/search"
+          queries = [
+              "digital marketing manager Denmark jobs",
+              "site:jobindex.dk marketing manager",
+              "site:linkedin.com/company marketing Denmark",
+              "CVR Denmark company annual report",
+          ]
+          total_results = 0
+          successful = 0
+          errors = []
+
+          for query in queries:
+              params = urllib.parse.urlencode({"q": query, "page": 1, "exact": 0})
+              url = base + "?" + params
+              request = urllib.request.Request(
+                  url,
+                  headers={
+                      "Accept": "application/json",
+                      "User-Agent": "GetAJobHobo-LiveSearch-SmokeTest/1.0",
+                  },
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=15) as response:
+                      if response.status != 200:
+                          raise RuntimeError("HTTP " + str(response.status))
+                      payload = json.loads(response.read().decode("utf-8"))
+                  if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+                      raise RuntimeError("Svar mangler JSON-arrayet 'results'")
+                  count = len(payload["results"])
+                  successful += 1
+                  total_results += count
+                  print("OK |", query, "| results =", count, "| elapsed =", payload.get("timeMs", "n/a"))
+              except Exception as exc:
+                  errors.append(query + ": " + str(exc))
+                  print("ERROR |", query, "|", str(exc))
+
+          print("SUMMARY | successful requests =", successful, "| indexed results =", total_results)
+          if successful == 0:
+              print("Ingen søgeforespørgsler fik et gyldigt svar.")
+              sys.exit(1)
+          if total_results == 0:
+              print("API'et svarede, men alle testforespørgsler gav 0 resultater.")
+              sys.exit(1)
+          PY

@@ -48,6 +48,9 @@ jobs:
                   with urllib.request.urlopen(request, timeout=15) as response:
                       if response.status != 200:
                           raise RuntimeError("HTTP " + str(response.status))
+                      cors = response.headers.get("Access-Control-Allow-Origin", "")
+                      if cors not in ("*", "https://flemminghest.github.io"):
+                          raise RuntimeError("CORS header mangler eller tillader ikke GitHub Pages: " + repr(cors))
                       payload = json.loads(response.read().decode("utf-8"))
                   if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
                       raise RuntimeError("Svar mangler JSON-arrayet 'results'")

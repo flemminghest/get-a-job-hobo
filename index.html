@@ -346,50 +346,115 @@ function canonicalSearchUrl(raw){
  const safe=safeHttpUrl(raw);if(!safe)return '';
  try{const u=new URL(safe);u.hash='';['utm_source','utm_medium','utm_campaign','utm_content','utm_term','trk','trackingId','refId'].forEach(k=>u.searchParams.delete(k));let p=u.pathname;while(p.length>1&&p.endsWith('/'))p=p.slice(0,-1);u.pathname=p;return u.href}catch(e){return ''}
 }
-async function performLiveResearch(title,company,job){
+async function performLiveResearch(title,company,job,sourceUrl,providedQueries){
  const searchedAt=new Date().toISOString();
- const queries=buildLiveQueries(title,company,job);
- const queryResults=await Promise.allSettled(queries.map(async q=>{
-  const url=LIVE_SEARCH_API+'?'+new URLSearchParams({q:q.q,page:'1',exact:'0'}).toString();
+ const queries=Array.isArray(providedQueries)&&providedQueries.length?providedQueries:buildLiveQueries(title,company,job,sourceUrl);
+ const resultsByUrl=new Map(),queryLog=[],categoryCounts=new Map();
+ let requestCount=0,successfulRequestCount=0,rawResultCount=0;
+ async function executeSearch(query){
+  requestCount++;
+  const url=LIVE_SEARCH_API+'?'+new URLSearchParams({q:query,page:'1',exact:'0'}).toString();
   const data=await fetchJsonTimeout(url,12000);
-  return {query:q,results:Array.isArray(data.results)?data.results.slice(0,10):[]};
- }));
- const successful=queryResults.filter(x=>x.status==='fulfilled');
- const failures=queryResults.filter(x=>x.status==='rejected');
- if(!successful.length)return {status:'error',searchedAt,queryCount:queries.length,successfulQueries:0,queries:queries.map(q=>q.kind+': '+q.q),sources:[],error:'Kunne ikke hente søgeresultater fra det eksterne webindeks. Kontrollér internetforbindelsen eller prøv igen.',provider:'Purili webindeks',note:'Ingen live-research-resultater blev hentet.'};
- const byUrl=new Map();
- for(const item of successful){
-  for(const raw of item.value.results){
-   const url=canonicalSearchUrl(raw.url);if(!url)continue;
-   const u=new URL(url);if(['puri.li','www.puri.li'].includes(u.hostname.toLowerCase()))continue;
-   const candidate={title:String(raw.title||u.hostname).slice(0,500),url,domain:registrableDomain(u.hostname),displayUrl:String(raw.displayUrl||u.hostname).slice(0,250),description:String(raw.description||'').slice(0,1200),kind:item.value.query.kind,coverage:'search-snippet-fallback',relevance:0,searchedLive:true};
-   const rank=liveResultRelevance(candidate,title,company,candidate.kind);candidate.relevance=rank.score;candidate._relevant=rank.relevant;
-   const old=byUrl.get(url);
-   if(old){if(!old.kinds.includes(candidate.kind))old.kinds.push(candidate.kind);if(candidate.description.length>old.description.length)old.description=candidate.description;if(candidate.relevance>old.relevance){old.relevance=candidate.relevance;old.title=candidate.title;old.displayUrl=candidate.displayUrl;old.kind=candidate.kind;old._relevant=candidate._relevant}}
-   else byUrl.set(url,{...candidate,kinds:[candidate.kind]});
-  }
+  if(!data||typeof data!=='object')throw new Error('Uventet svarformat');
+  if(data.error&&!Array.isArray(data.results))throw new Error(String(data.error));
+  const results=Array.isArray(data.results)?data.results:(Array.isArray(data.items)?data.items:[]);
+  successfulRequestCount++;
+  return {results,data};
  }
- const candidates=[...byUrl.values()].filter(x=>x._relevant).sort((a,b)=>b.relevance-a.relevance);
- const chosen=[],domainCounts=new Map(),used=new Set();
- for(const item of candidates){if(!domainCounts.has(item.domain)&&chosen.length<12){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,1)}}
- for(const item of candidates){if(chosen.length>=12)break;if(used.has(item.url))continue;const count=domainCounts.get(item.domain)||0;if(count<2){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,count+1)}}
- const contexts=await Promise.allSettled(chosen.slice(0,8).map(async item=>{
+ const perQuery=await Promise.all(queries.map(async q=>{
+  let activeQuery=q.query,activeTarget=q.targetSite||'',fallbackUsed=false,primaryError='',fallbackError='',rows=[];
+  setResearchModalQuery(q.id,'Søger…','Forespørgsel sendt');
+  try{
+   const response=await executeSearch(q.query);
+   rows=response.results;
+  }catch(e){primaryError=String(e&&e.message||e).slice(0,300)}
+  if(rows.length===0&&q.fallbackQuery&&q.fallbackQuery!==q.query){
+   fallbackUsed=true;activeQuery=q.fallbackQuery;activeTarget='';
+   setResearchModalQuery(q.id,'Prøver bredere søgning…','Det præcise opslag gav ingen resultater');
+   try{const fallback=await executeSearch(q.fallbackQuery);if(fallback.results.length)rows=fallback.results}
+   catch(e){fallbackError=String(e&&e.message||e).slice(0,300)}
+  }
+  const unique=new Map();
+  for(const raw of rows){
+   const url=canonicalSearchUrl(raw&&raw.url);if(!url)continue;
+   const parsed=new URL(url);
+   if(['puri.li','www.puri.li'].includes(parsed.hostname.toLowerCase()))continue;
+   const candidate={title:String(raw.title||parsed.hostname).slice(0,500),url,domain:registrableDomain(parsed.hostname),displayUrl:String(raw.displayUrl||parsed.hostname).slice(0,250),description:String(raw.description||'').slice(0,1500),categoryId:q.id,categoryLabel:q.label,kind:q.label,coverage:'search-snippet-fallback',searchedLive:true};
+   const rank=liveResultRelevance(candidate,title,company,q.label,activeTarget);
+   candidate.relevance=Math.round(rank.score*10)/10;
+   candidate.relevant=!!rank.relevant;
+   const old=unique.get(url);
+   if(!old||candidate.relevance>old.relevance)unique.set(url,candidate);
+  }
+  const categoryRows=[...unique.values()];
+  rawResultCount+=categoryRows.length;
+  const relevantCount=categoryRows.filter(x=>x.relevant).length;
+  let status='ingen resultater';
+  if(categoryRows.length)status=relevantCount?'fundet':'kontrollér relevans';
+  if(!categoryRows.length&&(primaryError||fallbackError))status='fejl';
+  const error=[primaryError,fallbackError].filter(Boolean).join(' / ');
+  const item={id:q.id,label:q.label,sites:q.sites,query:q.query,fallbackQuery:fallbackUsed?q.fallbackQuery:'',rawResults:categoryRows.length,relevantResults:relevantCount,errors:error,status};
+  categoryCounts.set(q.id,item);
+  for(const candidate of categoryRows){
+   const existing=resultsByUrl.get(candidate.url);
+   if(existing){
+    if(!existing.kinds.includes(q.label))existing.kinds.push(q.label);
+    if(!existing.categories.includes(q.id))existing.categories.push(q.id);
+    if(candidate.description.length>existing.description.length)existing.description=candidate.description;
+    if(candidate.relevance>existing.relevance){existing.relevance=candidate.relevance;existing.relevant=candidate.relevant;existing.title=candidate.title;existing.displayUrl=candidate.displayUrl;existing.domain=candidate.domain}
+   }else resultsByUrl.set(candidate.url,{...candidate,kinds:[q.label],categories:[q.id]});
+  }
+  const line={id:q.id,label:q.label,query:activeQuery,fallbackQuery:fallbackUsed?q.fallbackQuery:'',rawResults:categoryRows.length,relevantResults:relevantCount,requests:1+(fallbackUsed?1:0),status,error};
+  queryLog.push(line);
+  setResearchModalQuery(q.id,status,categoryRows.length+' resultater · '+relevantCount+' relevante');
+  return line;
+ }));
+ const allResults=[...resultsByUrl.values()];
+ const relevant=allResults.filter(x=>x.relevant).sort((a,b)=>b.relevance-a.relevance);
+ const other=allResults.filter(x=>!x.relevant).sort((a,b)=>b.relevance-a.relevance);
+ const chosen=[],used=new Set(),domainCounts=new Map();
+ for(const item of relevant){
+  if(chosen.length>=16)break;
+  if(!domainCounts.has(item.domain)){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,1)}
+ }
+ for(const item of relevant){
+  if(chosen.length>=16)break;
+  if(used.has(item.url))continue;
+  const count=domainCounts.get(item.domain)||0;
+  if(count<2){chosen.push(item);used.add(item.url);domainCounts.set(item.domain,count+1)}
+ }
+ for(const item of other){
+  if(chosen.length>=18)break;
+  if(!used.has(item.url)){chosen.push(item);used.add(item.url)}
+ }
+ const contexts=await Promise.allSettled(chosen.filter(x=>x.relevant).slice(0,8).map(async item=>{
   const url=LIVE_CONTEXT_API+'?'+new URLSearchParams({url:item.url}).toString();
   const ctx=await fetchJsonTimeout(url,9000);
   const text=String(ctx.content||ctx.summary||ctx.description||'').replace(/\s+/g,' ').trim();
-  return {url:item.url,excerpt:text.slice(0,850),coverage:String(ctx.coverage||'unknown'),liveFetch:ctx.liveFetch===true,title:String(ctx.title||'').slice(0,500)};
+  return {url:item.url,excerpt:text.slice(0,900),coverage:String(ctx.coverage||'unknown'),title:String(ctx.title||'').slice(0,500)};
  }));
- for(const res of contexts){
-  if(res.status!=='fulfilled')continue;
-  const item=chosen.find(x=>x.url===res.value.url);if(!item)continue;
-  if(res.value.excerpt)item.description=res.value.excerpt;
-  item.coverage=res.value.coverage;
-  item.pageTitle=res.value.title||item.title;
-  item.liveFetch=res.value.liveFetch;
+ for(const result of contexts){
+  if(result.status!=='fulfilled')continue;
+  const item=chosen.find(x=>x.url===result.value.url);if(!item)continue;
+  if(result.value.excerpt)item.description=result.value.excerpt;
+  item.coverage=result.value.coverage;
+  item.title=result.value.title||item.title;
  }
- const sources=chosen.map(x=>({title:x.pageTitle||x.title,url:x.url,domain:x.domain,displayUrl:x.displayUrl,description:x.description,kind:x.kinds.join(' · '),coverage:x.coverage||'search-snippet-fallback',searchedLive:true,relevance:Math.round(x.relevance*10)/10}));
- const domains=[...new Set(sources.map(x=>x.domain))];
- return {status:sources.length>=6&&domains.length>=4?'success':'partial',searchedAt,queryCount:queries.length,successfulQueries:successful.length,queries:queries.map(q=>q.kind+': '+q.q),sources,domains,error:failures.length?failures.length+' af '+queries.length+' søgninger fejlede.':'',provider:'Purili webindeks',note:'Søgningen blev udført ved analysen. Kildetekst er hentet fra søgeindekset og er ikke nødvendigvis direkte live-hentet fra kildesiden.'};
+ const providedUrl=safeHttpUrl(sourceUrl||'');
+ const sources=chosen.map(x=>({title:x.title,url:x.url,domain:x.domain,displayUrl:x.displayUrl,description:x.description,kind:x.kinds.join(' · '),categoryId:x.categories[0]||x.categoryId,categoryLabel:x.kinds.join(' · '),coverage:x.coverage||'search-snippet-fallback',searchedLive:true,relevant:!!x.relevant,relevance:x.relevance}));
+ if(providedUrl){
+  const host=new URL(providedUrl).hostname;
+  if(!sources.some(x=>canonicalSearchUrl(x.url)===canonicalSearchUrl(providedUrl))){
+   sources.unshift({title:'Originalt jobopslag — link indsat af dig',url:providedUrl,domain:registrableDomain(host),displayUrl:host,description:'Linket er angivet manuelt og er ikke bekræftet som aktivt.',kind:'Originalt jobopslag',categoryId:'original',categoryLabel:'Originalt jobopslag',coverage:'user-provided-url',searchedLive:false,relevant:false,relevance:0});
+  }
+ }
+ const categoryStatuses=queries.map(q=>categoryCounts.get(q.id)||{id:q.id,label:q.label,sites:q.sites,query:q.query,fallbackQuery:'',rawResults:0,relevantResults:0,errors:'Forespørgslen blev ikke afsluttet.',status:'fejl'});
+ const relevantSources=sources.filter(x=>x.searchedLive&&x.relevant);
+ const relevantDomains=[...new Set(relevantSources.map(x=>x.domain).filter(Boolean))];
+ const queryErrors=queryLog.filter(x=>x.status==='fejl').length;
+ const error=successfulRequestCount===0?'Ingen af søgeforespørgslerne fik et gyldigt svar fra Purili.':rawResultCount===0?'Søge-API’et svarede, men returnerede 0 resultater for alle kildeområder.':queryErrors?queryErrors+' kildeområder fejlede teknisk.':'';
+ const status=successfulRequestCount===0?'error':relevantSources.length>=6&&relevantDomains.length>=4?'success':'partial';
+ return {status,searchedAt,queryCount:requestCount,successfulQueries:successfulRequestCount,rawResultCount,relevantSourceCount:relevantSources.length,relevantDomainCount:relevantDomains.length,queries:queryLog.map(x=>x.label+': '+x.query),queryLog,categoryStatuses,sources,providedUrl,error,provider:'Purili webindeks',note:'Søgningen bruger Purilis crawler-baserede webindeks. Kontekst-API leverer lagret indekstekst og henter ikke kildesider live.'};
 }
 function renderLiveResearch(research){
  if(!research)return '<div class="notice warnbox">Live-søgning er endnu ikke kørt for dette job.</div>';

@@ -293,33 +293,55 @@ async function fetchJsonTimeout(url,timeoutMs=10000){
  try{const response=await fetch(url,{method:'GET',credentials:'omit',headers:{Accept:'application/json'},signal:controller.signal});if(!response.ok)throw new Error('HTTP '+response.status);return await response.json()}
  finally{clearTimeout(timeout)}
 }
-function buildLiveQueries(title,company,job){
- const t=searchPhrase(title)||searchPhrase(words(job).slice(0,5).join(' '));
+function buildLiveQueries(title,company,job,sourceUrl){
+ const t=searchPhrase(title);
  const c=searchPhrase(company);
- const qs=[];
- if(t||c)qs.push({kind:'Jobopslag og rolle',q:('"'+t+'" "'+c+'" job stilling jobs careers').trim()});
- if(c)qs.push({kind:'Arbejdsgiver',q:('"'+c+'" official website about careers Denmark').trim()});
- if(c)qs.push({kind:'LinkedIn',q:('site:linkedin.com/company "'+c+'"').trim()});
- if(c)qs.push({kind:'Nyheder og presse',q:('"'+c+'" nyheder news press release strategy').trim()});
- if(c)qs.push({kind:'Virksomhedsoplysninger',q:('"'+c+'" årsrapport CVR annual report Denmark').trim()});
- if(t)qs.push({kind:'Branche og kompetencer',q:('"'+t+'" Denmark job requirements skills industry').trim()});
- if(t)qs.push({kind:'Jobportaler',q:('"'+t+'" Denmark jobs jobindex jobnet').trim()});
- const seen=new Set();return qs.filter(x=>{const k=x.q.toLowerCase();if(!x.q.replace(/["\s]/g,'')||seen.has(k))return false;seen.add(k);return true}).slice(0,7);
+ const jobTokens=[...new Set(words(job).filter(x=>x.length>3&&!['søger','arbejde','erfaring','ansvar','stilling','virksomhed','du','der','for','med','til','the','and','with','from','your','will','have','are','our','this','that'].includes(x)))].slice(0,8).join(' ');
+ const role=t||jobTokens;
+ const queries=[];
+ function add(id,label,sites,query,targetSite,fallbackQuery){
+  const clean=String(query||'').replace(/\s+/g,' ').trim();
+  const fallback=String(fallbackQuery||'').replace(/\s+/g,' ').trim();
+  if(clean)queries.push({id,label,sites,query:clean,targetSite:targetSite||'',fallbackQuery:fallback});
+ }
+ const userUrl=safeHttpUrl(sourceUrl||'');
+ let originalHost='';
+ if(userUrl){try{originalHost=new URL(userUrl).hostname.toLowerCase().replace(/^www\./,'')}catch(e){}}
+ if(role||c){
+  const primary=originalHost?('site:'+originalHost+' '+role+' '+c+' job'):('"'+role+'" "'+c+'" jobopslag stilling');
+  add('original','Originalt jobopslag',originalHost||'Arbejdsgiverens karriereside og jobportaler',primary,originalHost,role+' '+c+' jobs Denmark');
+ }
+ if(c)add('employer','Arbejdsgiverens officielle hjemmeside','Virksomhedens eget domæne, Om os og karriereside',c+' official website about careers Denmark','',c+' official company website');
+ if(c)add('linkedin-company','LinkedIn — virksomhedsside','linkedin.com/company','site:linkedin.com/company '+c,'linkedin.com',c+' LinkedIn company');
+ if(role)add('linkedin-jobs','LinkedIn — jobopslag','linkedin.com/jobs','site:linkedin.com/jobs '+role+' '+c,'linkedin.com',role+' '+c+' LinkedIn job');
+ if(role)add('jobindex','Jobindex','jobindex.dk','site:jobindex.dk '+role+' '+c,'jobindex.dk',role+' '+c+' jobs Denmark');
+ if(role)add('jobnet','Jobnet','jobnet.dk','site:jobnet.dk '+role+' '+c,'jobnet.dk',role+' '+c+' jobs Denmark');
+ if(role)add('workindenmark','Workindenmark','workindenmark.dk','site:workindenmark.dk '+role+' '+c,'workindenmark.dk',role+' '+c+' jobs Denmark');
+ if(c)add('news','Virksomhedsnyheder og medier','Pressemeddelelser og relevante medier',c+' nyheder presse news media','',c+' nyheder company news');
+ if(c)add('registry','CVR/Virk — officielle virksomhedsoplysninger','datacvr.virk.dk og virk.dk','site:datacvr.virk.dk '+c,'datacvr.virk.dk','site:virk.dk '+c+' CVR');
+ if(c)add('annual-report','Årsrapport og regnskab','Årsrapporter og offentlige regnskabsoplysninger',c+' årsrapport regnskab annual report Denmark','',c+' årsrapport');
+ if(role)add('industry','Fagmedier og specialkilder','Relevante branchemedier og faglige kilder',role+' branche fagmedie industry publication Denmark '+jobTokens,'',role+' branche Denmark');
+ return queries;
 }
-function liveResultRelevance(result,title,company,kind){
+function liveResultRelevance(result,title,company,kind,targetSite){
  const hay=normalizeSearchText([result.title,result.url,result.description,result.displayUrl].join(' '));
- const cTokens=[...new Set(words(company).filter(x=>x.length>2&&!['danmark','denmark','company','group','holding','a/s','aps','the'].includes(x)))];
- const tTokens=[...new Set(words(title).filter(x=>x.length>2&&!['manager','senior','junior','specialist','lead','position','stilling','job','jobs','role','rolle'].includes(x)))];
+ const stop=new Set(['danmark','denmark','company','group','holding','the','and','for','with','from','you','your','career','careers','job','jobs','stilling','stillinger','rolle','role','position','senior','junior','manager','specialist','lead','a/s','aps']);
+ const cTokens=[...new Set(words(company).filter(x=>x.length>2&&!stop.has(x)))];
+ const tTokens=[...new Set(words(title).filter(x=>x.length>2&&!stop.has(x)))];
  const cHits=cTokens.filter(x=>hay.includes(normalizeSearchText(x))).length;
  const tHits=tTokens.filter(x=>hay.includes(normalizeSearchText(x))).length;
+ const host=(()=>{try{return new URL(result.url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return ''}})();
+ const target=String(targetSite||'').toLowerCase().replace(/^www\./,'');
+ const siteMatch=!!target&&(host===target||host.endsWith('.'+target));
  let score=cHits*3+tHits*1.4;
  if(cTokens.length&&cHits===cTokens.length)score+=2;
- if(/job|career|careers|jobs|stillinger|position|vacancy|vacancies/i.test((result.url||'')+' '+(result.title||'')))score+=1.4;
- if(/linkedin|annual report|årsrapport|press|news|nyhed|company|about|karriere|career/i.test((result.url||'')+' '+(result.title||'')))score+=.4;
- if(/Arbejdsgiver|LinkedIn|Nyheder|Virksomhedsoplysninger/.test(kind)&&cTokens.length)score+=.35;
- const relevant=cTokens.length?(cHits>0||tHits>=2):tHits>=1;
- return {score,relevant};
+ if(/job|career|careers|jobs|stillinger|position|vacancy|vacancies|karriere/i.test((result.url||'')+' '+(result.title||'')))score+=1.2;
+ if(/linkedin|annual report|årsrapport|press|news|nyhed|company|about|karriere|career|cvr/i.test((result.url||'')+' '+(result.title||'')))score+=.4;
+ if(siteMatch)score+=4;
+ const relevant=siteMatch||(cTokens.length>0&&cHits>0)||(tTokens.length>0&&tHits>=1);
+ return {score,relevant,cHits,tHits,siteMatch};
 }
+
 function canonicalSearchUrl(raw){
  const safe=safeHttpUrl(raw);if(!safe)return '';
  try{const u=new URL(safe);u.hash='';['utm_source','utm_medium','utm_campaign','utm_content','utm_term','trk','trackingId','refId'].forEach(k=>u.searchParams.delete(k));let p=u.pathname;while(p.length>1&&p.endsWith('/'))p=p.slice(0,-1);u.pathname=p;return u.href}catch(e){return ''}

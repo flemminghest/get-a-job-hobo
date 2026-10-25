@@ -178,6 +178,19 @@ label{font-size:14px;font-weight:750}
 
 /* Search progress modal / lightbox */
 .research-modal[hidden]{display:none!important}.research-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px}.research-modal-backdrop{position:absolute;inset:0;background:rgba(12,28,43,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.research-modal-card{position:relative;width:min(760px,100%);max-height:min(88vh,900px);overflow:auto;background:#fff;border:1px solid rgba(220,232,239,.95);border-radius:24px;padding:clamp(20px,4vw,34px);box-shadow:0 30px 100px rgba(5,23,39,.32);animation:researchModalIn .22s ease-out}@keyframes researchModalIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}.research-modal-heading{display:flex;align-items:center;gap:17px}.research-modal-heading .eyebrow{margin-bottom:4px}.research-modal-heading h2{font-size:clamp(22px,3vw,28px);line-height:1.2;margin:0;color:#1c344b}.research-modal-description{font-size:14px;line-height:1.65;color:#64758a;margin:18px 0 20px}.research-spinner{display:inline-block;flex:0 0 auto;width:42px;height:42px;border:4px solid #d8eee5;border-top-color:#16866b;border-right-color:#16866b;border-radius:50%;animation:researchSpin .8s linear infinite}@keyframes researchSpin{to{transform:rotate(360deg)}}.research-spinner-small{width:16px;height:16px;border-width:2px}.research-modal-progress-row{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800;color:#52667b;margin-bottom:8px}.research-modal-progress{height:8px;border-radius:99px;background:#eaf0f3;overflow:hidden}.research-modal-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#16866b,#69c69d);border-radius:99px;transition:width .25s ease}.research-modal-queries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:18px}.research-modal-query{min-width:0;display:flex;flex-direction:column;gap:5px;padding:12px 13px;border:1px solid #e0e8ed;border-radius:13px;background:#fbfcfd}.research-modal-query strong{font-size:12px;line-height:1.4;color:#223951}.research-modal-query small{font-size:11px;color:#718196;line-height:1.4}.research-modal-query-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#728195}.research-modal-query-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#bec9d4;flex:0 0 auto}.research-modal-query[data-done="true"] .research-modal-query-status:before{background:#16966c}.research-modal-query[data-error="true"] .research-modal-query-status:before{background:#c45353}.research-modal-query[data-done="true"] .research-modal-query-status{color:#217553}.research-modal-query[data-error="true"] .research-modal-query-status{color:#a04444}.research-modal-footer{display:flex;align-items:flex-start;gap:10px;border-top:1px solid #e8edf1;margin-top:18px;padding-top:14px;font-size:11px;line-height:1.55;color:#758497}@media(max-width:600px){.research-modal{padding:10px}.research-modal-card{border-radius:18px;padding:20px 15px;max-height:92vh}.research-modal-queries{grid-template-columns:1fr}.research-modal-heading{align-items:flex-start}.research-modal-heading .research-spinner{width:34px;height:34px}}
+/* AI thinking modal: spinner, honest indeterminate progress, and elapsed timer */
+.ai-thinking-modal[hidden]{display:none!important}
+.ai-thinking-modal{z-index:12000}
+.ai-thinking-card{width:min(620px,100%)}
+.ai-thinking-state{display:flex;align-items:center;gap:10px;font-size:13px;line-height:1.5;font-weight:750;color:#31546c;margin:6px 0 13px}
+.ai-thinking-progress{height:9px;border-radius:999px;background:#eaf0f3;overflow:hidden;position:relative}
+.ai-thinking-progress span{display:block;height:100%;width:38%;border-radius:999px;background:linear-gradient(90deg,#16866b,#65c6a0);animation:aiThinkingSweep 1.4s ease-in-out infinite}
+@keyframes aiThinkingSweep{0%{transform:translateX(-110%)}100%{transform:translateX(290%)}}
+.ai-thinking-timer-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;color:#718196;font-size:12px}
+.ai-thinking-timer-row strong{font-size:18px;letter-spacing:.06em;font-variant-numeric:tabular-nums;color:#20374e}
+.ai-thinking-card .research-modal-footer{font-size:12px}
+@media(prefers-reduced-motion:reduce){.ai-thinking-progress span{animation:none;width:100%;opacity:.65}.research-spinner{animation-duration:2.5s}}
+
 /* Source-weighted job assessment; personas are intentionally excluded from job matching */
 .evidence-conclusion{margin:16px 0;padding:22px;border:1px solid #dce8e5;border-radius:20px;background:linear-gradient(145deg,#fff 0%,#fbfdfc 100%);box-shadow:0 8px 24px rgba(24,55,75,.04)}
 .evidence-conclusion-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
@@ -363,6 +376,20 @@ label{font-size:14px;font-weight:750}
   <div class="research-modal-progress"><span id="researchModalProgressBar"></span></div>
   <div id="researchModalQueries" class="research-modal-queries" aria-live="polite"></div>
   <div class="research-modal-footer"><span class="research-spinner research-spinner-small" aria-hidden="true"></span><span>Søgeresultater kontrolleres for dubletter og relevans. Manglende kilder vises tydeligt i resultatet.</span></div>
+ </section>
+</div>
+<div id="aiThinkingModal" class="research-modal ai-thinking-modal" hidden role="dialog" aria-modal="true" aria-labelledby="aiThinkingTitle" aria-describedby="aiThinkingDescription" tabindex="-1">
+ <div class="research-modal-backdrop"></div>
+ <section class="research-modal-card ai-thinking-card">
+  <div class="research-modal-heading">
+   <span class="research-spinner" aria-hidden="true"></span>
+   <div><div class="eyebrow" style="color:#16866b">AI-ANALYSE</div><h2 id="aiThinkingTitle">Sprogmodellen analyserer dit CV</h2></div>
+  </div>
+  <p id="aiThinkingDescription" class="research-modal-description">Jeg gennemgår CV'et og det eventuelle stillingsopslag for at skrive en konkret vurdering. Det kan tage lidt tid afhængigt af tekstens længde.</p>
+  <div class="ai-thinking-state" aria-live="polite"><span class="research-spinner research-spinner-small" aria-hidden="true"></span><span id="aiThinkingStatus">Sender forespørgslen til sprogmodellen…</span></div>
+  <div class="ai-thinking-progress" aria-hidden="true"><span></span></div>
+  <div class="ai-thinking-timer-row"><span>Ventetid</span><strong id="aiThinkingTimer">00:00</strong></div>
+  <div class="research-modal-footer"><span>Modalen lukker automatisk, når svaret kommer tilbage — eller hvis der opstår en fejl.</span></div>
  </section>
 </div>
 <script>
@@ -1300,10 +1327,45 @@ function renderAiPersonaResult(item){
  const recommendations=renderList(item.recommendations,'recommendations');
  return '<article class="item panel-persona-result"><div class="row"><div><h3>'+escapeHtml(item.role||'Persona')+'</h3><p class="muted">AI-vurdering af CV-tekst — ikke en sandsynlighed for at få jobbet</p></div><div class="fit"><span class="chip">'+escapeHtml(item.scoreLabel||'CV-indikator')+' '+score+'/100</span></div></div><p>'+escapeHtml(item.overallAssessment||'Ingen samlet vurdering blev returneret.')+'</p><div class="panel-result-section"><b>Styrker — konkret begrundet</b><ul>'+strengths+'</ul></div><div class="panel-result-section"><b>Svagheder og usikkerheder</b><ul>'+weaknesses+'</ul></div><div class="panel-result-section"><b>Prioriterede forbedringer</b><ol>'+recommendations+'</ol></div>'+(item.jobRelevance?'<div class="panel-result-section"><b>Relevans for stillingen</b><p>'+escapeHtml(item.jobRelevance)+'</p></div>':'')+(item.confidenceNote?'<div class="panel-result-section"><b>Forbehold</b><p>'+escapeHtml(item.confidenceNote)+'</p></div>':'')+'</article>';
 }
+let aiThinkingTicker=null;
+let aiThinkingStartedAt=0;
+let aiThinkingPreviousOverflow='';
+function updateAiThinkingModal(){
+ const elapsed=Math.max(0,Math.floor((Date.now()-aiThinkingStartedAt)/1000));
+ const minutes=String(Math.floor(elapsed/60)).padStart(2,'0');
+ const seconds=String(elapsed%60).padStart(2,'0');
+ if(el('aiThinkingTimer'))el('aiThinkingTimer').textContent=minutes+':'+seconds;
+ let status='Sender forespørgslen til sprogmodellen…';
+ if(elapsed>=5&&elapsed<15)status='Afventer svar fra sprogmodellen…';
+ else if(elapsed>=15&&elapsed<30)status='Analysen tager lidt længere tid; ventetiden afhænger af tekstens længde…';
+ else if(elapsed>=30)status='Sprogmodellen er stadig i gang. Jeg venter på svar fra serveren…';
+ if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent=status;
+}
+function showAiThinkingModal(){
+ const modal=el('aiThinkingModal');
+ if(!modal)return;
+ if(aiThinkingTicker!==null){clearInterval(aiThinkingTicker);aiThinkingTicker=null}
+ aiThinkingStartedAt=Date.now();
+ aiThinkingPreviousOverflow=document.body.style.overflow;
+ if(el('aiThinkingTimer'))el('aiThinkingTimer').textContent='00:00';
+ if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Sender forespørgslen til sprogmodellen…';
+ modal.hidden=false;
+ document.body.style.overflow='hidden';
+ modal.focus({preventScroll:true});
+ updateAiThinkingModal();
+ aiThinkingTicker=setInterval(updateAiThinkingModal,1000);
+}
+function hideAiThinkingModal(){
+ const modal=el('aiThinkingModal');
+ if(aiThinkingTicker!==null){clearInterval(aiThinkingTicker);aiThinkingTicker=null}
+ if(modal)modal.hidden=true;
+ document.body.style.overflow=aiThinkingPreviousOverflow;
+}
 async function runPanelWithModel(cv,job,roles,endpoint,code){
  const button=[...document.querySelectorAll('#page-panel button')].find(b=>b.getAttribute('onclick')==='runPanel()');
  if(button){button.disabled=true;button.dataset.oldLabel=button.textContent;button.textContent='AI vurderer CV’et…'}
  notify('panelNotice','CV-teksten sendes til den konfigurerede backend og videre til sprogmodellen.','');
+ showAiThinkingModal();
  el('panelResults').innerHTML='<div class="empty">Sprogmodellen gennemgår CV’et og forbereder konkrete observationer for hver valgt persona…</div>';
  try{
   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+code},body:JSON.stringify({cv:cv,job:job,roles:roles})});
@@ -1325,6 +1387,7 @@ async function runPanelWithModel(cv,job,roles,endpoint,code){
   el('panelResults').innerHTML='<div class="notice warnbox"><b>AI-vurderingen kunne ikke gennemføres.</b><p>'+escapeHtml(error&&error.message?error.message:'Ukendt fejl')+'</p><p>Kontrollér endpoint, adgangskode, Vercel-miljøvariabler og at backend tillader GitHub Pages-domænet. Den lokale vurdering er ikke automatisk blevet præsenteret som AI.</p></div>';
   notify('panelNotice','AI-kaldet fejlede. Se fejlbeskeden i resultatfeltet.','warnbox');
  }finally{
+  hideAiThinkingModal();
   if(button){button.disabled=false;button.textContent=button.dataset.oldLabel||'Vurdér CV med panelet';delete button.dataset.oldLabel}
  }
 }

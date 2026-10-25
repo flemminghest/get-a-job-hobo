@@ -340,24 +340,15 @@ async function fetchJsonTimeout(url,timeoutMs=10000){
  finally{clearTimeout(timeout)}
 }
 function buildLiveQueries(title,company,job,sourceUrl){
- const t=searchPhrase(title);
- const c=searchPhrase(company);
+ const t=searchPhrase(title),c=searchPhrase(company);
  const jobTokens=[...new Set(words(job).filter(x=>x.length>3&&!['søger','arbejde','erfaring','ansvar','stilling','virksomhed','du','der','for','med','til','the','and','with','from','your','will','have','are','our','this','that'].includes(x)))].slice(0,8).join(' ');
- const role=t||jobTokens;
- const queries=[];
- function add(id,label,sites,query,targetSite,fallbackQuery){
-  const clean=String(query||'').replace(/\s+/g,' ').trim();
-  const fallback=String(fallbackQuery||'').replace(/\s+/g,' ').trim();
-  if(clean)queries.push({id,label,sites,query:clean,targetSite:targetSite||'',fallbackQuery:fallback});
- }
- const userUrl=safeHttpUrl(sourceUrl||'');
- let originalHost='';
+ const role=t||jobTokens,queries=[];
+ function add(id,label,sites,query,targetSite,fallbackQuery){const clean=String(query||'').replace(/\s+/g,' ').trim(),fallback=String(fallbackQuery||'').replace(/\s+/g,' ').trim();if(clean)queries.push({id,label,sites,query:clean,targetSite:targetSite||'',fallbackQuery:fallback})}
+ const userUrl=safeHttpUrl(sourceUrl||'');let originalHost='';
  if(userUrl){try{originalHost=new URL(userUrl).hostname.toLowerCase().replace(/^www\./,'')}catch(e){}}
- if(role||c){
-  const primary=originalHost?('site:'+originalHost+' '+role+' '+c+' job'):('"'+role+'" "'+c+'" jobopslag stilling');
-  add('original','Originalt jobopslag',originalHost||'Arbejdsgiverens karriereside og jobportaler',primary,originalHost,role+' '+c+' jobs Denmark');
- }
+ if(role||c){const primary=originalHost?('site:'+originalHost+' '+role+' '+c+' job'):('"'+role+'" "'+c+'" jobopslag stilling');add('original','Originalt jobopslag',originalHost||'Arbejdsgiverens karriereside og jobportaler',primary,originalHost,role+' '+c+' jobs Denmark')}
  if(c)add('employer','Arbejdsgiverens officielle hjemmeside','Virksomhedens eget domæne, Om os og karriereside',c+' official website about careers Denmark','',c+' official company website');
+ if(role)add('esco-skills','ESCO — standardiserede kompetencer','ESCO, EU-Kommissionens klassifikation af job og færdigheder','site:esco.ec.europa.eu '+role+' skills competences occupation profile','esco.ec.europa.eu','ESCO '+role+' typical skills competences occupational profile');
  if(c)add('linkedin-company','LinkedIn — virksomhedsside','linkedin.com/company','site:linkedin.com/company '+c,'linkedin.com',c+' LinkedIn company');
  if(role)add('linkedin-jobs','LinkedIn — jobopslag','linkedin.com/jobs','site:linkedin.com/jobs '+role+' '+c,'linkedin.com',role+' '+c+' LinkedIn job');
  if(role)add('jobindex','Jobindex','jobindex.dk','site:jobindex.dk '+role+' '+c,'jobindex.dk',role+' '+c+' jobs Denmark');
@@ -366,7 +357,7 @@ function buildLiveQueries(title,company,job,sourceUrl){
  if(c)add('news','Virksomhedsnyheder og medier','Pressemeddelelser og relevante medier',c+' nyheder presse news media','',c+' nyheder company news');
  if(c)add('registry','CVR/Virk — officielle virksomhedsoplysninger','datacvr.virk.dk og virk.dk','site:datacvr.virk.dk '+c,'datacvr.virk.dk','site:virk.dk '+c+' CVR');
  if(c)add('annual-report','Årsrapport og regnskab','Årsrapporter og offentlige regnskabsoplysninger',c+' årsrapport regnskab annual report Denmark','',c+' årsrapport');
- if(role)add('industry','Fagmedier og specialkilder','Relevante branchemedier og faglige kilder',role+' branche fagmedie industry publication Denmark '+jobTokens,'',role+' branche Denmark');
+ if(role)add('industry','Fagmedier og specialkilder','Relevante branchemedier, fagkilder og sammenlignelige jobkrav',role+' skills competencies requirements branche fagmedie industry Denmark '+jobTokens,'',role+' required skills Denmark jobs');
  return queries;
 }
 function liveResultRelevance(result,title,company,kind,targetSite){
@@ -590,10 +581,10 @@ function makeProposals(){const j=state.activeJob;if(!j)return;const match=(j.mat
 function sourceTrustAssessment(source,research){
  const url=safeHttpUrl(source.url);let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){}
  const broad=String(source.kind||'').toLowerCase().includes('bredere søgning');
- const inputUrl=safeHttpUrl(research&&research.providedUrl||'');
- let inputHost='';try{inputHost=new URL(inputUrl).hostname.toLowerCase().replace(/^www\./,'')}catch(e){}
+ const inputUrl=safeHttpUrl(research&&research.providedUrl||'');let inputHost='';try{inputHost=new URL(inputUrl).hostname.toLowerCase().replace(/^www\./,'')}catch(e){}
  if(!source.searchedLive||source.coverage==='user-provided-url')return {score:0,label:'Brugerlink — ikke verificeret',why:'Linket er indsat manuelt og tæller ikke som en kontrolleret kilde.'};
  if(host==='virk.dk'||host.endsWith('.virk.dk')||host==='cvr.dk'||host.endsWith('.cvr.dk')||host==='datacvr.virk.dk'||host.endsWith('.gov')||host.endsWith('.gov.uk'))return {score:100,label:'Officiel register-/myndighedsside',why:'Domænet tilhører et officielt register eller en myndighed.'};
+ if(host==='esco.ec.europa.eu'||host.endsWith('.esco.ec.europa.eu'))return {score:92,label:'Officiel ESCO-kompetencereference',why:'EU-Kommissionens standardiserede job- og kompetenceklassifikation kan bruges til at kontrollere typiske færdigheder for en rolle. Den dokumenterer ikke kandidatens kompetencer.'};
  if(inputHost&&host===inputHost&&!broad)return {score:94,label:'Samme domæne som joblinket',why:'Søgeresultatet matcher domænet på det link, du indsatte; selve siden er ikke direkte verificeret.'};
  if(host==='linkedin.com'||host.endsWith('.linkedin.com'))return {score:82,label:'LinkedIn-platform',why:'Platformskilde; opslag og profil skal stadig kontrolleres for aktualitet.'};
  if(['jobindex.dk','jobnet.dk','workindenmark.dk','thehub.io'].some(d=>host===d||host.endsWith('.'+d)))return {score:78,label:'Etableret jobportal',why:'Relevant jobportal, men et søgeresultat dokumenterer ikke i sig selv, at stillingen stadig er aktiv.'};
@@ -601,7 +592,7 @@ function sourceTrustAssessment(source,research){
  if((source.categoryId==='employer'||kind.includes('arbejdsgiverens officielle'))&&!broad)return {score:70,label:'Mulig arbejdsgiverkilde',why:'Søgeforespørgslen var rettet mod arbejdsgiverens hjemmeside, men domæneejerskab er ikke verificeret.'};
  if(source.categoryId==='annual-report'||/annual report|årsrapport|regnskab/i.test(kind))return {score:64,label:'Mulig rapport-/regnskabskilde',why:'Søgeordene peger på en rapport, men det er ikke bekræftet, at den er udgivet af virksomheden.'};
  if(source.categoryId==='news'||/nyheder|medier|press/i.test(kind))return {score:58,label:'Nyheds-/medieresultat',why:'Sekundær kilde; kontrollér udgiver, dato og den underliggende artikel.'};
- if(source.categoryId==='industry'||/fagmedie|specialkilder|branche/i.test(kind))return {score:54,label:'Fag-/specialkilde',why:'Kan give branchekontekst, men dokumenterer ikke alene konkrete forhold hos arbejdsgiveren.'};
+ if(source.categoryId==='industry'||/fagmedie|specialkilder|branche/i.test(kind))return {score:62,label:'Fag-/kompetencekilde',why:'Kan sætte kompetencekrav i branchekontekst, men dokumenterer ikke alene kandidatens færdigheder.'};
  if(broad)return {score:38,label:'Bredt søgeresultat — kontrollér domæne',why:'Kom fra en bredere søgning efter et tomt målsitesøg, så kildetypen er ikke bekræftet.'};
  return {score:45,label:'Søgeindeksresultat — ikke verificeret',why:'Søgeuddraget og domænets relevans kræver manuel kontrol.'};
 }
@@ -631,6 +622,74 @@ function detectSourceSignals(sources){
   if(negativeRe.test(text)&&risks.length<4)risks.push({text:'Søgeresultatet indeholder et muligt risikosignal (fx nedskæringer, lukning eller at en stilling er besat). Kontrollér originalkilden og datoen før du lægger vægt på det.',source});
  }
  return {positives,risks};
+}
+const COMPETENCY_LIBRARY=[
+ {id:'strategy',label:'Strategi og forretningsforståelse',aliases:['marketing strategy','marketingstrategi','markedsføringsstrategi','go-to-market','gtm strategy','strategic planning','forretningsstrategi','growth strategy','commercial strategy','digital strategy']},
+ {id:'analytics',label:'Dataanalyse, måling og performance',aliases:['data analytics','data analysis','dataanalyse','marketing analytics','web analytics','performance analytics','ga4','google analytics','power bi','bigquery','sql','kpi','dashboard','attribution','reporting','data reporting']},
+ {id:'crm-automation',label:'CRM og marketing automation',aliases:['crm','marketing automation','marketingautomatisering','customer relationship management','segmentation','segmentering','email automation','e-mail automation','activecampaign','apsis','agillic','lifecycle marketing']},
+ {id:'seo-content',label:'SEO/GEO og indholdsstrategi',aliases:['seo','geo','generative engine optimization','search engine optimization','søgemaskineoptimering','content strategy','indholdsstrategi','content marketing','organic search','organic traffic','search visibility']},
+ {id:'ux-conversion',label:'UX/UI og konverteringsoptimering',aliases:['user experience','user interface','ux research','ux','ui','brugervenlighed','conversion rate optimization','konverteringsoptimering','cro','a b testing','ab testing','wireframing','customer journey','brugerrejse','funnel optimization']},
+ {id:'project-management',label:'Projekt- og programledelse',aliases:['project management','projektledelse','program management','roadmap','agile project','scrum','sprint planning','project delivery','programme management']},
+ {id:'content-copy',label:'Copywriting, kommunikation og indhold',aliases:['copywriting','copywriter','content writing','tekstforfatning','content creation','communication','kommunikation','editorial','redaktionelt indhold','writing skills','storytelling','brand messaging']},
+ {id:'ai-workflows',label:'AI, generativ AI og automatisering',aliases:['artificial intelligence','generative ai','kunstig intelligens','chatgpt','large language model','llm','workflow automation','process automation','automatisering','ai tools','ai automation']},
+ {id:'api-integration',label:'API’er og dataintegration',aliases:['rest api','api integration','api integrations','data integration','dataintegration','system integration','systemintegration','etl','webhooks','integration architecture','partner api']},
+ {id:'campaigns-paid',label:'Kampagnestyring og betalte medier',aliases:['campaign management','kampagnestyring','campaign planning','campaign execution','paid media','google ads','meta ads','paid social','media buying','digital advertising','marketing campaigns','kampagner']},
+ {id:'product-management',label:'Produktledelse og produktudvikling',aliases:['product management','product manager','produktledelse','product owner','product strategy','product roadmap','product discovery','product development','produktudvikling']},
+ {id:'leadership',label:'Ledelse og teamudvikling',aliases:['people management','team leadership','ledelsesansvar','personaleansvar','leadership','team lead','manage a team','lead a team','line management']},
+ {id:'commercial',label:'Kommerciel forståelse, salg og vækst',aliases:['sales','salg','revenue growth','omsætningsvækst','commercial strategy','cross sell','upsell','pipeline management','lead generation','business development','customer acquisition','revenue responsibility']},
+ {id:'stakeholders',label:'Stakeholder management og tværgående samarbejde',aliases:['stakeholder management','stakeholder engagement','stakeholders','tværfagligt samarbejde','cross functional','cross-functional collaboration','collaboration across teams','executive stakeholders']},
+ {id:'process',label:'Procesforbedring og drift',aliases:['process optimization','process improvement','procesoptimering','operational excellence','workflow improvement','business process','continuous improvement','efficiency improvement']},
+ {id:'web-tech',label:'Webteknologi og udvikling',aliases:['javascript','html','css','jquery','web development','webudvikling','frontend development','rest api','git','bootstrap','technical implementation','web technologies']},
+ {id:'creative-video',label:'Video- og multimedieproduktion',aliases:['video production','videoproduktion','video editing','premiere pro','adobe premiere','after effects','motion graphics','multimedia production','audiovisual production']},
+ {id:'design-tools',label:'Design, kreative værktøjer og visuel formidling',aliases:['graphic design','grafisk design','photoshop','adobe xd','figma','adobe creative cloud','illustrator','visual design','creative suite','design systems']},
+ {id:'research-testing',label:'Brugerindsigt, research og test',aliases:['user research','brugerundersøgelse','customer research','customer insights','qualitative research','quantitative research','survey design','surveys','usability testing','user interviews','market research']},
+ {id:'email-lifecycle',label:'E-mailmarketing og customer lifecycle',aliases:['email marketing','e-mail marketing','email campaigns','e-mail kampagner','newsletter','email segmentation','retention marketing','customer retention','churn prevention','permission marketing','email journeys']},
+ {id:'budget-roi',label:'Budget, ROI og økonomisk styring',aliases:['budgeting','budgetansvar','marketing budget','budget management','return on investment','roi','profitability','profit margin','financial planning','cost control','p l responsibility']},
+ {id:'languages',label:'Sprogkrav',aliases:['danish language','dansk i skrift og tale','fluent in danish','native danish','english fluency','fluent in english','dansk og engelsk','written and spoken danish','written and spoken english']},
+ {id:'employer-branding',label:'Employer branding og rekrutteringskommunikation',aliases:['employer branding','arbejdsgiverbranding','employee value proposition','evp','recruitment marketing','employer brand','talent attraction']},
+ {id:'b2b',label:'B2B-marketing og account-based arbejde',aliases:['b2b marketing','business to business','account based marketing','abm','demand generation','lead nurturing','enterprise marketing','b2b sales']},
+ {id:'experimentation',label:'Eksperimenter og løbende optimering',aliases:['experimentation','experimentation framework','test and learn','multivariate testing','hypothesis testing','conversion experiments','incrementality testing']}
+];
+function hasCompetencyTerm(text,term){const hay=' '+normalizeSearchText(text)+' ',needle=' '+normalizeSearchText(term)+' ';return !!needle.trim()&&hay.includes(needle)}
+function extractSkillSnippet(text,aliases){
+ const segments=String(text||'').split(/[\r\n•]+|[.!?]\s+/).map(x=>x.trim()).filter(Boolean);
+ const action=/implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\b\d{2,}\b/i;
+ const hits=segments.filter(segment=>aliases.some(alias=>hasCompetencyTerm(segment,alias)));
+ if(!hits.length)return '';
+ hits.sort((a,b)=>(action.test(b)?4:0)+Math.min(b.length,260)/260-(action.test(a)?4:0)-Math.min(a.length,260)/260);
+ let best=hits[0].replace(/\s+/g,' ').trim();if(best.length>340)best=best.slice(0,337).replace(/\s+\S*$/,'')+'…';return best;
+}
+function competencyPriority(text,aliases){
+ const normalized=normalizeSearchText(text);let index=-1;
+ for(const alias of aliases){const i=normalized.indexOf(normalizeSearchText(alias));if(i>=0&&(index<0||i<index))index=i}
+ if(index<0)return {label:'Nævnt',weight:1};
+ const w=normalized.slice(Math.max(0,index-130),Math.min(normalized.length,index+190));
+ if(/nice to have|preferred|preferably|would be an advantage|is a plus|desirable|an advantage|en fordel|gerne|ønskeligt|ønskes|kan være en fordel/.test(w))return {label:'Ønsket',weight:.65};
+ if(/must have|required|requirement|essential|mandatory|shall have|skal kunne|skal have|kræves|et krav|krav om|minimum|minimumskrav|forventes at|solid experience|proven experience|documented experience/.test(w))return {label:'Krav',weight:1.5};
+ return {label:'Fremhævet i opslag',weight:1};
+}
+function buildCompetencyAssessment(jobText,cvText,title,research){
+ const job=String(jobText||''),cv=String(cvText||''),titleText=String(title||'');
+ const rows=[];
+ for(const skill of COMPETENCY_LIBRARY){
+  const jobAliases=skill.aliases.filter(alias=>hasCompetencyTerm(job+' '+titleText,alias));
+  if(!jobAliases.length)continue;
+  const cvAliases=skill.aliases.filter(alias=>hasCompetencyTerm(cv,alias));
+  const jobEvidence=extractSkillSnippet(job+' '+titleText,jobAliases);
+  const cvEvidence=extractSkillSnippet(cv,cvAliases);
+  const priority=competencyPriority(job+' '+jobEvidence,jobAliases);
+  const specificEvidence=cvEvidence&&/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\b\d{2,}\b)/i.test(cvEvidence);
+  const status=cvAliases.length?(specificEvidence?'evidenced':'mentioned'):'missing';
+  const sourceRefs=(research&&Array.isArray(research.sources)?research.sources:[]).filter(source=>{
+   if(!source.searchedLive||!source.relevant)return false;
+   const kind=String(source.kind||'').toLowerCase(),text=[source.title,source.description,source.kind].join(' ');
+   return source.categoryId==='esco-skills'||String(source.domain||'').toLowerCase().includes('esco.ec.europa.eu')||/jobopslag|jobindex|jobnet|workindenmark|linkedin.*job|fagmedie|branche/i.test(kind+' '+source.categoryId);
+  }).filter(source=>skill.aliases.some(alias=>hasCompetencyTerm([source.title,source.description,source.kind].join(' '),alias))||source.categoryId==='esco-skills'||(titleText&&hasCompetencyTerm([source.title,source.description].join(' '),titleText))).sort((a,b)=>sourceTrustAssessment(b,research).score-sourceTrustAssessment(a,research).score).slice(0,3).map(source=>({title:source.title,url:source.url,domain:source.domain,categoryId:source.categoryId,kind:source.kind}));
+  rows.push({id:skill.id,label:skill.label,aliases:jobAliases,priority:priority.label,weight:priority.weight,status,statusLabel:status==='evidenced'?'Understøttet af konkret handling/resultat':status==='mentioned'?'Nævnt i CV — konkret resultat ikke tydeligt':'Ikke fundet i CV-teksten',factor:status==='evidenced'?1:status==='mentioned'?.62:0,jobEvidence:jobEvidence||'Kompetencen blev fundet i opslagets titel/tekst, men et præcist kravcitat kunne ikke udtrækkes.',cvEvidence:cvEvidence||'',sourceRefs});
+ }
+ const totalWeight=rows.reduce((sum,row)=>sum+row.weight,0),points=rows.reduce((sum,row)=>sum+row.weight*row.factor,0);
+ const references=(research&&Array.isArray(research.sources)?research.sources:[]).filter(source=>source.searchedLive&&source.relevant).filter(source=>String(source.domain||'').toLowerCase().includes('esco.ec.europa.eu')||source.categoryId==='esco-skills'||/original|jobopslag|jobindex|jobnet|workindenmark|linkedin.*job|fagmedie|branche/i.test(String(source.kind||'')+' '+String(source.categoryId||''))).sort((a,b)=>sourceTrustAssessment(b,research).score-sourceTrustAssessment(a,research).score).slice(0,8).map(source=>({title:source.title,url:source.url,domain:source.domain,categoryId:source.categoryId,kind:source.kind,description:source.description,trust:sourceTrustAssessment(source,research).label}));
+ return {rows:rows.slice(0,30),requiredCount:rows.length,documentedCount:rows.filter(r=>r.status==='evidenced').length,mentionedCount:rows.filter(r=>r.status==='mentioned').length,missingCount:rows.filter(r=>r.status==='missing').length,coverageScore:rows.length?Math.round(points/totalWeight*100):null,references,method:'Kompetencekrav udtrækkes fra jobtitel og jobtekst med en synonymordbog. CV-dokumentation vurderes ud fra tekstfund og konkrete handlings-/resultatord. Indikatoren måler dokumentation i CV’et, ikke faktisk kompetenceniveau.'};
 }
 function buildEvidenceAssessment(job){
  const research=job&&job.liveResearch;

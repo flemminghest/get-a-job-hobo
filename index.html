@@ -669,7 +669,7 @@ function detectSourceSignals(sources){
 }
 const COMPETENCY_LIBRARY=[
  {id:'strategy',label:'Strategi og forretningsforståelse',aliases:['marketing strategy','marketingstrategi','markedsføringsstrategi','go-to-market','gtm strategy','strategic planning','forretningsstrategi','growth strategy','commercial strategy','digital strategy']},
- {id:'analytics',label:'Dataanalyse, måling og performance',aliases:['data analytics','data analysis','dataanalyse','marketing analytics','web analytics','performance analytics','ga4','google analytics','power bi','bigquery','sql','kpi','dashboard','attribution','reporting','data reporting']},
+ {id:'analytics',label:'Dataanalyse, måling og performance',aliases:['data analytics','data analysis','dataanalyse','keyword analysis','search term analysis','search-term analysis','analyse af søgeord','søgeordsanalyse','marketing analytics','web analytics','performance analytics','performance monitoring','campaign performance analysis','campaign analysis','ga4','google analytics','power bi','bigquery','sql','kpi','dashboard','attribution','reporting','data reporting','data-driven marketing']},
  {id:'crm-automation',label:'CRM og marketing automation',aliases:['crm','marketing automation','marketingautomatisering','customer relationship management','segmentation','segmentering','email automation','e-mail automation','activecampaign','apsis','agillic','lifecycle marketing']},
  {id:'seo-content',label:'SEO/GEO og indholdsstrategi',aliases:['seo','geo','generative engine optimization','search engine optimization','søgemaskineoptimering','content strategy','indholdsstrategi','content marketing','organic search','organic traffic','search visibility']},
  {id:'ux-conversion',label:'UX/UI og konverteringsoptimering',aliases:['user experience','user interface','ux research','ux','ui','brugervenlighed','conversion rate optimization','konverteringsoptimering','cro','a b testing','ab testing','wireframing','customer journey','brugerrejse','funnel optimization']},
@@ -697,7 +697,7 @@ const COMPETENCY_LIBRARY=[
 function hasCompetencyTerm(text,term){const hay=' '+normalizeSearchText(text)+' ',needle=' '+normalizeSearchText(term)+' ';return !!needle.trim()&&hay.includes(needle)}
 function extractSkillSnippet(text,aliases){
  const segments=String(text||'').split(/[\r\n•]+|[.!?]\s+/).map(x=>x.trim()).filter(Boolean);
- const action=/implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\b\d{2,}\b/i;
+ const action=/implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\b\d{2,}\b/i;
  const hits=segments.filter(segment=>aliases.some(alias=>hasCompetencyTerm(segment,alias)));
  if(!hits.length)return '';
  hits.sort((a,b)=>(action.test(b)?4:0)+Math.min(b.length,260)/260-(action.test(a)?4:0)-Math.min(a.length,260)/260);
@@ -709,7 +709,7 @@ function competencyPriority(text,aliases){
  if(index<0)return {label:'Nævnt',weight:1};
  const w=normalized.slice(Math.max(0,index-130),Math.min(normalized.length,index+190));
  if(/nice to have|preferred|preferably|would be an advantage|is a plus|desirable|an advantage|en fordel|gerne|ønskeligt|ønskes|kan være en fordel/.test(w))return {label:'Ønsket',weight:.65};
- if(/must have|required|requirement|essential|mandatory|shall have|skal kunne|skal have|kræves|et krav|krav om|minimum|minimumskrav|forventes at|solid experience|proven experience|documented experience/.test(w))return {label:'Krav',weight:1.5};
+ if(/must have|required|requirement|require|requires|we require|essential|mandatory|shall have|need to have|skal kunne|skal have|kræves|et krav|krav om|minimum|minimumskrav|forventes at|solid experience|proven experience|documented experience/.test(w))return {label:'Krav',weight:1.5};
  return {label:'Fremhævet i opslag',weight:1};
 }
 function buildCompetencyAssessment(jobText,cvText,title,research){
@@ -722,7 +722,7 @@ function buildCompetencyAssessment(jobText,cvText,title,research){
   const jobEvidence=extractSkillSnippet(job+' '+titleText,jobAliases);
   const cvEvidence=extractSkillSnippet(cv,cvAliases);
   const priority=competencyPriority(jobEvidence,jobAliases);
-  const specificEvidence=cvEvidence&&/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\b\d{2,}\b)/i.test(cvEvidence);
+  const specificEvidence=cvEvidence&&/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\b\d{2,}\b)/i.test(cvEvidence);
   const status=cvAliases.length?(specificEvidence?'evidenced':'mentioned'):'missing';
   const sourceRefs=(research&&Array.isArray(research.sources)?research.sources:[]).filter(source=>{
    if(!source.searchedLive||!source.relevant)return false;

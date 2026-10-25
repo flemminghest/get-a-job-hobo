@@ -75,11 +75,19 @@ function normalizeApplicationDrafts(raw, meta) {
       .replace(/(?:^|\n)\s*(?:Mange hilsner|Venlig hilsen|Med venlig hilsen|Bedste hilsner|Mvh\.?)\s*[\s\S]*$/i, "")
       .trim();
     if (company) text = text.replace(/\bjeres virksomhed\b/gi, company);
+    let paragraphs = text.split(/\n\n+/);
+    if (company && !text.toLocaleLowerCase("da-DK").includes(company.toLocaleLowerCase("da-DK"))) {
+      const insertion = "Jeg vil gerne bringe min erfaring i spil hos " + company + ".";
+      if (paragraphs.length > 1) paragraphs[1] = insertion + " " + paragraphs[1];
+      else paragraphs[0] = insertion + " " + paragraphs[0];
+      text = paragraphs.join("\n\n");
+    }
     if (/\b(?:dit navn|\[Jacob\]|Eksempelvirksomhed|Example Company)\b/i.test(text)) {
       throw new Error("Et ansøgningsforslag indeholdt en pladsholder, som ikke kunne rettes sikkert.");
     }
     const wordCount = text.split(/\s+/).filter(Boolean).length;
     if (wordCount < 110) throw new Error("Et af ansøgningsforslagene er for kort. Prøv igen.");
+    if (wordCount > 270) throw new Error("Et af ansøgningsforslagene blev for langt. Prøv igen.");
     return {
       title: titles[index],
       focus: String(draft && draft.focus || "").slice(0, 400),

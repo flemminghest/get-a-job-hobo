@@ -1947,15 +1947,27 @@ function panelFacts(text,job){
  return {text,lower,lines,wordCount,headings,actionCount,resultEvidence,genericEvidence,hasDates,hasContact,overlaps,overlapRatio,jobTerms,marketingFound,leadershipFound,commercialFound,uniqueTokens:uniqueTokens.length,repetition,jobProvided:!!job.trim(),hasExperienceHeading:headings.includes('Erfaring'),hasProfileHeading:headings.includes('Profil eller resumé'),hasSkillsHeading:headings.includes('Kompetencer'),hasEducationHeading:headings.includes('Uddannelse')};
 }
 function getPanelAiSettings(){
- try{return {url:sessionStorage.getItem('gajh_ai_endpoint')||'',code:sessionStorage.getItem('gajh_ai_access_code')||''}}
- catch(e){return {url:'',code:''}}
+ let url='',code='';
+ // Persistent settings are local to this browser/device, never embedded in public Git.
+ try{
+  url=localStorage.getItem('gajh_ai_endpoint')||'';
+  code=localStorage.getItem('gajh_ai_access_code')||'';
+ }catch(e){}
+ // Migrate settings from older versions that used sessionStorage, if they still exist.
+ try{
+  const legacyUrl=sessionStorage.getItem('gajh_ai_endpoint')||'';
+  const legacyCode=sessionStorage.getItem('gajh_ai_access_code')||'';
+  if(!url&&legacyUrl){url=legacyUrl;try{localStorage.setItem('gajh_ai_endpoint',url)}catch(e){}}
+  if(!code&&legacyCode){code=legacyCode;try{localStorage.setItem('gajh_ai_access_code',code)}catch(e){}}
+ }catch(e){}
+ return {url,code};
 }
 function loadPanelAiSettings(){
  const saved=getPanelAiSettings();
  if(el('panelAiUrl'))el('panelAiUrl').value=saved.url;
  if(el('panelAiCode'))el('panelAiCode').value=saved.code;
  if(el('panelAiStatus')){
-  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-indstillinger fundet i denne browsersession. Sprogmodellen er klar til test.':'AI er ikke konfigureret. Åbn AI-indstillingerne for at tilslutte den sikre backend.';
+  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-indstillinger fundet på denne enhed. De bevares, når du lukker og åbner appen igen.':'AI er ikke konfigureret. Indtast endpoint og adgangskode én gang; de gemmes derefter på denne enhed.';
   el('panelAiStatus').className='notice '+(saved.url&&saved.code?'goodbox':'warnbox');
  }
  const settings=el('panelAiSettings');if(settings)settings.open=!(saved.url&&saved.code);
@@ -1975,23 +1987,31 @@ function savePanelAiSettings(silent){
  }
  const previous=getPanelAiSettings();
  const credentialsChanged=previous.url!==url||previous.code!==code;
- try{sessionStorage.setItem('gajh_ai_endpoint',url);sessionStorage.setItem('gajh_ai_access_code',code)}
- catch(e){if(!silent)notify('panelAiStatus','Browserens sessionslager er utilgængeligt. Prøv en almindelig browserfane.','warnbox');return false}
+ try{
+  // Save only after validation. localStorage survives tab and browser restarts.
+  localStorage.setItem('gajh_ai_endpoint',url);
+  localStorage.setItem('gajh_ai_access_code',code);
+ }catch(e){
+  if(!silent)notify('panelAiStatus','Browseren kunne ikke gemme AI-indstillingerne permanent. Kontrollér, at lokal lagring er tilladt, og prøv igen.','warnbox');
+  return false;
+ }
  if(credentialsChanged){
   try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error');sessionStorage.removeItem('gajh_ai_last_model');sessionStorage.removeItem('gajh_ai_application_success');sessionStorage.removeItem('gajh_ai_application_error')}catch(e){}
  }
  updateModelIntegrationStatus();
- if(!silent)notify('panelAiStatus','AI-indstillinger gemt for denne browsersession. OpenAI API-nøglen ligger fortsat kun på serveren.','goodbox');
+ if(!silent)notify('panelAiStatus','AI-indstillinger gemt på denne enhed i denne browser. De bevares, indtil du ændrer eller rydder dem. OpenAI API-nøglen ligger fortsat kun på serveren.','goodbox');
  return true;
 }
 function clearPanelAiSettings(){
+ // Clear both the new persistent values and any legacy sessionStorage copies.
+ try{localStorage.removeItem('gajh_ai_endpoint');localStorage.removeItem('gajh_ai_access_code')}catch(e){}
  try{sessionStorage.removeItem('gajh_ai_endpoint');sessionStorage.removeItem('gajh_ai_access_code')}catch(e){}
  if(el('panelAiUrl'))el('panelAiUrl').value='';
  if(el('panelAiCode'))el('panelAiCode').value='';
  try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error');sessionStorage.removeItem('gajh_ai_last_model');sessionStorage.removeItem('gajh_ai_application_success');sessionStorage.removeItem('gajh_ai_application_error')}catch(e){}
  updateModelIntegrationStatus();
  const settings=el('panelAiSettings');if(settings)settings.open=true;
- notify('panelAiStatus','AI-indstillinger ryddet. CV kan vurderes lokalt, men andre materialetyper kræver sprogmodellen.','warnbox');
+ notify('panelAiStatus','AI-indstillinger ryddet fra denne browser. CV kan fortsat vurderes lokalt, hvis AI ikke er konfigureret.','warnbox');
 }
 function renderAiPersonaResult(item,documentType){
  const label=getPanelDocumentLabel(documentType);

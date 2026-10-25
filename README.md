@@ -36,7 +36,7 @@ Direkte validering af kildesider, AI-generering, OCR/PDF-udtræk, sikker konto-/
 - Historik, backup/restore, eksport og sletning af lokale data.
 
 ## Privatliv
-CV, ansøgningstekst og importerede LinkedIn-data forbliver i browserens lokale lager. Live-søgning sender jobtitel, virksomhedsnavn og udvalgte søgeord fra jobopslaget til Purilis offentlige websøge-API. Ingen private CV- eller netværksdata sendes med. Offentlig kildekode indeholder ikke brugerens private data.
+CV, ansøgningstekst og importerede LinkedIn-data forbliver i browserens lokale lager. AI-endpoint og adgangskode gemmes også i browserens lokale lager, så de bevares på samme browser/enhed efter genstart; de lægges ikke i Git eller appens CV/job-backup. Rydning af browserdata, privat browsing eller skift af browser/enhed kan kræve ny indtastning. Gem aldrig `OPENAI_API_KEY` eller `APP_ACCESS_CODE` i det offentlige repository. Live-søgning sender jobtitel, virksomhedsnavn og udvalgte søgeord fra jobopslaget til Purilis offentlige websøge-API. Ingen private CV- eller netværksdata sendes med.
 
 ## Kildebaseret jobkonklusion (uden personaer)
 Jobanalysen bruger ikke Recruiter, Copywriter, CMO eller CEO til at vurdere, om en stilling passer til brugeren. Personaerne er forbeholdt panelkritik af tekst og ansøgninger.

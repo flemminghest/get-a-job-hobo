@@ -546,8 +546,8 @@ function updateModelIntegrationStatus(){
  try{lastSuccess=sessionStorage.getItem('gajh_ai_last_success')||'';lastError=sessionStorage.getItem('gajh_ai_last_error')||'';lastModel=sessionStorage.getItem('gajh_ai_last_model')||''}catch(e){}
  if(configured){
   status='Konfigureret — afventer test';applicationStatus='Klar til test';
-  if(lastSuccess){status='Testet og svarer';cls='pill';applicationStatus='Klar — testet'}
-  else if(lastError){status='Seneste test fejlede';cls='chip warnbox';applicationStatus='Afventer ny test'}
+  if(lastError&&(!lastSuccess||lastError>lastSuccess)){status='Seneste test fejlede';cls='chip warnbox';applicationStatus='Afventer ny test'}
+  else if(lastSuccess){status='Testet og svarer';cls='pill';applicationStatus='Klar — testet'}
  }
  const badge=el('modelConnectionStatus');if(badge){badge.textContent=status;badge.className=cls}
  const summary=el('panelAiSummaryStatus');if(summary){summary.textContent=status;summary.className=configured&&lastSuccess?'pill':'chip'}
@@ -1511,7 +1511,8 @@ async function runPanel(){
  const savedCV=String(state.cv||el('cvtext').value||'').trim();
  const savedApplication=String(state.application||el('apptext').value||'').trim();
  const text=typed||(documentType==='cv'?savedCV:documentType==='application'?savedApplication:'');
- const job=el('paneljob').value.trim()||String(state.jobtext||'').trim();
+ const typedContext=el('paneljob').value.trim();
+ const job=typedContext||((documentType==='cv'||documentType==='application')?String(state.jobtext||'').trim():'');
  if(!text){
   const message=documentType==='cv'?'Indsæt CV-teksten eller brug “Indsæt mit gemte CV”.':documentType==='application'?'Indsæt jobansøgningen eller brug “Indsæt min seneste ansøgning”.':'Indsæt det materiale, du vil have vurderet.';
   alert(message);return;

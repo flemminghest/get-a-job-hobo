@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="da"><head>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="./favicon.svg?v=1"><meta name="theme-color" content="#183755"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><title>Get a Job Hobo</title><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg?v=1"><meta name="theme-color" content="#1F325E"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><title>Get a Job Hobo</title><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{--ink:#172b46;--muted:#64758b;--line:#e1e8f0;--bg:#f3f6fa;--paper:#fff;--teal:#078c91;--navy:#183755;--lav:#6457b7;--rose:#a84d71;--green:#14835f;--amber:#9d650e;--shadow:0 10px 28px #17324c0d}
+:root{--ink:#172b46;--muted:#64758b;--line:#e1e8f0;--bg:#f3f6fa;--paper:#fff;--teal:#078c91;--navy:#1F325E;--lav:#6457b7;--rose:#a84d71;--green:#14835f;--amber:#9d650e;--shadow:0 10px 28px #17324c0d}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0;border-radius:11px;padding:11px 15px;font-weight:700;background:#087f86;color:white}button.secondary{background:white;border:1px solid var(--line);color:var(--ink)}button.warn{background:#fff0ef;color:#a43b40;border:1px solid #f0cecb}button:disabled{opacity:.45;cursor:not-allowed}input,textarea,select{width:100%;border:1px solid #d8e1eb;border-radius:10px;padding:11px 12px;background:#fff;color:var(--ink);outline:none}input:focus,textarea:focus,select:focus{border-color:#078c91;box-shadow:0 0 0 3px #078c911c}textarea{min-height:128px;resize:vertical}label{display:block;font-weight:700;margin:0 0 6px}.hint,small,.muted{color:var(--muted)}small{font-size:12px}.shell{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:100vh}.side{background:#fff;border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh}.brand{font-weight:850;font-size:19px;letter-spacing:-.5px;padding:9px 12px 24px}.brand b{color:var(--teal)}.nav{display:grid;gap:5px}.nav button{background:transparent;color:#54647b;text-align:left;font-weight:650}.nav button.active{background:#eaf5f5;color:#076f76}.nav button:hover{background:#f0f5f8}.side-foot{position:absolute;bottom:16px;left:18px;right:18px;font-size:12px;color:var(--muted)}main{min-width:0;padding:25px clamp(16px,3vw,42px) 50px;max-width:1500px;width:100%;margin:auto}.topline{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:20px}.pill{font-size:12px;font-weight:750;border-radius:999px;padding:6px 10px;background:#e7f5ee;color:#147250}.hero{position:relative;overflow:hidden;border-radius:25px;padding:30px;color:white;background:linear-gradient(116deg,#1b2f50 0%,#194a62 59%,#0b8589 100%);margin-bottom:22px;box-shadow:var(--shadow)}.hero.purple{background:linear-gradient(116deg,#2d2a56,#6559b9 75%,#a5a1ea)}.hero.rose{background:linear-gradient(116deg,#493149,#93516c 75%,#d88b9e)}.hero.green{background:linear-gradient(116deg,#1c4548,#287c76 75%,#80bfb1)}.eyebrow{font-size:12px;letter-spacing:1.7px;font-weight:850;text-transform:uppercase;color:#9be3d8;margin-bottom:9px}.hero h1{font-size:clamp(28px,3vw,42px);line-height:1.1;letter-spacing:-1.4px;margin:0 0 12px;max-width:800px}.hero p{font-size:16px;color:#d9e9f1;max-width:810px;margin:0 0 20px}.hero .actions{display:flex;flex-wrap:wrap;gap:9px}.hero .actions button{background:#078e96}.hero .actions button.secondary{background:#ffffff;color:#17324c}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:22px}.kpi,.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);min-width:0}.kpi label{color:#6d7d92;text-transform:uppercase;letter-spacing:1px;font-size:11px}.kpi strong{display:block;font-size:30px;line-height:1.2;letter-spacing:-1px;margin:5px 0}.kpi span{font-size:12px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card h2{font-size:19px;letter-spacing:-.35px;margin:0 0 12px}.card h3{margin:0 0 8px;font-size:15px}.stack{display:grid;gap:13px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row .fit{flex:0 0 auto}.formrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}.formrow .wide{grid-column:1/-1}.section{display:none}.section.active{display:block;animation:fade .18s ease}@keyframes fade{from{opacity:.65;transform:translateY(3px)}to{opacity:1;transform:none}}.statline{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:10px 0}.statline:last-child{border:0}.notice{background:#edf6fa;border:1px solid #d5e8f0;border-radius:12px;padding:12px;color:#33556b;font-size:13px}.warnbox{background:#fff6e8;border-color:#f1dfbd;color:#735117}.goodbox{background:#eaf7f0;border-color:#cdebd8;color:#206243}.result{background:#f5f8fb;border:1px solid var(--line);padding:14px;border-radius:13px;margin-top:10px}.scoregrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.score{border-radius:15px;padding:16px;background:#eef7f6}.score strong{font-size:32px;display:block}.score.alt{background:#f1effb}.bar{height:7px;background:#dce5eb;border-radius:99px;overflow:hidden;margin-top:9px}.bar i{display:block;height:100%;background:var(--teal);border-radius:99px}.list{display:grid;gap:9px}.item{padding:12px;border:1px solid var(--line);border-radius:12px;background:white}.item h3{margin:0 0 3px}.item p{margin:3px 0;color:var(--muted);font-size:13px}.chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:750;background:#eef2f7;color:#53647a;margin:2px}.checkgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.checkline{display:flex;align-items:center;gap:8px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#fff}.checkline input{width:auto}.empty{padding:24px 12px;text-align:center;color:var(--muted);border:1px dashed #cfd9e5;border-radius:13px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar>*{flex:0 0 auto}.output{white-space:pre-wrap;line-height:1.7;font-family:Georgia,serif;background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px}.source-line{display:flex;align-items:center;gap:8px;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0}.source-line:last-child{border:0}.footnote{font-size:12px;color:var(--muted);margin-top:12px}.mobile-menu{display:none}
 @media(max-width:850px){.shell{grid-template-columns:1fr}.side{position:static;height:auto;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:7px 8px 10px}.nav{display:flex;overflow:auto;padding-bottom:3px}.nav button{white-space:nowrap;padding:9px 11px}.side-foot{display:none}main{padding:17px 12px 40px}.hero{padding:23px 20px;border-radius:19px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}.topline{margin-bottom:13px}}@media(max-width:520px){.formrow,.scoregrid{grid-template-columns:1fr}.kpi{padding:14px}.kpi strong{font-size:26px}.card{padding:15px}.hero h1{font-size:29px}.hero p{font-size:14px}}
 /* UI polish: accessible typography and clear match-type affordances */
@@ -335,7 +335,7 @@ label{font-size:14px;font-weight:750}
 .score-meter-number strong{font-size:30px;line-height:1;font-weight:850;letter-spacing:-1px}
 .score-meter-number span{font-size:11px;color:#718196;font-weight:750}
 .score-meter-track{height:11px;position:relative;border-radius:999px;background:linear-gradient(90deg,#d94545 0%,#d94545 20%,#e78b3b 20%,#e78b3b 40%,#f0c84c 40%,#f0c84c 60%,#98cb6b 60%,#98cb6b 80%,#16835f 80%,#16835f 100%);box-shadow:inset 0 0 0 1px #22395113;overflow:visible}
-.score-meter-marker{position:absolute;left:50%;top:50%;width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid var(--score-color,#183755);box-shadow:0 1px 5px #122b443d;transform:translate(-50%,-50%)}
+.score-meter-marker{position:absolute;left:50%;top:50%;width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid var(--score-color,#1F325E);box-shadow:0 1px 5px #122b443d;transform:translate(-50%,-50%)}
 .score-meter-scale{display:flex;justify-content:space-between;gap:4px;margin-top:8px;color:#77879a;font-size:9px;font-weight:750;font-variant-numeric:tabular-nums}
 .score-meter-scale span{text-align:center;flex:1}.score-meter-scale span:first-child{text-align:left}.score-meter-scale span:last-child{text-align:right}
 .ai-settings-collapsible{gap:13px}
@@ -538,23 +538,23 @@ label{font-size:14px;font-weight:750}
      <label for="appPortraitMode">Billede i cirklen</label>
      <select id="appPortraitMode" onchange="changeApplicationPortraitMode(this.value)">
       <option value="avatar">Brug avatar</option>
-      <option value="photo">Behold mit portrætfoto</option>
+      <option value="photo">Brug portrætfoto</option>
      </select>
      <label for="appPortraitUpload">Vælg eller skift portrætfoto</label>
      <input id="appPortraitUpload" type="file" accept="image/png,image/jpeg,image/webp" onchange="handleApplicationPortraitUpload(this)">
-     <p class="app-pdf-help">Portrættet gemmes lokalt i denne browser og sendes ikke til en AI-tjeneste.</p>
-     <button type="button" class="secondary app-pdf-small-button" onclick="clearApplicationPortrait()">Fjern gemt portrætfoto</button>
-     <p id="appPortraitStatus" class="app-pdf-help" aria-live="polite">Avataren vises i cirklen. Vælg et foto for at bruge dit portræt.</p>
+     <p class="app-pdf-help">Reference-PDF’ens portræt bruges som standard. Dit eget foto gemmes kun lokalt i browseren.</p>
+     <button type="button" class="secondary app-pdf-small-button" onclick="clearApplicationPortrait()">Brug PDF’ens portræt igen</button>
+     <p id="appPortraitStatus" class="app-pdf-help" aria-live="polite">Reference-PDF’ens portræt bruges automatisk. Du kan vælge dit eget foto eller skifte til avatar.</p>
     </div>
     <div class="app-pdf-color-row">
      <label for="appGreetingHex">Baggrund: KÆRE + hilsenlinje</label>
-     <input id="appGreetingHex" type="text" maxlength="7" value="#3F7897" autocomplete="off" spellcheck="false">
-     <div id="appGreetingSwatch" class="app-pdf-color-preview" style="background:#3F7897"></div>
+     <input id="appGreetingHex" type="text" maxlength="7" value="#3E7099" autocomplete="off" spellcheck="false">
+     <div id="appGreetingSwatch" class="app-pdf-color-preview" style="background:#3E7099"></div>
     </div>
     <div class="app-pdf-color-row">
      <label for="appSignoffHex">Baggrund: Mange hilsner /Jacob</label>
-     <input id="appSignoffHex" type="text" maxlength="7" value="#183755" autocomplete="off" spellcheck="false">
-     <div id="appSignoffSwatch" class="app-pdf-color-preview" style="background:#183755"></div>
+     <input id="appSignoffHex" type="text" maxlength="7" value="#1F325E" autocomplete="off" spellcheck="false">
+     <div id="appSignoffSwatch" class="app-pdf-color-preview" style="background:#1F325E"></div>
     </div>
     <button type="button" class="secondary" onclick="applyApplicationPdfColors()">Opdatér forhåndsvisning</button>
     <p id="appPdfColorError" class="app-pdf-color-error" hidden></p>
@@ -571,7 +571,7 @@ label{font-size:14px;font-weight:750}
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3F7897',applicationSignoffHex:'#183755',applicationPortraitMode:'avatar',applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
@@ -633,9 +633,11 @@ function normalizeState(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return out;
  const limits={cv:300000,jobtitle:500,company:500,jobtext:150000,application:30000,panelText:30000,panelJob:50000,panelRevision:50000};
  out.panelDocumentType=['cv','application','article','email','other'].includes(raw.panelDocumentType)?raw.panelDocumentType:'cv';
- out.applicationGreetingHex=typeof raw.applicationGreetingHex==='string'&&/^#?[0-9a-fA-F]{6}$/.test(raw.applicationGreetingHex)?('#'+raw.applicationGreetingHex.replace(/^#/,'').toUpperCase()):'#3F7897';
- out.applicationSignoffHex=typeof raw.applicationSignoffHex==='string'&&/^#?[0-9a-fA-F]{6}$/.test(raw.applicationSignoffHex)?('#'+raw.applicationSignoffHex.replace(/^#/,'').toUpperCase()):'#183755';
- out.applicationPortraitMode=raw.applicationPortraitMode==='photo'?'photo':'avatar';
+ const normalizePdfColor=(value,fallback,legacy)=>{if(typeof value!=='string'||!/^#?[0-9a-fA-F]{6}$/.test(value))return fallback;const color='#'+value.replace(/^#/,'').toUpperCase();return legacy.includes(color)?fallback:color};
+ out.applicationGreetingHex=normalizePdfColor(raw.applicationGreetingHex,'#3E7099',['#3F7897','#D94F3E']);
+ out.applicationSignoffHex=normalizePdfColor(raw.applicationSignoffHex,'#1F325E',['#183755','#D94F3E']);
+ out.applicationPortraitModeChosen=raw.applicationPortraitModeChosen===true;
+ out.applicationPortraitMode=raw.applicationPortraitMode==='avatar'&&out.applicationPortraitModeChosen?'avatar':'photo';
  out.applicationPortraitDataUrl=typeof raw.applicationPortraitDataUrl==='string'&&/^data:image\/(?:jpeg|png);base64,/i.test(raw.applicationPortraitDataUrl)&&raw.applicationPortraitDataUrl.length<=700000?raw.applicationPortraitDataUrl:'';
  for(const key of Object.keys(limits))if(typeof raw[key]==='string')out[key]=raw[key].slice(0,limits[key]);
  out.proposalTexts=Array.isArray(raw.proposalTexts)?raw.proposalTexts.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,30000)):[];
@@ -1464,7 +1466,7 @@ function applicationHexColor(raw,fallback){
  return '#'+value.replace(/^#/,'').toUpperCase();
 }
 function hexToRgb(hex){
- const clean=applicationHexColor(hex,'#183755').replace('#','');
+ const clean=applicationHexColor(hex,'#1F325E').replace('#','');
  return [parseInt(clean.slice(0,2),16),parseInt(clean.slice(2,4),16),parseInt(clean.slice(4,6),16)];
 }
 function sanitizeApplicationFilename(value){
@@ -1513,53 +1515,50 @@ function parseApplicationForPdf(rawText){
  return {greeting:greeting||'teamet og hvem der ellers læser med',body};
 }
 function drawPdfHeader(doc,portraitDataUrl){
- // Native vector letterhead: the gray contact blocks and circular profile area mirror the supplied layout.
- doc.setFillColor(126,126,126);doc.rect(0,0,74,50,'F');
- doc.setFillColor(214,214,214);doc.rect(74,0,77,50,'F');
- doc.setFillColor(45,45,45);doc.rect(151,0,59,50,'F');
- // Slanted lower edges of the three header panels.
- doc.setFillColor(255,255,255);
- doc.triangle(0,46,74,40,74,50,'F');doc.triangle(0,46,0,50,74,50,'F');
- doc.triangle(74,40,151,31,151,50,'F');doc.triangle(74,40,74,50,151,50,'F');
- doc.triangle(151,31,210,40,210,50,'F');doc.triangle(151,31,151,50,210,50,'F');
- // Location icon.
- doc.setFillColor(255,255,255);doc.circle(8,9.5,4.1,'F');
- doc.setFillColor(126,126,126);doc.circle(8,8.4,1.1,'F');doc.triangle(6.2,10,9.8,10,8,13,'F');
+ // Headeren følger det vedhæftede brevpapir: skrå overkant, grå kontaktfelter og stort portræt.
+ doc.setFillColor(118,119,121);
+ doc.triangle(0,7.5,77,3.5,77,55.5,'F');doc.triangle(0,7.5,77,55.5,0,61.3,'F');
+ doc.setFillColor(215,215,213);
+ doc.triangle(77,3.5,152,0,152,45.5,'F');doc.triangle(77,3.5,152,45.5,77,55.5,'F');
+ doc.setFillColor(46,44,44);
+ doc.triangle(152,0,210,0,210,45.5,'F');doc.triangle(152,0,210,45.5,152,45.5,'F');
+ // Adresseikon og adresse.
+ doc.setFillColor(255,255,255);doc.circle(9,15,5.5,'F');
+ doc.setFillColor(118,119,121);doc.circle(9,13.8,1.45,'F');doc.triangle(6.5,15.4,11.5,15.4,9,19,'F');
  doc.setFont('helvetica','normal');doc.setFontSize(8.3);doc.setTextColor(255,255,255);
- doc.text('Jacob Holm Blæhr',8,22);
- doc.setFontSize(7.8);doc.text('Rolighedsvej 18, 4. tv.',8,29.5);doc.text('1958 Frederiksberg C.',8,36.5);
- // Contact icon and details.
- doc.setFillColor(255,255,255);doc.circle(82,9.5,4.1,'F');
- doc.setFillColor(177,177,177);doc.circle(82,8.2,1.2,'F');doc.ellipse(82,11,2.3,1.5,'F');
- doc.setFontSize(8.5);doc.setTextColor(32,32,32);
- doc.text('mail@pferd.dk',82,22);doc.text('+45 2331 9975',82,29.5);doc.text('Min LinkedIn',82,37);
- // Keep the white circular picture base behind either choice.
- doc.setFillColor(255,255,255);doc.circle(174,25,17.5,'F');
- // Use a circular PNG crop of the selected portrait, or the native vector avatar.
+ doc.text('Jacob Holm Blæhr',9.5,27.8);
+ doc.setFontSize(8.1);doc.text('Rolighedsvej 18, 4. tv.',9.5,35.2);doc.text('1958 Frederiksberg C.',9.5,42.4);
+ // Kontaktikon og kontaktoplysninger.
+ doc.setFillColor(255,255,255);doc.circle(83,11.5,4.8,'F');
+ doc.setFillColor(177,177,177);doc.circle(83,10.1,1.35,'F');doc.ellipse(83,13.2,2.7,1.7,'F');
+ doc.setFontSize(8.5);doc.setTextColor(20,20,20);
+ doc.text('mail@pferd.dk',82,27.8);doc.text('+45 2331 9975',82,35.2);doc.text('Min LinkedIn',82,42.4);
+ // Hvid cirkel under både PDF-portrættet og den valgbare avatar.
+ doc.setFillColor(255,255,255);doc.circle(170,36,30.7,'F');
  if(portraitDataUrl){
-  doc.addImage(portraitDataUrl,'PNG',156.5,7.5,35,35,'application-portrait','FAST');
+  doc.addImage(portraitDataUrl,'PNG',139.3,5.3,61.4,61.4,'application-portrait','FAST');
  }else{
-  doc.setFillColor(202,202,202);doc.ellipse(174,34,10.1,6.7,'F');
-  doc.setFillColor(172,172,172);doc.ellipse(174,21,5.2,6.0,'F');
-  doc.setFillColor(142,142,142);doc.ellipse(174,17.6,5.2,2.1,'F');
-  doc.setFillColor(202,202,202);doc.ellipse(174,32,7.8,5.5,'F');
+  doc.setFillColor(202,202,202);doc.ellipse(170,45.4,17.8,11.3,'F');
+  doc.setFillColor(172,172,172);doc.ellipse(170,29.8,8.9,10.2,'F');
+  doc.setFillColor(142,142,142);doc.ellipse(170,26,9.1,3.6,'F');
+  doc.setFillColor(202,202,202);doc.ellipse(170,43.4,14.4,8.7,'F');
  }
- doc.setDrawColor(216,216,216);doc.setLineWidth(0.25);doc.circle(174,25,17.5,'S')
+ doc.setDrawColor(216,216,216);doc.setLineWidth(0.25);doc.circle(170,36,30.7,'S');
 }
 function drawPdfGreeting(doc,greeting,color){
  const [r,g,b]=hexToRgb(color);
- const x=10.5,y=62,firstHeight=9.2,secondY=71.1,secondHeight=10;
+ const x=10.5,y=74.4,firstHeight=8.3,secondY=82.7,secondHeight=9.8;
  doc.setFillColor(r,g,b);
- doc.rect(x,y,35.5,firstHeight,'F');
+ doc.rect(x,y,29.5,firstHeight,'F');
  doc.setFont('times','bold');doc.setFontSize(17.5);doc.setTextColor(255,255,255);
- doc.text('KÆRE',x+2.2,y+6.55);
+ doc.text('KÆRE',x+2.2,y+6.15);
  doc.setFont('times','normal');doc.setFontSize(12);
  const greetingLines=doc.splitTextToSize(greeting,184);
- const lineHeight=4.8;
+ const lineHeight=4.65;
  const actualHeight=Math.max(secondHeight,Math.min(19,3.1+greetingLines.length*lineHeight));
  doc.setFillColor(r,g,b);doc.rect(x,secondY,189,actualHeight,'F');
- greetingLines.forEach((line,index)=>doc.text(line,x+2.2,secondY+6.7+(index*lineHeight)));
- return secondY+actualHeight+9.5;
+ greetingLines.forEach((line,index)=>doc.text(line,x+2.2,secondY+6.4+(index*lineHeight)));
+ return secondY+actualHeight+11.5;
 }
 function drawPdfClosing(doc,color,y){
  const [r,g,b]=hexToRgb(color);
@@ -1581,8 +1580,9 @@ function loadApplicationPortraitImage(src){
  });
 }
 async function getApplicationPortraitForPdf(){
- if(state.applicationPortraitMode!=='photo'||!state.applicationPortraitDataUrl)return null;
- const image=await loadApplicationPortraitImage(state.applicationPortraitDataUrl);
+ if(state.applicationPortraitMode!=='photo')return null;
+ const portraitSource=state.applicationPortraitDataUrl||'./portrait-jacob.png';
+ const image=await loadApplicationPortraitImage(portraitSource);
  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
  const ctx=canvas.getContext('2d');
  if(!ctx)throw new Error('Browseren kunne ikke klargøre portrættet.');
@@ -1597,12 +1597,12 @@ function updateApplicationPortraitStatus(message){
 }
 function changeApplicationPortraitMode(mode){
  state.applicationPortraitMode=mode==='photo'?'photo':'avatar';
- persist();markApplicationPdfOutdated();
- if(state.applicationPortraitMode==='photo'&&!state.applicationPortraitDataUrl){
-  updateApplicationPortraitStatus('Der er ikke gemt et portrætfoto endnu. Vælg en billedfil nedenfor; avataren vises indtil da.');
- }else{
-  updateApplicationPortraitStatus(state.applicationPortraitMode==='photo'?'Dit gemte portrætfoto vises i cirklen.':'Avataren vises i cirklen.');
- }
+ state.applicationPortraitModeChosen=true;persist();markApplicationPdfOutdated();
+ updateApplicationPortraitStatus(state.applicationPortraitMode==='avatar'
+  ?'Avatar er valgt til cirklen.'
+  :state.applicationPortraitDataUrl
+   ?'Dit valgte portrætfoto vises i cirklen.'
+   :'Portrættet fra reference-PDF’en bruges automatisk.');
  if(el('appPreviewModal')&&!el('appPreviewModal').hidden)renderApplicationPdfPreview(false);
 }
 async function handleApplicationPortraitUpload(input){
@@ -1626,19 +1626,19 @@ async function handleApplicationPortraitUpload(input){
   ctx.drawImage(image,0,0,width,height);
   const compressed=canvas.toDataURL('image/jpeg',0.82);
   if(compressed.length>700000)throw new Error('Billedet fylder for meget efter komprimering. Prøv et mindre foto.');
-  state.applicationPortraitDataUrl=compressed;state.applicationPortraitMode='photo';persist();markApplicationPdfOutdated();
+  state.applicationPortraitDataUrl=compressed;state.applicationPortraitMode='photo';state.applicationPortraitModeChosen=true;persist();markApplicationPdfOutdated();
   if(el('appPortraitMode'))el('appPortraitMode').value='photo';
-  updateApplicationPortraitStatus('Portrættet er gemt lokalt i denne browser og bruges i PDF’ens cirkel.');
+  updateApplicationPortraitStatus('Dit valgte portrætfoto er gemt lokalt og bruges i PDF’en.');
   if(el('appPreviewModal')&&!el('appPreviewModal').hidden)await renderApplicationPdfPreview(false);
  }catch(error){
   updateApplicationPortraitStatus('Kunne ikke gemme portrættet: '+String(error&&error.message||error));
  }
 }
 function clearApplicationPortrait(){
- state.applicationPortraitDataUrl='';state.applicationPortraitMode='avatar';persist();markApplicationPdfOutdated();
- if(el('appPortraitMode'))el('appPortraitMode').value='avatar';
+ state.applicationPortraitDataUrl='';state.applicationPortraitMode='photo';state.applicationPortraitModeChosen=true;persist();markApplicationPdfOutdated();
+ if(el('appPortraitMode'))el('appPortraitMode').value='photo';
  if(el('appPortraitUpload'))el('appPortraitUpload').value='';
- updateApplicationPortraitStatus('Det gemte portrætfoto er fjernet. Avataren vises i cirklen.');
+ updateApplicationPortraitStatus('Dit valgte foto er fjernet. Reference-PDF’ens portræt bruges nu.');
  if(el('appPreviewModal')&&!el('appPreviewModal').hidden)renderApplicationPdfPreview(false);
 }
 
@@ -1646,21 +1646,21 @@ async function createApplicationPdfBlob(){
  if(!window.jspdf||!window.jspdf.jsPDF)throw new Error('PDF-biblioteket blev ikke indlæst. Kontrollér netværket, og genindlæs siden.');
  const {jsPDF}=window.jspdf;
  const portraitDataUrl=await getApplicationPortraitForPdf();
- const greetingColor=applicationHexColor(state.applicationGreetingHex,'#3F7897');
- const signoffColor=applicationHexColor(state.applicationSignoffHex,'#183755');
+ const greetingColor=applicationHexColor(state.applicationGreetingHex,'#3E7099');
+ const signoffColor=applicationHexColor(state.applicationSignoffHex,'#1F325E');
  const parsed=parseApplicationForPdf(el('apptext').value);
  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
  const pageWidth=210,pageHeight=297,left=10.5,textWidth=pageWidth-left-10.5;
  drawPdfHeader(doc,portraitDataUrl);
  let y=drawPdfGreeting(doc,parsed.greeting,greetingColor);
- doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,42,78);
+ doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
  const lineHeight=4.9,paragraphGap=4.0;
  const paragraphs=parsed.body.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
  const newPage=()=>{
   doc.addPage('a4','portrait');
   drawPdfHeader(doc,portraitDataUrl);
   y=58;
-  doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,42,78);
+  doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
  };
  for(const paragraph of paragraphs){
   const paragraphLines=doc.splitTextToSize(paragraph,textWidth);
@@ -1681,10 +1681,10 @@ function openApplicationPdfModal(){
  applicationPdfPreviousOverflow=document.body.style.overflow;
  modal.hidden=false;document.body.style.overflow='hidden';
  if(typeof modal.focus==='function')modal.focus({preventScroll:true});
- if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3F7897';
- if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#183755';
+ if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3E7099';
+ if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#1F325E';
  if(el('appPortraitMode'))el('appPortraitMode').value=state.applicationPortraitMode||'avatar';
- if(el('appPortraitStatus'))el('appPortraitStatus').textContent=state.applicationPortraitMode==='photo'&&state.applicationPortraitDataUrl?'Dit portrætfoto er gemt lokalt og vises i cirklen.':state.applicationPortraitMode==='photo'?'Vælg dit portrætfoto herunder; avataren vises indtil da.':'Avataren vises i cirklen. Vælg et foto for at bruge dit portræt.';
+ if(el('appPortraitStatus'))el('appPortraitStatus').textContent=state.applicationPortraitMode==='avatar'?'Avatar er valgt til cirklen.':state.applicationPortraitDataUrl?'Dit valgte portrætfoto vises i cirklen.':'Reference-PDF’ens portræt bruges automatisk.';
  updateApplicationPdfSwatches();
  if(el('appPdfFilename'))el('appPdfFilename').textContent=applicationPdfFilename||getApplicationPdfFilename();
 }
@@ -1694,8 +1694,8 @@ function closeApplicationPdfModal(){
  document.body.style.overflow=applicationPdfPreviousOverflow;
 }
 function updateApplicationPdfSwatches(){
- const first=applicationHexColor(el('appGreetingHex')?.value,state.applicationGreetingHex||'#3F7897');
- const second=applicationHexColor(el('appSignoffHex')?.value,state.applicationSignoffHex||'#183755');
+ const first=applicationHexColor(el('appGreetingHex')?.value,state.applicationGreetingHex||'#3E7099');
+ const second=applicationHexColor(el('appSignoffHex')?.value,state.applicationSignoffHex||'#1F325E');
  if(el('appGreetingSwatch'))el('appGreetingSwatch').style.background=first;
  if(el('appSignoffSwatch'))el('appSignoffSwatch').style.background=second;
 }
@@ -1736,11 +1736,11 @@ async function applyApplicationPdfColors(){
  const greeting=String(el('appGreetingHex')?.value||'').trim();
  const closing=String(el('appSignoffHex')?.value||'').trim();
  if(!/^#?[0-9a-fA-F]{6}$/.test(greeting)||!/^#?[0-9a-fA-F]{6}$/.test(closing)){
-  if(el('appPdfColorError')){el('appPdfColorError').textContent='Indtast to gyldige HEX-farver, fx #3F7897 og #183755.';el('appPdfColorError').hidden=false}
+  if(el('appPdfColorError')){el('appPdfColorError').textContent='Indtast to gyldige HEX-farver, fx #3E7099 og #1F325E.';el('appPdfColorError').hidden=false}
   return;
  }
- state.applicationGreetingHex=applicationHexColor(greeting,'#3F7897');
- state.applicationSignoffHex=applicationHexColor(closing,'#183755');
+ state.applicationGreetingHex=applicationHexColor(greeting,'#3E7099');
+ state.applicationSignoffHex=applicationHexColor(closing,'#1F325E');
  if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex;
  if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex;
  updateApplicationPdfSwatches();persist();
@@ -2255,6 +2255,6 @@ el('jobtitle').addEventListener('input',()=>{state.jobtitle=el('jobtitle').value
 hydrate();
 loadPanelAiSettings();
 updateModelIntegrationStatus();
-if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3F7897';
-if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#183755';
+if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3E7099';
+if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#1F325E';
 </script><script src="./network-discovery.js"></script></body></html>

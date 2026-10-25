@@ -229,6 +229,7 @@ module.exports = async function handler(req, res) {
   const input = task === "application-drafts"
     ? JSON.stringify({ requestedOutputFormat: "json", cv, job, title: title || null, company: company || null, contactName: contactName || null, greetingLine: greetingLine || null, authorName, writingStyle: "Dansk, direkte, varm, let uformel og personlig. Sammenhængende korte afsnit; konkret motivation, erfaring, samarbejde og menneskelig afslutning. Return valid json." })
     : JSON.stringify({ requestedOutputFormat: "json", cv, job: job || null, selectedRoles: roles });
+  const requestId = crypto.randomUUID();
   let upstream;
   try {
     upstream = await fetch("https://api.openai.com/v1/responses", {
@@ -250,7 +251,25 @@ module.exports = async function handler(req, res) {
       signal: AbortSignal.timeout(55_000)
     });
   } catch (error) {
-    return send(res, 502, { error: "Kunne ikke kontakte sprogmodellen. Kontrollér netværk og prøv igen." });
+    const errorName = String(error && error.name || "Error").slice(0, 100);
+    const causeCode = String(error && (error.cause && error.cause.code || error.code) || "").slice(0, 100);
+    const technicalMessage = String(error && error.message || "Ukendt netværksfejl").slice(0, 240);
+    console.error("[panel-review] OpenAI request failed", {
+      requestId,
+      errorName,
+      causeCode: causeCode || null,
+      message: technicalMessage,
+      stack: error && error.stack ? String(error.stack).slice(0, 1200) : null
+    });
+    const timedOut = /timeout|abort/i.test(errorName + " " + technicalMessage);
+    return send(res, 502, {
+      error: timedOut
+        ? "Forbindelsen til OpenAI tog for lang tid og fik timeout. Prøv igen. Teknisk reference: " + requestId
+        : "Vercel kunne ikke oprette forbindelse til OpenAI. Fejltype: " + errorName + (causeCode ? " (" + causeCode + ")" : "") + ". Teknisk reference: " + requestId,
+      requestId,
+      errorType: errorName,
+      networkCode: causeCode || null
+    });
   }
 
   const responseText = await upstream.text();

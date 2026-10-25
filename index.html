@@ -1333,7 +1333,6 @@ let applicationPdfObjectUrl='';
 let applicationPdfFilename='';
 let applicationPdfDirty=true;
 let applicationPdfPreviousOverflow='';
-let applicationHeaderDataUrlPromise=null;
 
 function applicationHexColor(raw,fallback){
  const value=String(raw||'').trim();
@@ -1359,19 +1358,6 @@ function getApplicationPdfFilename(){
  const now=new Date();
  const date=String(now.getFullYear())+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
  return sanitizeApplicationFilename(company)+'_'+date+'.pdf';
-}
-async function getApplicationHeaderDataUrl(){
- if(!applicationHeaderDataUrlPromise){
-  applicationHeaderDataUrlPromise=fetch('./letterhead-header.b64',{cache:'force-cache'}).then(response=>{
-   if(!response.ok)throw new Error('Brevpapirets billedfil kunne ikke hentes (HTTP '+response.status+').');
-   return response.text();
-  }).then(value=>{
-   const base64=String(value||'').replace(/\s/g,'');
-   if(base64.length<1000||!base64.startsWith('/9j/'))throw new Error('Brevpapirets billedfil er ugyldig.');
-   return 'data:image/jpeg;base64,'+base64;
-  }).catch(error=>{applicationHeaderDataUrlPromise=null;throw error});
- }
- return applicationHeaderDataUrlPromise;
 }
 function parseApplicationForPdf(rawText){
  let lines=String(rawText||'').replace(/\r/g,'').split('\n');
@@ -1403,37 +1389,33 @@ function parseApplicationForPdf(rawText){
  return {greeting:greeting||'teamet og hvem der ellers læser med',body};
 }
 function drawPdfHeader(doc){
- // Recreate Jacob's letterhead in native PDF vectors so the export never depends on a separate image download.
- doc.setFillColor(125,125,125);doc.rect(0,0,74,50,'F');
+ // Native vector letterhead: the gray contact blocks and circular profile area mirror the supplied layout.
+ doc.setFillColor(126,126,126);doc.rect(0,0,74,50,'F');
  doc.setFillColor(214,214,214);doc.rect(74,0,77,50,'F');
  doc.setFillColor(45,45,45);doc.rect(151,0,59,50,'F');
- // Diagonal lower edges echo the original stationery header.
+ // Slanted lower edges of the three header panels.
  doc.setFillColor(255,255,255);
- doc.triangle(0,42,74,25,74,50,'F');doc.triangle(0,42,0,50,74,50,'F');
- doc.triangle(74,25,151,13,151,50,'F');doc.triangle(74,25,74,50,151,50,'F');
- doc.triangle(151,13,210,23,210,50,'F');doc.triangle(151,13,151,50,210,50,'F');
- // Location marker.
+ doc.triangle(0,46,74,40,74,50,'F');doc.triangle(0,46,0,50,74,50,'F');
+ doc.triangle(74,40,151,31,151,50,'F');doc.triangle(74,40,74,50,151,50,'F');
+ doc.triangle(151,31,210,40,210,50,'F');doc.triangle(151,31,151,50,210,50,'F');
+ // Location icon.
  doc.setFillColor(255,255,255);doc.circle(8,9.5,4.1,'F');
- doc.setFillColor(125,125,125);doc.circle(8,8.4,1.1,'F');doc.triangle(6.2,10,9.8,10,8,13,'F');
- doc.setFont('helvetica','normal');doc.setFontSize(8.4);doc.setTextColor(255,255,255);
+ doc.setFillColor(126,126,126);doc.circle(8,8.4,1.1,'F');doc.triangle(6.2,10,9.8,10,8,13,'F');
+ doc.setFont('helvetica','normal');doc.setFontSize(8.3);doc.setTextColor(255,255,255);
  doc.text('Jacob Holm Blæhr',8,22);
- doc.setFontSize(7.8);
- doc.text('Rolighedsvej 18, 4. tv.',8,29.5);
- doc.text('1958 Frederiksberg C.',8,36.5);
- // Contact card icon and details.
+ doc.setFontSize(7.8);doc.text('Rolighedsvej 18, 4. tv.',8,29.5);doc.text('1958 Frederiksberg C.',8,36.5);
+ // Contact icon and details.
  doc.setFillColor(255,255,255);doc.circle(82,9.5,4.1,'F');
  doc.setFillColor(177,177,177);doc.circle(82,8.2,1.2,'F');doc.ellipse(82,11,2.3,1.5,'F');
- doc.setTextColor(32,32,32);doc.setFontSize(8.5);
- doc.text('mail@pferd.dk',82,22);
- doc.text('+45 2331 9975',82,29.5);
- doc.text('Min LinkedIn',82,37);
- // Portrait-style silhouette in the circular photo area.
+ doc.setFontSize(8.5);doc.setTextColor(32,32,32);
+ doc.text('mail@pferd.dk',82,22);doc.text('+45 2331 9975',82,29.5);doc.text('Min LinkedIn',82,37);
+ // A neutral silhouette keeps the portrait's circular placement without depending on an external image.
  doc.setFillColor(255,255,255);doc.circle(174,25,17.5,'F');
  doc.setDrawColor(216,216,216);doc.setLineWidth(0.25);doc.circle(174,25,17.5,'S');
- doc.setFillColor(200,200,200);doc.ellipse(174,34,10.1,6.7,'F');
+ doc.setFillColor(202,202,202);doc.ellipse(174,34,10.1,6.7,'F');
  doc.setFillColor(172,172,172);doc.ellipse(174,21,5.2,6.0,'F');
  doc.setFillColor(142,142,142);doc.ellipse(174,17.6,5.2,2.1,'F');
- doc.setFillColor(200,200,200);doc.ellipse(174,32,7.8,5.5,'F');
+ doc.setFillColor(202,202,202);doc.ellipse(174,32,7.8,5.5,'F');
 }
 function drawPdfGreeting(doc,greeting,color){
  const [r,g,b]=hexToRgb(color);
@@ -1476,7 +1458,7 @@ async function createApplicationPdfBlob(){
  const paragraphs=parsed.body.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
  const newPage=()=>{
   doc.addPage('a4','portrait');
-  drawPdfHeader(doc,header);
+  drawPdfHeader(doc);
   y=58;
   doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,42,78);
  };

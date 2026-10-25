@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><title>Get a Job Hobo</title>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg?v=1"><meta name="theme-color" content="#183755"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><title>Get a Job Hobo</title>
 <style>
 :root{--ink:#172b46;--muted:#64758b;--line:#e1e8f0;--bg:#f3f6fa;--paper:#fff;--teal:#078c91;--navy:#183755;--lav:#6457b7;--rose:#a84d71;--green:#14835f;--amber:#9d650e;--shadow:0 10px 28px #17324c0d}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0;border-radius:11px;padding:11px 15px;font-weight:700;background:#087f86;color:white}button.secondary{background:white;border:1px solid var(--line);color:var(--ink)}button.warn{background:#fff0ef;color:#a43b40;border:1px solid #f0cecb}button:disabled{opacity:.45;cursor:not-allowed}input,textarea,select{width:100%;border:1px solid #d8e1eb;border-radius:10px;padding:11px 12px;background:#fff;color:var(--ink);outline:none}input:focus,textarea:focus,select:focus{border-color:#078c91;box-shadow:0 0 0 3px #078c911c}textarea{min-height:128px;resize:vertical}label{display:block;font-weight:700;margin:0 0 6px}.hint,small,.muted{color:var(--muted)}small{font-size:12px}.shell{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:100vh}.side{background:#fff;border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh}.brand{font-weight:850;font-size:19px;letter-spacing:-.5px;padding:9px 12px 24px}.brand b{color:var(--teal)}.nav{display:grid;gap:5px}.nav button{background:transparent;color:#54647b;text-align:left;font-weight:650}.nav button.active{background:#eaf5f5;color:#076f76}.nav button:hover{background:#f0f5f8}.side-foot{position:absolute;bottom:16px;left:18px;right:18px;font-size:12px;color:var(--muted)}main{min-width:0;padding:25px clamp(16px,3vw,42px) 50px;max-width:1500px;width:100%;margin:auto}.topline{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:20px}.pill{font-size:12px;font-weight:750;border-radius:999px;padding:6px 10px;background:#e7f5ee;color:#147250}.hero{position:relative;overflow:hidden;border-radius:25px;padding:30px;color:white;background:linear-gradient(116deg,#1b2f50 0%,#194a62 59%,#0b8589 100%);margin-bottom:22px;box-shadow:var(--shadow)}.hero.purple{background:linear-gradient(116deg,#2d2a56,#6559b9 75%,#a5a1ea)}.hero.rose{background:linear-gradient(116deg,#493149,#93516c 75%,#d88b9e)}.hero.green{background:linear-gradient(116deg,#1c4548,#287c76 75%,#80bfb1)}.eyebrow{font-size:12px;letter-spacing:1.7px;font-weight:850;text-transform:uppercase;color:#9be3d8;margin-bottom:9px}.hero h1{font-size:clamp(28px,3vw,42px);line-height:1.1;letter-spacing:-1.4px;margin:0 0 12px;max-width:800px}.hero p{font-size:16px;color:#d9e9f1;max-width:810px;margin:0 0 20px}.hero .actions{display:flex;flex-wrap:wrap;gap:9px}.hero .actions button{background:#078e96}.hero .actions button.secondary{background:#ffffff;color:#17324c}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:22px}.kpi,.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);min-width:0}.kpi label{color:#6d7d92;text-transform:uppercase;letter-spacing:1px;font-size:11px}.kpi strong{display:block;font-size:30px;line-height:1.2;letter-spacing:-1px;margin:5px 0}.kpi span{font-size:12px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card h2{font-size:19px;letter-spacing:-.35px;margin:0 0 12px}.card h3{margin:0 0 8px;font-size:15px}.stack{display:grid;gap:13px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row .fit{flex:0 0 auto}.formrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}.formrow .wide{grid-column:1/-1}.section{display:none}.section.active{display:block;animation:fade .18s ease}@keyframes fade{from{opacity:.65;transform:translateY(3px)}to{opacity:1;transform:none}}.statline{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:10px 0}.statline:last-child{border:0}.notice{background:#edf6fa;border:1px solid #d5e8f0;border-radius:12px;padding:12px;color:#33556b;font-size:13px}.warnbox{background:#fff6e8;border-color:#f1dfbd;color:#735117}.goodbox{background:#eaf7f0;border-color:#cdebd8;color:#206243}.result{background:#f5f8fb;border:1px solid var(--line);padding:14px;border-radius:13px;margin-top:10px}.scoregrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.score{border-radius:15px;padding:16px;background:#eef7f6}.score strong{font-size:32px;display:block}.score.alt{background:#f1effb}.bar{height:7px;background:#dce5eb;border-radius:99px;overflow:hidden;margin-top:9px}.bar i{display:block;height:100%;background:var(--teal);border-radius:99px}.list{display:grid;gap:9px}.item{padding:12px;border:1px solid var(--line);border-radius:12px;background:white}.item h3{margin:0 0 3px}.item p{margin:3px 0;color:var(--muted);font-size:13px}.chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:750;background:#eef2f7;color:#53647a;margin:2px}.checkgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.checkline{display:flex;align-items:center;gap:8px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#fff}.checkline input{width:auto}.empty{padding:24px 12px;text-align:center;color:var(--muted);border:1px dashed #cfd9e5;border-radius:13px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar>*{flex:0 0 auto}.output{white-space:pre-wrap;line-height:1.7;font-family:Georgia,serif;background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px}.source-line{display:flex;align-items:center;gap:8px;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0}.source-line:last-child{border:0}.footnote{font-size:12px;color:var(--muted);margin-top:12px}.mobile-menu{display:none}
@@ -252,6 +252,25 @@ label{font-size:14px;font-weight:750}
 .competency-reference small{font-size:10px;color:#728195;line-height:1.45;overflow-wrap:anywhere}
 @media(max-width:620px){.competency-assessment{padding:15px}.competency-header{align-items:center}.competency-header h3{font-size:18px}.competency-row-heading{flex-direction:column}.competency-reference{grid-template-columns:minmax(0,1fr)}}
 
+
+/* Score temperature meter: red 0–20 through green 80–100 */
+.score-meter{width:180px;max-width:100%;margin:0 0 10px auto}
+.score-meter-number{display:flex;align-items:baseline;justify-content:flex-end;gap:3px;margin-bottom:7px;font-variant-numeric:tabular-nums}
+.score-meter-number strong{font-size:30px;line-height:1;font-weight:850;letter-spacing:-1px}
+.score-meter-number span{font-size:11px;color:#718196;font-weight:750}
+.score-meter-track{height:11px;position:relative;border-radius:999px;background:linear-gradient(90deg,#d94545 0%,#d94545 20%,#e78b3b 20%,#e78b3b 40%,#f0c84c 40%,#f0c84c 60%,#98cb6b 60%,#98cb6b 80%,#16835f 80%,#16835f 100%);box-shadow:inset 0 0 0 1px #22395113;overflow:visible}
+.score-meter-marker{position:absolute;left:50%;top:50%;width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid var(--score-color,#183755);box-shadow:0 1px 5px #122b443d;transform:translate(-50%,-50%)}
+.score-meter-scale{display:flex;justify-content:space-between;gap:4px;margin-top:8px;color:#77879a;font-size:9px;font-weight:750;font-variant-numeric:tabular-nums}
+.score-meter-scale span{text-align:center;flex:1}.score-meter-scale span:first-child{text-align:left}.score-meter-scale span:last-child{text-align:right}
+.ai-settings-collapsible{gap:13px}
+.ai-settings-collapsible>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;font-weight:800;color:#20374e}
+.ai-settings-collapsible>summary::-webkit-details-marker{display:none}
+.ai-settings-collapsible>summary:after{content:"+";font-size:22px;color:#087f86;margin-left:4px}
+.ai-settings-collapsible[open]>summary:after{content:"−"}
+.ai-settings-summary .chip{flex:0 1 auto}.ai-settings-body{display:grid;gap:13px;padding-top:6px}
+#page-panel .ai-settings-collapsible{margin-top:2px}
+@media(max-width:620px){.score-meter{margin-left:0;margin-right:0}.ai-settings-summary{flex-wrap:wrap}.ai-settings-summary:after{margin-left:auto}}
+
 /* Persona feedback: more detailed CV evidence and prioritized findings */
 #page-panel .hero p{max-width:920px}
 #page-panel .panel-persona-result{padding:20px 22px;border-radius:16px}
@@ -283,7 +302,7 @@ label{font-size:14px;font-weight:750}
 <button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal prototype · AI kræver separat backend-opsætning<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
 <main><div class="topline"><span class="muted" id="crumb">Dit jobsøgningsarbejdsrum</span><span class="pill">Gratis prototype</span></div>
 
-<section class="section" id="page-home"><div class="hero"><div class="eyebrow">DIT NÆSTE SKRIDT</div><h1>Du behøver ikke starte fra nul.</h1><p>Hold styr på job, CV, ansøgninger og dit netværk i ét arbejdsrum. Dine data bliver i denne browser.</p><div class="actions"><button onclick="go('job')">Analyser et jobopslag →</button><button class="secondary" onclick="go('network')">Find forbindelser</button></div></div><div class="kpis"><div class="kpi"><label>CV</label><strong id="kcv">Ikke tilføjet</strong><span>Gemmes lokalt</span></div><div class="kpi"><label>Analyser</label><strong id="kanalysis">0</strong><span>Gemte jobforløb</span></div><div class="kpi"><label>Forbindelser</label><strong id="kcontacts">0</strong><span>Importér LinkedIn CSV</span></div><div class="kpi"><label>Ansøgning</label><strong id="kapp">Tom</strong><span>Udfyldes ved dit valg</span></div></div><div class="grid"><div class="card"><h2>Kom godt i gang</h2><div class="statline"><span>1. Tilføj dit CV</span><button class="secondary fit" onclick="go('cv')">Åbn CV</button></div><div class="statline"><span>2. Indsæt et jobopslag</span><button class="secondary fit" onclick="go('job')">Analyser</button></div><div class="statline"><span>3. Vælg ansøgningsforslag</span><button class="secondary fit" onclick="go('application')">Ansøgning</button></div></div><div class="card"><h2>Hvad er tilkoblet?</h2><div class="statline"><span>CV, kladder, CSV og backup</span><span class="pill">Lokalt</span></div><div class="statline"><span>AI-generering</span><span class="chip">Ikke tilkoblet</span></div><div class="statline"><span>Live-websøgning (webindeks)</span><span class="chip" id="liveResearchStatus">Afventer test</span></div><div class="statline"><span>Direkte verificering af kildesider</span><span class="chip">Ikke tilkoblet</span></div><div class="statline"><span>LinkedIn API</span><span class="chip">Ikke tilkoblet</span></div><p class="footnote">Match og panelkritik er regelbaserede demonstrationer. Live-websøgning bruger et eksternt indeks; kildesider verificeres ikke automatisk.</p></div></div></section>
+<section class="section" id="page-home"><div class="hero"><div class="eyebrow">DIT NÆSTE SKRIDT</div><h1>Du behøver ikke starte fra nul.</h1><p>Hold styr på job, CV, ansøgninger og dit netværk i ét arbejdsrum. Dine data bliver i denne browser.</p><div class="actions"><button onclick="go('job')">Analyser et jobopslag →</button><button class="secondary" onclick="go('network')">Find forbindelser</button></div></div><div class="kpis"><div class="kpi"><label>CV</label><strong id="kcv">Ikke tilføjet</strong><span>Gemmes lokalt</span></div><div class="kpi"><label>Analyser</label><strong id="kanalysis">0</strong><span>Gemte jobforløb</span></div><div class="kpi"><label>Forbindelser</label><strong id="kcontacts">0</strong><span>Importér LinkedIn CSV</span></div><div class="kpi"><label>Ansøgning</label><strong id="kapp">Tom</strong><span>Udfyldes ved dit valg</span></div></div><div class="grid"><div class="card"><h2>Kom godt i gang</h2><div class="statline"><span>1. Tilføj dit CV</span><button class="secondary fit" onclick="go('cv')">Åbn CV</button></div><div class="statline"><span>2. Indsæt et jobopslag</span><button class="secondary fit" onclick="go('job')">Analyser</button></div><div class="statline"><span>3. Vælg ansøgningsforslag</span><button class="secondary fit" onclick="go('application')">Ansøgning</button></div></div><div class="card"><h2>Hvad er tilkoblet?</h2><div class="statline"><span>CV, kladder, CSV og backup</span><span class="pill">Lokalt</span></div><div class="statline"><span>Sprogmodel (OpenAI via Vercel)</span><span class="chip" id="modelConnectionStatus">Kontrollerer…</span></div><div class="statline"><span>AI-model</span><span class="chip" id="modelNameStatus">OpenAI API</span></div><div class="statline"><span>Motiveret ansøgning med AI</span><span class="chip" id="applicationAiStatus">Kontrollerer…</span></div><div class="statline"><span>Live-websøgning (webindeks)</span><span class="chip" id="liveResearchStatus">Afventer test</span></div><div class="statline"><span>Direkte verificering af kildesider</span><span class="chip">Ikke tilkoblet</span></div><div class="statline"><span>LinkedIn API</span><span class="chip">Ikke tilkoblet</span></div><p class="footnote">Jobmatch og live-websøgning er særskilte funktioner. CV-/tekstvurdering og ansøgningsforslag kan bruge OpenAI via Vercel, når forbindelsen er konfigureret. Live-websøgning bruger et eksternt indeks; kildesider verificeres ikke automatisk.</p></div></div></section>
 
 <section class="section" id="page-cv"><div class="hero green"><div class="eyebrow">DIN FAGLIGE PROFIL</div><h1>Dit CV, klar når du har brug for det.</h1><p>Indsæt dit CV én gang. Jobmatch og panel kan bruge teksten lokalt i browseren.</p><div class="actions"><button onclick="saveCV()">Gem CV</button><button class="secondary" onclick="document.getElementById('cvfile').click()">Importér tekstfil</button><input id="cvfile" type="file" accept=".txt,.md,.csv" hidden onchange="readTextFile(event,'cvtext')"></div></div><div class="card stack"><div><label for="cvtext">CV-tekst</label><textarea id="cvtext" rows="16" placeholder="Indsæt CV-tekst her…"></textarea><small>Kun tekst i denne lokale prototype. PDF/OCR er ikke tilkoblet. Når du har gemt CV’et i denne browser, bliver det bevaret ved genindlæsning på samme webadresse.</small><div class="cv-persistence" style="margin-top:10px"><span aria-hidden="true" style="font-size:20px">✓</span><div><strong>Dit CV gemmes privat i din browser</strong>CV’et er ikke indlejret i den offentlige hjemmeside. Hvis det mangler efter skift fra en gammel HTML-fil, skal du importere CV-tekstfilen én gang og klikke Gem. Derefter huskes det i denne browser.</div></div></div><div class="toolbar"><button onclick="saveCV()">Gem ændringer</button><button class="secondary" onclick="exportText('cvtext','cv.txt')">Download CV som tekst</button><button class="warn" onclick="clearCV()">Slet CV</button></div><div id="cvmsg" class="notice" hidden></div></div></section>
 
@@ -291,12 +310,16 @@ label{font-size:14px;font-weight:750}
 
 <section class="section" id="page-application"><div class="hero rose"><div class="eyebrow">MOTIVERET ANSØGNING</div><h1>Din ansøgning begynder med dit valg.</h1><p>Tre gennemarbejdede udkast i din direkte, personlige og let uformelle stil. Når AI er sat op under “Spørg panelet”, skrives forslagene med en sprogmodel ud fra dit CV og stillingsopslaget.</p><div class="actions"><button onclick="go('job')">Gå til jobanalyse →</button><button class="secondary" onclick="makeProposals()">Lav tre nye forslag</button><button class="secondary" onclick="previewApplication()">Forhåndsvisning</button></div></div><div class="card stack"><div id="proposalState" class="notice">Ingen forslag endnu. Analysér et job under Jobopslag først. Der bliver ikke indsat tekst automatisk.</div><div id="proposals" class="grid proposal-stack"><div class="empty">Tre forslag vises her, når du har analyseret et job.</div></div><div><label for="apptext">Motiveret ansøgning</label><textarea id="apptext" rows="15" placeholder="Ansøgningen er blank, indtil du vælger et forslag."></textarea></div><div class="toolbar"><button onclick="saveApplication()">Gem ansøgning</button><button class="secondary" onclick="previewApplication()">Vis forhåndsvisning</button><button class="secondary" onclick="exportText('apptext','motiveret-ansoegning.txt')">Download tekst</button><button class="warn" onclick="clearApplication()">Ryd ansøgning</button></div><div id="appPreview" class="output" hidden></div></div></section>
 
-<section class="section" id="page-panel"><div class="hero purple"><div class="eyebrow">SPØRG PANELET</div><h1>Få en grundig vurdering af dit CV.</h1><p>Brug en sprogmodel til en nuanceret vurdering fra Recruiter, Copywriter, CMO og CEO. Modellen skal underbygge sine observationer med konkrete CV-passager og foreslå prioriterede forbedringer. AI kræver en sikker backend-konfiguration; ellers bruges den lokale regelbaserede vurdering.</p></div><div class="card stack" id="panelAiSettings"><div><div class="eyebrow" style="color:#087f86">AI-INDSTILLINGER</div><h2 style="margin-bottom:6px">Tilslut sprogmodellen</h2><p class="muted" style="margin:0">AI-vurderingen kører via en beskyttet Vercel-funktion. API-nøglen ligger på serveren — ikke i denne side. Se <a href="https://github.com/flemminghest/get-a-job-hobo/blob/main/AI_SETUP.md" target="_blank" rel="noopener noreferrer">opsætningsvejledningen</a>.</p></div><div class="formrow"><div class="wide"><label for="panelAiUrl">AI-endpoint (Vercel URL)</label><input id="panelAiUrl" type="url" placeholder="https://dit-projekt.vercel.app/api/panel-review" autocomplete="url"></div><div class="wide"><label for="panelAiCode">Adgangskode til AI-endpoint</label><input id="panelAiCode" type="password" placeholder="Den APP_ACCESS_CODE, du har sat i Vercel" autocomplete="off"></div></div><div class="toolbar"><button onclick="savePanelAiSettings()" class="secondary">Gem indstillinger i denne session</button><button onclick="clearPanelAiSettings()" class="secondary">Ryd AI-indstillinger</button></div><div id="panelAiStatus" class="notice">AI er ikke konfigureret. Uden endpoint og adgangskode bruges den lokale regelbaserede vurdering.</div><p class="footnote">Privatliv: Når AI er aktiv, sendes CV-teksten og et eventuelt stillingsopslag til din Vercel-backend og videre til OpenAI API for at lave vurderingen. Brug ikke oplysninger, du ikke ønsker at dele. OpenAI API-forbrug faktureres separat fra ChatGPT-abonnementet.</p></div><div class="card stack"><div class="formrow"><div class="wide"><label for="paneltext">CV-tekst, der skal vurderes</label><textarea id="paneltext" rows="10" placeholder="Brug knappen nedenfor til at hente dit gemte CV, eller indsæt CV-teksten her…"></textarea></div><div class="wide"><label for="paneljob">Stillingsopslag (valgfrit — gør vurderingen mere målrettet)</label><textarea id="paneljob" rows="5" placeholder="Indsæt et stillingsopslag, hvis CV’et også skal vurderes op mod et bestemt job…"></textarea></div></div><label>Vælg rådgivere</label><div class="checkgrid persona-grid">
+<section class="section" id="page-panel"><div class="hero purple"><div class="eyebrow">SPØRG PANELET</div><h1>Få en grundig vurdering af dit CV.</h1><p>Brug en sprogmodel til en nuanceret vurdering fra Recruiter, Copywriter, CMO og CEO. Modellen skal underbygge sine observationer med konkrete CV-passager og foreslå prioriterede forbedringer. AI kræver en sikker backend-konfiguration; ellers bruges den lokale regelbaserede vurdering.</p></div><div class="card stack"><div class="formrow">
+<div class="wide"><label for="panelDocumentType">Hvad vil du have vurderet?</label><select id="panelDocumentType" onchange="updatePanelDocumentType()"><option value="cv">CV</option><option value="application">Jobansøgning</option><option value="article">Artikel / artikler</option><option value="email">E-mail</option><option value="other">Andet materiale</option></select><small>Valget bestemmer, hvilke kriterier og spørgsmål personaerne bruger.</small></div>
+<div class="wide"><label for="paneltext">Materiale, der skal vurderes</label><textarea id="paneltext" rows="10" placeholder="Indsæt eller hent det materiale, du vil have vurderet…"></textarea></div>
+<div class="wide"><label for="paneljob" id="panelContextLabel">Stillingsopslag eller kontekst (valgfrit)</label><textarea id="paneljob" rows="5" placeholder="Indsæt et stillingsopslag eller anden relevant kontekst…"></textarea></div>
+</div><label>Vælg rådgivere</label><div class="checkgrid persona-grid">
 <label class="checkline persona-option recruiter-option"><input type="checkbox" value="Recruiter" checked><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3.5"/><path d="M2.5 20v-1.8a5.5 5.5 0 0 1 5.5-5.5h2.5"/><circle cx="17" cy="16.5" r="4"/><path d="m15.2 16.5 1.2 1.2 2.4-2.5"/></svg></span><span class="persona-copy"><strong>Recruiter</strong><small>Relevans, krav og samtalepotentiale</small></span></label>
 <label class="checkline persona-option copywriter-option"><input type="checkbox" value="Copywriter" checked><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14 4 6 6"/><path d="M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20Z"/><path d="M12 6 18 12"/><path d="M4 20h16"/></svg></span><span class="persona-copy"><strong>Copywriter</strong><small>Sprog, tone og skarp argumentation</small></span></label>
 <label class="checkline persona-option cmo-option"><input type="checkbox" value="CMO"><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 16v-5"/><path d="M12 16V5"/><path d="M18 16V9"/><path d="m4 7 5-3 4 2 6-4"/></svg></span><span class="persona-copy"><strong>CMO</strong><small>Marketingstrategi og forretningsværdi</small></span></label>
 <label class="checkline persona-option ceo-option"><input type="checkbox" value="CEO"><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M10 21v-5h4v5"/></svg></span><span class="persona-copy"><strong>CEO</strong><small>Strategisk relevans og samlet værdibidrag</small></span></label>
-</div><div class="toolbar"><button onclick="loadCVIntoPanel()" class="secondary">Indsæt mit gemte CV</button><button onclick="loadJobIntoPanel()" class="secondary">Hent seneste stillingsopslag</button><button onclick="runPanel()">Vurdér CV med panelet</button><button onclick="usePanelRevision()" class="secondary">Kopiér forbedringsplan</button></div><div id="panelNotice" class="notice" hidden></div><div id="panelResults" class="list"><div class="empty">Vælg tekst og rådgivere for at begynde.</div></div><div><label for="panelrevision">Samlet forbedringsplan</label><textarea id="panelrevision" rows="9" placeholder="Panelets konkrete forbedringsplan vises her efter vurderingen."></textarea><p class="footnote">Forbedringsplanen er en prioriteret tjekliste. Den omskriver ikke dit CV automatisk og må ikke opfinde resultater eller erfaring.</p></div></div></section>
+</div><div class="toolbar"><button id="loadPanelSourceButton" onclick="loadPanelSource()" class="secondary">Indsæt mit gemte CV</button><button id="loadPanelContextButton" onclick="loadJobIntoPanel()" class="secondary">Hent seneste jobopslag</button><button onclick="runPanel()">Vurdér CV med panelet</button><button onclick="usePanelRevision()" class="secondary">Kopiér forbedringsplan</button></div><div id="panelNotice" class="notice" hidden></div><div id="panelResults" class="list"><div class="empty">Vælg tekst og rådgivere for at begynde.</div></div><div><label for="panelrevision">Samlet forbedringsplan</label><textarea id="panelrevision" rows="9" placeholder="Panelets konkrete forbedringsplan vises her efter vurderingen."></textarea><p class="footnote">Forbedringsplanen er en prioriteret tjekliste. Den omskriver ikke dit CV automatisk og må ikke opfinde resultater eller erfaring.</p></div></div><details class="card stack ai-settings-collapsible" id="panelAiSettings"><summary class="ai-settings-summary"><span>AI-indstillinger</span><span id="panelAiSummaryStatus" class="chip">Kontrollerer…</span></summary><div class="ai-settings-body"><div><div class="eyebrow" style="color:#087f86">AI-INDSTILLINGER</div><h2 style="margin-bottom:6px">Tilslut sprogmodellen</h2><p class="muted" style="margin:0">AI-vurderingen kører via en beskyttet Vercel-funktion. API-nøglen ligger på serveren — ikke i denne side. Se <a href="https://github.com/flemminghest/get-a-job-hobo/blob/main/AI_SETUP.md" target="_blank" rel="noopener noreferrer">opsætningsvejledningen</a>.</p></div><div class="formrow"><div class="wide"><label for="panelAiUrl">AI-endpoint (Vercel URL)</label><input id="panelAiUrl" type="url" placeholder="https://dit-projekt.vercel.app/api/panel-review" autocomplete="url"></div><div class="wide"><label for="panelAiCode">Adgangskode til AI-endpoint</label><input id="panelAiCode" type="password" placeholder="Den APP_ACCESS_CODE, du har sat i Vercel" autocomplete="off"></div></div><div class="toolbar"><button onclick="savePanelAiSettings()" class="secondary">Gem indstillinger i denne session</button><button onclick="clearPanelAiSettings()" class="secondary">Ryd AI-indstillinger</button></div><div id="panelAiStatus" class="notice">AI er ikke konfigureret. Uden endpoint og adgangskode bruges den lokale regelbaserede vurdering.</div><p class="footnote">Privatliv: Når AI er aktiv, sendes CV-teksten og et eventuelt stillingsopslag til din Vercel-backend og videre til OpenAI API for at lave vurderingen. Brug ikke oplysninger, du ikke ønsker at dele. OpenAI API-forbrug faktureres separat fra ChatGPT-abonnementet.</p></div></details></section>
 
 <section class="section active" id="page-network">
 <div class="hero">
@@ -394,10 +417,18 @@ label{font-size:14px;font-weight:750}
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelJob:'',panelRevision:''};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
+function renderScoreMeter(value){
+ const score=clampScore(value);
+ const color=score<20?'#c83c3c':score<40?'#cf762d':score<60?'#b08814':score<80?'#4f8d32':'#14744f';
+ return '<div class="score-meter" role="img" aria-label="Score '+score+' ud af 100"><div class="score-meter-number"><strong style="color:'+color+'">'+score+'</strong><span>/100</span></div><div class="score-meter-track"><span class="score-meter-marker" style="left:'+score+'%;--score-color:'+color+'"></span></div><div class="score-meter-scale"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span></div></div>';
+}
+function getPanelDocumentLabel(type){
+ return ({cv:'CV',application:'jobansøgning',article:'artikel',email:'e-mail',other:'materiale'})[type||'cv']||'materiale';
+}
 function normalizeLiveResearch(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return null;
  const allowed=['success','partial','error'];
@@ -430,6 +461,7 @@ function normalizeState(raw){
  const out={...blank,proposalTexts:[],history:[],connections:[],savedJobs:[],sources:[]};
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return out;
  const limits={cv:300000,jobtitle:500,company:500,jobtext:150000,application:30000,panelText:30000,panelJob:50000,panelRevision:50000};
+ out.panelDocumentType=['cv','application','article','email','other'].includes(raw.panelDocumentType)?raw.panelDocumentType:'cv';
  for(const key of Object.keys(limits))if(typeof raw[key]==='string')out[key]=raw[key].slice(0,limits[key]);
  out.proposalTexts=Array.isArray(raw.proposalTexts)?raw.proposalTexts.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,30000)):[];
  out.proposalTitles=Array.isArray(raw.proposalTitles)?raw.proposalTitles.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,100)):[];
@@ -506,7 +538,23 @@ document.addEventListener('keydown',event=>{
 });
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
 function updateIntegrationStatus(research){const badge=el('liveResearchStatus');if(!badge)return;const historyHit=state.history.find(item=>item.liveResearch);const last=research||(state.activeJob&&state.activeJob.liveResearch)||(historyHit&&historyHit.liveResearch);badge.className='chip';if(!last){badge.textContent='Afventer test';return}if(last.status==='searching'){badge.className='pill';badge.textContent='Søgning i gang…';return}if(Number(last.successfulQueries)>0){badge.className='pill';badge.textContent='Søge-API svarer';return}badge.className='chip';badge.textContent='Seneste søgning fejlede'}
-function updateOverview(){el('kcv').textContent=state.cv.trim()?'Klar':'Ikke tilføjet';el('kanalysis').textContent=state.history.length;el('kcontacts').textContent=state.connections.length;el('kapp').textContent=state.application.trim()?'Kladde':'Tom';el('netCount').textContent=state.connections.length;el('savedJobCount').textContent=state.savedJobs.length;const companies=new Set(state.connections.map(c=>(c.company||'').trim()).filter(Boolean));el('companyCount').textContent=companies.size;el('recruiterCount').textContent=state.connections.filter(isRecruiter).length;updateIntegrationStatus();persist()}
+function updateModelIntegrationStatus(){
+ const saved=getPanelAiSettings();
+ const configured=!!(saved.url&&saved.code);
+ let status='Ikke konfigureret',cls='chip',applicationStatus='Ikke konfigureret';
+ let lastSuccess='',lastError='';
+ try{lastSuccess=sessionStorage.getItem('gajh_ai_last_success')||'';lastError=sessionStorage.getItem('gajh_ai_last_error')||''}catch(e){}
+ if(configured){
+  status='Konfigureret — afventer test';applicationStatus='Klar til test';
+  if(lastSuccess){status='Testet og svarer';cls='pill';applicationStatus='Klar — testet'}
+  else if(lastError){status='Seneste test fejlede';cls='chip warnbox';applicationStatus='Afventer ny test'}
+ }
+ const badge=el('modelConnectionStatus');if(badge){badge.textContent=status;badge.className=cls}
+ const model=el('modelNameStatus');if(model)model.textContent='OpenAI via Vercel';
+ const app=el('applicationAiStatus');if(app){app.textContent=applicationStatus;app.className=configured&&lastSuccess?'pill':'chip'}
+}
+
+function updateOverview(){el('kcv').textContent=state.cv.trim()?'Klar':'Ikke tilføjet';el('kanalysis').textContent=state.history.length;el('kcontacts').textContent=state.connections.length;el('kapp').textContent=state.application.trim()?'Kladde':'Tom';el('netCount').textContent=state.connections.length;el('savedJobCount').textContent=state.savedJobs.length;const companies=new Set(state.connections.map(c=>(c.company||'').trim()).filter(Boolean));el('companyCount').textContent=companies.size;el('recruiterCount').textContent=state.connections.filter(isRecruiter).length;updateIntegrationStatus();updateModelIntegrationStatus();persist()}
 function notify(id,msg,cls){const e=el(id);e.hidden=false;e.className='notice '+(cls||'');e.textContent=msg}
 function saveCV(){state.cv=el('cvtext').value;persist();updateOverview();notify('cvmsg','CV gemt lokalt. Det sendes ikke til en server.','goodbox')}
 function clearCV(){if(!confirm('Slette CV fra denne browser?'))return;state.cv='';el('cvtext').value='';persist();updateOverview();notify('cvmsg','CV slettet.','')}
@@ -1207,19 +1255,68 @@ function sourceStats(){const domains=new Set(state.sources.map(s=>s.domain));con
 function sourceSummary(){const s=sourceStats();el('sourceStatus').className='notice '+(s.ok?'goodbox':'warnbox');el('sourceStatus').textContent=s.message;renderSources()}
 function renderSources(){const box=el('sources');if(!state.sources.length){box.innerHTML='<div class="empty">Ingen kilder tilføjet.</div>';return}box.innerHTML=state.sources.map((s,i)=>'<div class="item"><div class="row"><div><h3>'+escapeHtml(s.title)+'</h3><p>'+escapeHtml(s.host)+' · '+escapeHtml(s.domain)+' · Ikke verificeret</p><a href="'+escapeHtml(s.url)+'" target="_blank" rel="noopener noreferrer">Åbn kilde ↗</a></div><button class="warn fit" onclick="removeSource('+i+')">Fjern</button></div></div>').join('')}
 function removeSource(i){state.sources.splice(i,1);persist();sourceSummary()}
+function updatePanelDocumentType(persistChoice=true){
+ const type=el('panelDocumentType')?el('panelDocumentType').value:'cv';
+ state.panelDocumentType=['cv','application','article','email','other'].includes(type)?type:'cv';
+ if(el('paneltext')){
+  const placeholders={
+   cv:'Indsæt CV-tekst, eller hent dit gemte CV nedenfor…',
+   application:'Indsæt din jobansøgning, eller hent din seneste gemte ansøgning nedenfor…',
+   article:'Indsæt den artikel eller tekst, du vil have vurderet…',
+   email:'Indsæt e-mailen, du vil have vurderet…',
+   other:'Indsæt det materiale, du vil have vurderet…'
+  };
+  el('paneltext').placeholder=placeholders[state.panelDocumentType]||placeholders.other;
+ }
+ const context={
+  cv:{label:'Stillingsopslag eller kontekst (valgfrit)',placeholder:'Indsæt evt. stillingsopslaget, så CV’et kan vurderes op mod det konkrete job…',button:'Hent seneste jobopslag'},
+  application:{label:'Stillingsopslag eller kontekst (valgfrit)',placeholder:'Indsæt jobopslaget, så ansøgningens relevans kan vurderes…',button:'Hent seneste jobopslag'},
+  article:{label:'Målgruppe eller udgivelseskontekst (valgfrit)',placeholder:'Beskriv målgruppen, mediet eller formålet med artiklen…',button:'Hent jobopslag som kontekst'},
+  email:{label:'Modtager og formål (valgfrit)',placeholder:'Hvem skal modtage e-mailen, og hvad ønsker du at opnå?',button:'Hent jobopslag som kontekst'},
+  other:{label:'Kontekst (valgfrit)',placeholder:'Tilføj formål, modtager, målgruppe eller andet, som vurderingen skal tage højde for…',button:'Hent jobopslag som kontekst'}
+ }[state.panelDocumentType];
+ const contextLabel=el('panelContextLabel');if(contextLabel)contextLabel.textContent=context.label;
+ if(el('paneljob'))el('paneljob').placeholder=context.placeholder;
+ const contextButton=el('loadPanelContextButton');if(contextButton)contextButton.textContent=context.button;
+ const sourceButton=el('loadPanelSourceButton');
+ if(sourceButton){
+  if(state.panelDocumentType==='cv'){sourceButton.hidden=false;sourceButton.textContent='Indsæt mit gemte CV'}
+  else if(state.panelDocumentType==='application'){sourceButton.hidden=false;sourceButton.textContent='Indsæt min seneste ansøgning'}
+  else sourceButton.hidden=true;
+ }
+ if(persistChoice)persist();
+}
+function loadPanelSource(){
+ const type=el('panelDocumentType')?el('panelDocumentType').value:'cv';
+ if(type==='cv')return loadCVIntoPanel();
+ if(type==='application')return loadApplicationIntoPanel();
+}
 function loadCVIntoPanel(){
+ if(el('panelDocumentType'))el('panelDocumentType').value='cv';
+ updatePanelDocumentType(false);
  const cv=String(state.cv||el('cvtext').value||'').trim();
  if(!cv){alert('Der er ikke gemt et CV endnu. Gå til “Mit CV”, indsæt CV-teksten, og gem den først.');return}
- el('paneltext').value=cv;state.panelText=cv;
+ el('paneltext').value=cv;state.panelText=cv;state.panelDocumentType='cv';
  if(!el('paneljob').value.trim()&&state.jobtext)el('paneljob').value=state.jobtext;
  state.panelJob=el('paneljob').value;persist();
  notify('panelNotice','Dit gemte CV er indsat. Kør vurderingen for at få personaernes analyse.','goodbox');
+}
+function loadApplicationIntoPanel(){
+ if(el('panelDocumentType'))el('panelDocumentType').value='application';
+ updatePanelDocumentType(false);
+ const draft=String(state.application||el('apptext').value||'').trim() ||
+  (Number.isInteger(state.selectedProposal)&&state.selectedProposal>=0&&Array.isArray(state.proposalTexts)?String(state.proposalTexts[state.selectedProposal]||'').trim():'');
+ if(!draft){alert('Der er ikke gemt en jobansøgning endnu. Gå til “Motiveret ansøgning”, vælg et forslag, og gem ansøgningsteksten først.');return}
+ el('paneltext').value=draft;state.panelText=draft;state.panelDocumentType='application';
+ if(!el('paneljob').value.trim()&&state.jobtext)el('paneljob').value=state.jobtext;
+ state.panelJob=el('paneljob').value;persist();
+ notify('panelNotice','Din seneste jobansøgning er indsat. Vælg personaer, og kør vurderingen.','goodbox');
 }
 function loadJobIntoPanel(){
  const job=String(state.jobtext||el('jobtext').value||'').trim();
  if(!job){alert('Der er ikke gemt et stillingsopslag endnu. Gå til “Jobopslag”, indsæt opslaget, og gem eller analysér det først.');return}
  el('paneljob').value=job;state.panelJob=job;persist();
- notify('panelNotice','Seneste stillingsopslag er indsat som sammenligningsgrundlag.','goodbox');
+ notify('panelNotice','Seneste jobopslag er indsat som kontekst for vurderingen.','goodbox');
 }
 function panelTextLines(text){
  return String(text||'').split(/\r?\n|[•●▪]\s*/).map(x=>x.replace(/^\s*[-–—*]\s*/,'').trim()).filter(Boolean);
@@ -1284,9 +1381,11 @@ function loadPanelAiSettings(){
  if(el('panelAiUrl'))el('panelAiUrl').value=saved.url;
  if(el('panelAiCode'))el('panelAiCode').value=saved.code;
  if(el('panelAiStatus')){
-  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-indstillinger fundet i denne browsersession. Sprogmodellen aktiveres, når du vurderer CV’et.':'AI er ikke konfigureret. Uden endpoint og adgangskode bruges den lokale regelbaserede vurdering.';
+  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-indstillinger fundet i denne browsersession. Sprogmodellen er klar til test.':'AI er ikke konfigureret. Åbn AI-indstillingerne for at tilslutte den sikre backend.';
   el('panelAiStatus').className='notice '+(saved.url&&saved.code?'goodbox':'warnbox');
  }
+ const settings=el('panelAiSettings');if(settings)settings.open=!(saved.url&&saved.code);
+ updateModelIntegrationStatus();
 }
 function savePanelAiSettings(silent){
  const url=String(el('panelAiUrl').value||'').trim();
@@ -1302,6 +1401,8 @@ function savePanelAiSettings(silent){
  }
  try{sessionStorage.setItem('gajh_ai_endpoint',url);sessionStorage.setItem('gajh_ai_access_code',code)}
  catch(e){if(!silent)notify('panelAiStatus','Browserens sessionslager er utilgængeligt. Prøv en almindelig browserfane.','warnbox');return false}
+ try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error')}catch(e){}
+ updateModelIntegrationStatus();
  if(!silent)notify('panelAiStatus','AI-indstillinger gemt for denne browsersession. OpenAI API-nøglen ligger fortsat kun på serveren.','goodbox');
  return true;
 }
@@ -1309,23 +1410,27 @@ function clearPanelAiSettings(){
  try{sessionStorage.removeItem('gajh_ai_endpoint');sessionStorage.removeItem('gajh_ai_access_code')}catch(e){}
  if(el('panelAiUrl'))el('panelAiUrl').value='';
  if(el('panelAiCode'))el('panelAiCode').value='';
- notify('panelAiStatus','AI-indstillinger ryddet. Panelet bruger nu den lokale regelbaserede vurdering.','warnbox');
+ try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error')}catch(e){}
+ updateModelIntegrationStatus();
+ const settings=el('panelAiSettings');if(settings)settings.open=true;
+ notify('panelAiStatus','AI-indstillinger ryddet. CV kan vurderes lokalt, men andre materialetyper kræver sprogmodellen.','warnbox');
 }
-function renderAiPersonaResult(item){
+function renderAiPersonaResult(item,documentType){
+ const label=getPanelDocumentLabel(documentType);
  const renderList=(items,kind)=>Array.isArray(items)?items.map(x=>{
   const recommendation=kind==='recommendations';
   const title=x.title||(recommendation?x.action:'Observation');
   const priority=recommendation?'<span class="chip">Prioritet: '+escapeHtml(x.priority||'Mellem')+'</span>':'';
   const explanation=recommendation
    ?'<p>'+escapeHtml(x.why||'')+'</p>'+(x.exampleRewrite?'<blockquote><b>Eksempel på formulering:</b> '+escapeHtml(x.exampleRewrite)+'</blockquote>':'')
-   :'<p>'+escapeHtml(x.observation||'')+'</p>'+(x.whyItMatters?'<p><b>Hvorfor det betyder noget:</b> '+escapeHtml(x.whyItMatters)+'</p>':'')+(x.evidence?'<blockquote><b>CV-tekst:</b> “'+escapeHtml(x.evidence)+'”</blockquote>':'');
+   :'<p>'+escapeHtml(x.observation||'')+'</p>'+(x.whyItMatters?'<p><b>Hvorfor det betyder noget:</b> '+escapeHtml(x.whyItMatters)+'</p>':'')+(x.evidence?'<blockquote><b>Tekstuddrag:</b> “'+escapeHtml(x.evidence)+'”</blockquote>':'');
   return '<li><b>'+escapeHtml(title)+'</b>'+priority+explanation+'</li>';
  }).join(''):'';
- const score=Math.max(0,Math.min(100,Number(item.score)||0));
+ const score=clampScore(item.score);
  const strengths=renderList(item.strengths,'strengths');
  const weaknesses=renderList(item.weaknesses,'weaknesses');
  const recommendations=renderList(item.recommendations,'recommendations');
- return '<article class="item panel-persona-result"><div class="row"><div><h3>'+escapeHtml(item.role||'Persona')+'</h3><p class="muted">AI-vurdering af CV-tekst — ikke en sandsynlighed for at få jobbet</p></div><div class="fit"><span class="chip">'+escapeHtml(item.scoreLabel||'CV-indikator')+' '+score+'/100</span></div></div><p>'+escapeHtml(item.overallAssessment||'Ingen samlet vurdering blev returneret.')+'</p><div class="panel-result-section"><b>Styrker — konkret begrundet</b><ul>'+strengths+'</ul></div><div class="panel-result-section"><b>Svagheder og usikkerheder</b><ul>'+weaknesses+'</ul></div><div class="panel-result-section"><b>Prioriterede forbedringer</b><ol>'+recommendations+'</ol></div>'+(item.jobRelevance?'<div class="panel-result-section"><b>Relevans for stillingen</b><p>'+escapeHtml(item.jobRelevance)+'</p></div>':'')+(item.confidenceNote?'<div class="panel-result-section"><b>Forbehold</b><p>'+escapeHtml(item.confidenceNote)+'</p></div>':'')+'</article>';
+ return '<article class="item panel-persona-result"><div class="row"><div><h3>'+escapeHtml(item.role||'Persona')+'</h3><p class="muted">Vurdering af '+escapeHtml(label)+' — indikatoren viser materialets kvalitet, ikke en jobsandsynlighed</p></div><div class="fit">'+renderScoreMeter(score)+'</div></div><p>'+escapeHtml(item.overallAssessment||'Ingen samlet vurdering blev returneret.')+'</p><div class="panel-result-section"><b>Styrker — konkret begrundet</b><ul>'+strengths+'</ul></div><div class="panel-result-section"><b>Svagheder og usikkerheder</b><ul>'+weaknesses+'</ul></div><div class="panel-result-section"><b>Prioriterede forbedringer</b><ol>'+recommendations+'</ol></div>'+(item.jobRelevance?'<div class="panel-result-section"><b>Relevans for konteksten</b><p>'+escapeHtml(item.jobRelevance)+'</p></div>':'')+(item.confidenceNote?'<div class="panel-result-section"><b>Forbehold</b><p>'+escapeHtml(item.confidenceNote)+'</p></div>':'')+'</article>';
 }
 let aiThinkingTicker=null;
 let aiThinkingStartedAt=0;
@@ -1361,30 +1466,34 @@ function hideAiThinkingModal(){
  if(modal)modal.hidden=true;
  document.body.style.overflow=aiThinkingPreviousOverflow;
 }
-async function runPanelWithModel(cv,job,roles,endpoint,code){
+async function runPanelWithModel(cv,job,roles,endpoint,code,documentType){
  const button=[...document.querySelectorAll('#page-panel button')].find(b=>b.getAttribute('onclick')==='runPanel()');
  if(button){button.disabled=true;button.dataset.oldLabel=button.textContent;button.textContent='AI vurderer CV’et…'}
  notify('panelNotice','CV-teksten sendes til den konfigurerede backend og videre til sprogmodellen.','');
  showAiThinkingModal();
  el('panelResults').innerHTML='<div class="empty">Sprogmodellen gennemgår CV’et og forbereder konkrete observationer for hver valgt persona…</div>';
  try{
-  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+code},body:JSON.stringify({cv:cv,job:job,roles:roles})});
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+code},body:JSON.stringify({material:cv,context:job,roles:roles,documentType:documentType})});
   let data;
   try{data=await response.json()}catch(e){data=null}
   if(!response.ok||!data||!Array.isArray(data.assessments))throw new Error(data&&data.error?data.error:'AI-endpointet returnerede et ugyldigt svar (HTTP '+response.status+').');
-  el('panelResults').innerHTML=data.assessments.map(renderAiPersonaResult).join('')+'<div class="notice goodbox">Sprogmodel: '+escapeHtml(data.model||'OpenAI API')+'. Kontrollér citater, anbefalinger og alle faktuelle påstande, før du ændrer CV’et.</div>';
-  const plan=['FORBEDRINGSPLAN FOR CV — AI-VURDERING','Model: '+(data.model||'OpenAI API'),''];
+  el('panelResults').innerHTML=data.assessments.map(item=>renderAiPersonaResult(item,documentType)).join('')+'<div class="notice goodbox">Sprogmodel: '+escapeHtml(data.model||'OpenAI API')+'. Kontrollér citater, anbefalinger og alle faktuelle påstande, før du ændrer CV’et.</div>';
+  const plan=['FORBEDRINGSPLAN — '+getPanelDocumentLabel(documentType).toLocaleUpperCase('da-DK'),'Model: '+(data.model||'OpenAI API'),''];
   data.assessments.forEach(item=>{
-   plan.push(item.role+' — '+(item.scoreLabel||'CV-indikator')+': '+item.score+'/100');
+   plan.push(item.role+' — '+clampScore(item.score)+'/100');
    (item.recommendations||[]).forEach(rec=>{plan.push('['+(rec.priority||'Mellem')+'] '+(rec.action||''));if(rec.why)plan.push('Hvorfor: '+rec.why);if(rec.exampleRewrite)plan.push('Eksempel: '+rec.exampleRewrite)});
    plan.push('');
   });
   plan.push('Kontrollér alle oplysninger og indsæt kun erfaringer, resultater og målinger, der er korrekte.');
   state.panelRevision=plan.join('\n');el('panelrevision').value=state.panelRevision;
+  try{sessionStorage.setItem('gajh_ai_last_success',new Date().toISOString());sessionStorage.removeItem('gajh_ai_last_error')}catch(e){}
+  updateModelIntegrationStatus();
   notify('panelNotice','AI-vurderingen er gennemført. Kontrollér forslagene før brug.','goodbox');
   persist();
  }catch(error){
   el('panelResults').innerHTML='<div class="notice warnbox"><b>AI-vurderingen kunne ikke gennemføres.</b><p>'+escapeHtml(error&&error.message?error.message:'Ukendt fejl')+'</p><p>Kontrollér endpoint, adgangskode, Vercel-miljøvariabler og at backend tillader GitHub Pages-domænet. Den lokale vurdering er ikke automatisk blevet præsenteret som AI.</p></div>';
+  try{sessionStorage.setItem('gajh_ai_last_error',new Date().toISOString())}catch(e){}
+  updateModelIntegrationStatus();
   notify('panelNotice','AI-kaldet fejlede. Se fejlbeskeden i resultatfeltet.','warnbox');
  }finally{
   hideAiThinkingModal();
@@ -1392,13 +1501,19 @@ async function runPanelWithModel(cv,job,roles,endpoint,code){
  }
 }
 async function runPanel(){
+ const documentType=el('panelDocumentType')?el('panelDocumentType').value:'cv';
  const typed=el('paneltext').value.trim();
- const text=typed||(state.cv||el('cvtext').value||'').trim();
+ const savedCV=String(state.cv||el('cvtext').value||'').trim();
+ const savedApplication=String(state.application||el('apptext').value||'').trim();
+ const text=typed||(documentType==='cv'?savedCV:documentType==='application'?savedApplication:'');
  const job=el('paneljob').value.trim()||String(state.jobtext||'').trim();
- if(!text){alert('Indsæt CV-teksten, eller gem dit CV under “Mit CV”, og vælg “Indsæt mit gemte CV”.');return}
- if(!typed){el('paneltext').value=text}
+ if(!text){
+  const message=documentType==='cv'?'Indsæt CV-teksten eller brug “Indsæt mit gemte CV”.':documentType==='application'?'Indsæt jobansøgningen eller brug “Indsæt min seneste ansøgning”.':'Indsæt det materiale, du vil have vurderet.';
+  alert(message);return;
+ }
+ if(!typed)el('paneltext').value=text;
  if(job&&!el('paneljob').value.trim())el('paneljob').value=job;
- state.panelText=text;state.panelJob=job;
+ state.panelDocumentType=documentType;state.panelText=text;state.panelJob=job;
  const selected=[...document.querySelectorAll('#page-panel .checkline input:checked')].map(e=>e.value);
  if(!selected.length){alert('Vælg mindst én rådgiver.');return}
  const aiUrl=String(el('panelAiUrl').value||'').trim();
@@ -1406,7 +1521,12 @@ async function runPanel(){
  if(aiUrl||aiCode){
   if(!aiUrl||!aiCode){notify('panelNotice','Udfyld både AI-endpoint og adgangskode, eller ryd begge felter for at bruge den lokale vurdering.','warnbox');return}
   if(!savePanelAiSettings(true))return;
-  await runPanelWithModel(text,job,selected,aiUrl,aiCode);
+  await runPanelWithModel(text,job,selected,aiUrl,aiCode,documentType);
+  return;
+ }
+ if(documentType!=='cv'){
+  notify('panelNotice','Den lokale reservevurdering understøtter kun CV. Tilslut sprogmodellen for at få en relevant vurdering af '+getPanelDocumentLabel(documentType)+'.','warnbox');
+  el('panelResults').innerHTML='<div class="notice warnbox">Denne materialetype kræver sprogmodellen. Åbn AI-indstillinger nederst på siden, og kontrollér endpoint og adgangskode.</div>';
   return;
  }
  notify('panelAiStatus','AI er ikke konfigureret i denne session. Resultatet er den lokale regelbaserede vurdering.','warnbox');
@@ -1482,10 +1602,10 @@ async function runPanel(){
   if(!strengths.length)strengths.push('Den tilgængelige tekst giver endnu kun få konkrete signaler, som denne persona kan vurdere med sikkerhed.');
   if(!weak.length)weak.push('Denne regelbaserede gennemgang fandt ikke et klart problem inden for fokusområdet. Det er ikke garanti for, at der ikke findes svagheder.');
   score=Math.max(25,Math.min(95,Math.round(score)));
-  results.push({role,score,scoreLabel:role==='Recruiter'?'Rekrutteringsklarhed':role==='Copywriter'?'Tekst og dokumentation':role==='CMO'?'Marketingfaglige signaler':'Forretnings- og ansvarssignaler',focus,summary,strengths:[...new Set(strengths)].slice(0,5),weak:[...new Set(weak)].slice(0,5),advice:[...new Set(advice)].slice(0,5),evidence:[...new Set(evidence)].slice(0,6)});
+  results.push({role,score,scoreLabel:role==='Copywriter'?'Tekst og klarhed':role==='CMO'?'Marketing og effekt':'Strategi og ansvar',focus,summary,strengths:[...new Set(strengths)].slice(0,5),weak:[...new Set(weak)].slice(0,5),advice:[...new Set(advice)].slice(0,5),evidence:[...new Set(evidence)].slice(0,6)});
  });
- el('panelResults').innerHTML=results.map(r=>'<div class="item panel-persona-result"><div class="row"><div><h3>'+escapeHtml(r.role)+'</h3><p class="muted">'+escapeHtml(r.focus)+'</p></div><div class="fit"><span class="chip">'+escapeHtml(r.scoreLabel)+' '+r.score+'/100</span></div></div><p>'+escapeHtml(r.summary)+'</p><div class="panel-result-section"><b>Styrker — hvad jeg kan se i CV’et</b><ul>'+r.strengths.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div><div class="panel-result-section"><b>Svagheder og usikkerheder</b><ul>'+r.weak.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div>'+(r.evidence.length?'<div class="panel-result-section"><b>Konkrete tekstsignaler</b><ul>'+r.evidence.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div>':'')+'<div class="panel-result-section"><b>Prioriterede forbedringer</b><ol>'+r.advice.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ol></div></div>').join('')+'<div class="notice warnbox">Indikatorerne er regelbaserede læsninger af synlige tekstsignaler, ikke en AI-vurdering eller en sandsynlighed for at få et job. Rådene skal kontrolleres mod dit faktiske ansvar og dokumenterede resultater.</div>';
- const plan=results.flatMap(r=>['['+r.role+'] '+r.scoreLabel+': '+r.score+'/100',...r.advice.map(x=>'• '+x)]);
+ el('panelResults').innerHTML=results.map(r=>'<div class="item panel-persona-result"><div class="row"><div><h3>'+escapeHtml(r.role)+'</h3><p class="muted">'+escapeHtml(r.focus)+'</p></div><div class="fit">'+renderScoreMeter(r.score)+'</div></div><p>'+escapeHtml(r.summary)+'</p><div class="panel-result-section"><b>Styrker — hvad jeg kan se i CV’et</b><ul>'+r.strengths.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div><div class="panel-result-section"><b>Svagheder og usikkerheder</b><ul>'+r.weak.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div>'+(r.evidence.length?'<div class="panel-result-section"><b>Konkrete tekstsignaler</b><ul>'+r.evidence.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div>':'')+'<div class="panel-result-section"><b>Prioriterede forbedringer</b><ol>'+r.advice.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ol></div></div>').join('')+'<div class="notice warnbox">Indikatorerne er regelbaserede læsninger af synlige tekstsignaler, ikke en AI-vurdering eller en sandsynlighed for at få et job. Rådene skal kontrolleres mod dit faktiske ansvar og dokumenterede resultater.</div>';
+ const plan=results.flatMap(r=>['['+r.role+'] '+r.score+'/100',...r.advice.map(x=>'• '+x)]);
  state.panelRevision='FORBEDRINGSPLAN FOR CV\n'+plan.join('\n')+'\n\nVigtigt: Tilføj kun fakta, ansvar, kompetencer og resultater, du kan dokumentere.';
  el('panelrevision').value=state.panelRevision;persist();
 }
@@ -1595,9 +1715,10 @@ function clearAll(){if(!confirm('Dette sletter CV, job, ansøgning, historik, ki
 function renderHistory(){const list=el('historyList');list.innerHTML=state.history.length?state.history.map(h=>{const m=getSourceCoverageMetrics(h.liveResearch);return '<div class="item"><h3>'+escapeHtml(h.title||'Job uden titel')+'</h3><p>'+escapeHtml(h.company||'')+' · '+new Date(h.created).toLocaleString('da-DK')+'</p>'+(h.competencyAssessment&&h.competencyAssessment.coverageScore!=null?'<span class="chip">Kompetencedokumentation '+h.competencyAssessment.coverageScore+'/100</span>':h.contentScore!=null?'<span class="chip">Ældre tekstmatch '+h.contentScore+'/100</span>':'<span class="chip">Gemt uden analyse</span>')+(h.liveResearch?'<span class="chip">Kilder '+m.relevant.length+' · '+m.domains.length+' domæner</span>':'')+'<button class="secondary" style="margin-top:8px" onclick="loadHistory('+h.id+')">Åbn job</button></div>'}).join(''):'<div class="empty">Ingen gemte analyser endnu.</div>'}
 function loadHistory(id){const h=state.history.find(x=>x.id===id);if(!h)return;el('jobtitle').value=h.title||'';el('company').value=h.company||'';el('jobtext').value=h.job||'';if(h.contentScore!=null){state.activeJob={...h,matched:Array.isArray(h.matched)?h.matched:[],gaps:Array.isArray(h.gaps)?h.gaps:[],sources:[],competencyAssessment:h.competencyAssessment||buildCompetencyAssessment(h.job||'',state.cv||'',h.title||'',h.liveResearch)};state.proposalTexts=[];state.application='';state.selectedProposal=-1;el('apptext').value='';renderJobResult();renderProposals()}go('job')}
 function exportHistory(){const text=state.history.map(h=>[h.title,h.company,h.created,h.contentScore!=null?'Match '+h.contentScore:'/'].join(' · ')+'\n'+h.job).join('\n\n---\n\n');download('jobhistorik.txt',text||'Ingen historik endnu.')}
-function hydrate(){el('cvtext').value=state.cv||'';el('jobtitle').value=state.jobtitle||'';el('company').value=state.company||'';el('jobtext').value=state.jobtext||'';el('apptext').value=state.application||'';el('paneltext').value=state.panelText||'';el('paneljob').value=state.panelJob||'';el('panelrevision').value=state.panelRevision||'';renderJobResult();renderProposals();renderSources();renderHistory();renderNetwork();updateOverview()}
+function hydrate(){el('cvtext').value=state.cv||'';el('jobtitle').value=state.jobtitle||'';el('company').value=state.company||'';el('jobtext').value=state.jobtext||'';el('apptext').value=state.application||'';el('panelDocumentType').value=state.panelDocumentType||'cv';el('paneltext').value=state.panelText||'';el('paneljob').value=state.panelJob||'';el('panelrevision').value=state.panelRevision||'';updatePanelDocumentType(false);renderJobResult();renderProposals();renderSources();renderHistory();renderNetwork();updateOverview()}
 el('apptext').addEventListener('input',()=>{state.application=el('apptext').value;persist();updateOverview()});
 el('jobtitle').addEventListener('input',()=>{state.jobtitle=el('jobtitle').value;persist()});el('company').addEventListener('input',()=>{state.company=el('company').value;persist()});el('jobtext').addEventListener('input',()=>{state.jobtext=el('jobtext').value;persist()});
 hydrate();
 loadPanelAiSettings();
+updateModelIntegrationStatus();
 </script></body></html>

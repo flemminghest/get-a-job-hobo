@@ -665,8 +665,8 @@ function normalizeState(raw){
  out.sources=Array.isArray(raw.sources)?raw.sources.slice(0,500).filter(x=>x&&typeof x==='object'&&!Array.isArray(x)).map(x=>{const url=safeHttpUrl(x.url);if(!url)return null;const u=new URL(url);let path=u.pathname;while(path.endsWith('/'))path=path.slice(0,-1);return {title:typeof x.title==='string'?x.title.slice(0,1000):u.hostname,url,canonical:u.origin+path,host:u.hostname,domain:registrableDomain(u.hostname),verified:false}}).filter(Boolean): [];
  return out;
 }
-let state=loadState();
 const PORTRAIT_DEFAULT_MIGRATION_KEY='gajh_portrait_reference_default_v1';
+let state=loadState();
 function loadState(){
  let raw={};try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){raw={}}
  try{

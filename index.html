@@ -988,7 +988,87 @@ function panelFacts(text,job){
  const jobTerms=jobWords.filter(w=>w.length>=5);
  return {text,lower,lines,wordCount,headings,actionCount,resultEvidence,genericEvidence,hasDates,hasContact,overlaps,overlapRatio,jobTerms,marketingFound,leadershipFound,commercialFound,uniqueTokens:uniqueTokens.length,repetition,jobProvided:!!job.trim(),hasExperienceHeading:headings.includes('Erfaring'),hasProfileHeading:headings.includes('Profil eller resumé'),hasSkillsHeading:headings.includes('Kompetencer'),hasEducationHeading:headings.includes('Uddannelse')};
 }
-function runPanel(){
+function getPanelAiSettings(){
+ try{return {url:sessionStorage.getItem('gajh_ai_endpoint')||'',code:sessionStorage.getItem('gajh_ai_access_code')||''}}
+ catch(e){return {url:'',code:''}}
+}
+function loadPanelAiSettings(){
+ const saved=getPanelAiSettings();
+ if(el('panelAiUrl'))el('panelAiUrl').value=saved.url;
+ if(el('panelAiCode'))el('panelAiCode').value=saved.code;
+ if(el('panelAiStatus')){
+  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-indstillinger fundet i denne browsersession. Sprogmodellen aktiveres, når du vurderer CV’et.':'AI er ikke konfigureret. Uden endpoint og adgangskode bruges den lokale regelbaserede vurdering.';
+  el('panelAiStatus').className='notice '+(saved.url&&saved.code?'goodbox':'warnbox');
+ }
+}
+function savePanelAiSettings(silent){
+ const url=String(el('panelAiUrl').value||'').trim();
+ const code=String(el('panelAiCode').value||'').trim();
+ if(!url&&!code){if(!silent)notify('panelAiStatus','Indtast både endpoint og adgangskode, eller brug “Ryd AI-indstillinger”.','warnbox');return false}
+ if(!url||!code){if(!silent)notify('panelAiStatus','Udfyld både AI-endpoint og adgangskode.','warnbox');return false}
+ let parsed;
+ try{parsed=new URL(url)}catch(e){if(!silent)notify('panelAiStatus','Endpointet skal være en fuld HTTPS-URL.','warnbox');return false}
+ const path=parsed.pathname.endsWith('/')?parsed.pathname.slice(0,-1):parsed.pathname;
+ if(parsed.protocol!=='https:'||!path.endsWith('/api/panel-review')){
+  if(!silent)notify('panelAiStatus','Brug endpointets fulde HTTPS-URL, som skal slutte med /api/panel-review.','warnbox');
+  return false;
+ }
+ try{sessionStorage.setItem('gajh_ai_endpoint',url);sessionStorage.setItem('gajh_ai_access_code',code)}
+ catch(e){if(!silent)notify('panelAiStatus','Browserens sessionslager er utilgængeligt. Prøv en almindelig browserfane.','warnbox');return false}
+ if(!silent)notify('panelAiStatus','AI-indstillinger gemt for denne browsersession. OpenAI API-nøglen ligger fortsat kun på serveren.','goodbox');
+ return true;
+}
+function clearPanelAiSettings(){
+ try{sessionStorage.removeItem('gajh_ai_endpoint');sessionStorage.removeItem('gajh_ai_access_code')}catch(e){}
+ if(el('panelAiUrl'))el('panelAiUrl').value='';
+ if(el('panelAiCode'))el('panelAiCode').value='';
+ notify('panelAiStatus','AI-indstillinger ryddet. Panelet bruger nu den lokale regelbaserede vurdering.','warnbox');
+}
+function renderAiPersonaResult(item){
+ const renderList=(items,kind)=>Array.isArray(items)?items.map(x=>{
+  const recommendation=kind==='recommendations';
+  const title=x.title||(recommendation?x.action:'Observation');
+  const priority=recommendation?'<span class="chip">Prioritet: '+escapeHtml(x.priority||'Mellem')+'</span>':'';
+  const explanation=recommendation
+   ?'<p>'+escapeHtml(x.why||'')+'</p>'+(x.exampleRewrite?'<blockquote><b>Eksempel på formulering:</b> '+escapeHtml(x.exampleRewrite)+'</blockquote>':'')
+   :'<p>'+escapeHtml(x.observation||'')+'</p>'+(x.whyItMatters?'<p><b>Hvorfor det betyder noget:</b> '+escapeHtml(x.whyItMatters)+'</p>':'')+(x.evidence?'<blockquote><b>CV-tekst:</b> “'+escapeHtml(x.evidence)+'”</blockquote>':'');
+  return '<li><b>'+escapeHtml(title)+'</b>'+priority+explanation+'</li>';
+ }).join(''):'';
+ const score=Math.max(0,Math.min(100,Number(item.score)||0));
+ const strengths=renderList(item.strengths,'strengths');
+ const weaknesses=renderList(item.weaknesses,'weaknesses');
+ const recommendations=renderList(item.recommendations,'recommendations');
+ return '<article class="item panel-persona-result"><div class="row"><div><h3>'+escapeHtml(item.role||'Persona')+'</h3><p class="muted">AI-vurdering af CV-tekst — ikke en sandsynlighed for at få jobbet</p></div><div class="fit"><span class="chip">'+escapeHtml(item.scoreLabel||'CV-indikator')+' '+score+'/100</span></div></div><p>'+escapeHtml(item.overallAssessment||'Ingen samlet vurdering blev returneret.')+'</p><div class="panel-result-section"><b>Styrker — konkret begrundet</b><ul>'+strengths+'</ul></div><div class="panel-result-section"><b>Svagheder og usikkerheder</b><ul>'+weaknesses+'</ul></div><div class="panel-result-section"><b>Prioriterede forbedringer</b><ol>'+recommendations+'</ol></div>'+(item.jobRelevance?'<div class="panel-result-section"><b>Relevans for stillingen</b><p>'+escapeHtml(item.jobRelevance)+'</p></div>':'')+(item.confidenceNote?'<div class="panel-result-section"><b>Forbehold</b><p>'+escapeHtml(item.confidenceNote)+'</p></div>':'')+'</article>';
+}
+async function runPanelWithModel(cv,job,roles,endpoint,code){
+ const button=[...document.querySelectorAll('#page-panel button')].find(b=>b.getAttribute('onclick')==='runPanel()');
+ if(button){button.disabled=true;button.dataset.oldLabel=button.textContent;button.textContent='AI vurderer CV’et…'}
+ notify('panelNotice','CV-teksten sendes til den konfigurerede backend og videre til sprogmodellen.','');
+ el('panelResults').innerHTML='<div class="empty">Sprogmodellen gennemgår CV’et og forbereder konkrete observationer for hver valgt persona…</div>';
+ try{
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+code},body:JSON.stringify({cv:cv,job:job,roles:roles})});
+  let data;
+  try{data=await response.json()}catch(e){data=null}
+  if(!response.ok||!data||!Array.isArray(data.assessments))throw new Error(data&&data.error?data.error:'AI-endpointet returnerede et ugyldigt svar (HTTP '+response.status+').');
+  el('panelResults').innerHTML=data.assessments.map(renderAiPersonaResult).join('')+'<div class="notice goodbox">Sprogmodel: '+escapeHtml(data.model||'OpenAI API')+'. Kontrollér citater, anbefalinger og alle faktuelle påstande, før du ændrer CV’et.</div>';
+  const plan=['FORBEDRINGSPLAN FOR CV — AI-VURDERING','Model: '+(data.model||'OpenAI API'),''];
+  data.assessments.forEach(item=>{
+   plan.push(item.role+' — '+(item.scoreLabel||'CV-indikator')+': '+item.score+'/100');
+   (item.recommendations||[]).forEach(rec=>{plan.push('['+(rec.priority||'Mellem')+'] '+(rec.action||''));if(rec.why)plan.push('Hvorfor: '+rec.why);if(rec.exampleRewrite)plan.push('Eksempel: '+rec.exampleRewrite)});
+   plan.push('');
+  });
+  plan.push('Kontrollér alle oplysninger og indsæt kun erfaringer, resultater og målinger, der er korrekte.');
+  state.panelRevision=plan.join('\n');el('panelrevision').value=state.panelRevision;
+  notify('panelNotice','AI-vurderingen er gennemført. Kontrollér forslagene før brug.','goodbox');
+  persist();
+ }catch(error){
+  el('panelResults').innerHTML='<div class="notice warnbox"><b>AI-vurderingen kunne ikke gennemføres.</b><p>'+escapeHtml(error&&error.message?error.message:'Ukendt fejl')+'</p><p>Kontrollér endpoint, adgangskode, Vercel-miljøvariabler og at backend tillader GitHub Pages-domænet. Den lokale vurdering er ikke automatisk blevet præsenteret som AI.</p></div>';
+  notify('panelNotice','AI-kaldet fejlede. Se fejlbeskeden i resultatfeltet.','warnbox');
+ }finally{
+  if(button){button.disabled=false;button.textContent=button.dataset.oldLabel||'Vurdér CV med panelet';delete button.dataset.oldLabel}
+ }
+}
+async function runPanel(){
  const typed=el('paneltext').value.trim();
  const text=typed||(state.cv||el('cvtext').value||'').trim();
  const job=el('paneljob').value.trim()||String(state.jobtext||'').trim();
@@ -998,6 +1078,15 @@ function runPanel(){
  state.panelText=text;state.panelJob=job;
  const selected=[...document.querySelectorAll('#page-panel .checkline input:checked')].map(e=>e.value);
  if(!selected.length){alert('Vælg mindst én rådgiver.');return}
+ const aiUrl=String(el('panelAiUrl').value||'').trim();
+ const aiCode=String(el('panelAiCode').value||'').trim();
+ if(aiUrl||aiCode){
+  if(!aiUrl||!aiCode){notify('panelNotice','Udfyld både AI-endpoint og adgangskode, eller ryd begge felter for at bruge den lokale vurdering.','warnbox');return}
+  if(!savePanelAiSettings(true))return;
+  await runPanelWithModel(text,job,selected,aiUrl,aiCode);
+  return;
+ }
+ notify('panelAiStatus','AI er ikke konfigureret i denne session. Resultatet er den lokale regelbaserede vurdering.','warnbox');
  const f=panelFacts(text,job);
  const results=[];
  selected.forEach(role=>{
@@ -1081,7 +1170,7 @@ function usePanelRevision(){
  const txt=el('panelrevision').value.trim();
  if(!txt){alert('Kør først panelet for at opbygge en forbedringsplan.');return}
  if(navigator.clipboard&&navigator.clipboard.writeText){
-  navigator.clipboard.writeText(txt).then(()=>notify('panelResults','Forbedringsplanen er kopieret. Brug den som tjekliste, når du redigerer CV’et.','goodbox')).catch(()=>{el('panelrevision').focus();el('panelrevision').select();notify('panelResults','Markér den valgte tekst og kopiér den manuelt.','warnbox')});
+  navigator.clipboard.writeText(txt).then(()=>notify('panelNotice','Forbedringsplanen er kopieret. Brug den som tjekliste, når du redigerer CV’et.','goodbox')).catch(()=>{el('panelrevision').focus();el('panelrevision').select();notify('panelNotice','Markér den valgte tekst og kopiér den manuelt.','warnbox')});
  }else{el('panelrevision').focus();el('panelrevision').select();notify('panelResults','Markér den valgte tekst og kopiér den manuelt.','warnbox')}
 }
 function parseCSV(text){
@@ -1187,4 +1276,5 @@ function hydrate(){el('cvtext').value=state.cv||'';el('jobtitle').value=state.jo
 el('apptext').addEventListener('input',()=>{state.application=el('apptext').value;persist();updateOverview()});
 el('jobtitle').addEventListener('input',()=>{state.jobtitle=el('jobtitle').value;persist()});el('company').addEventListener('input',()=>{state.company=el('company').value;persist()});el('jobtext').addEventListener('input',()=>{state.jobtext=el('jobtext').value;persist()});
 hydrate();
+loadPanelAiSettings();
 </script></body></html>

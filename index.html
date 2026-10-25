@@ -714,9 +714,22 @@ function exportJob(){
  if(!state.activeJob)return;
  const job=state.activeJob;
  const live=job.liveResearch;
- const sources=live&&Array.isArray(live.sources)?live.sources:[];
- const sourceText=sources.map(source=>'- '+source.title+' — '+source.url+' ['+source.domain+']\n  '+source.description).join('\n');
- const text='Jobanalyse: '+job.title+'\nVirksomhed: '+job.company+'\nForeløbigt indholdsmatch: '+job.contentScore+'/100 (regelbaseret)\nSamtalepotentiale: '+job.appScore+'/100 (regelbaseret)\nMatch: '+job.matched.join(', ')+'\nMulige mangler: '+job.gaps.join(', ')+'\n\nLive-søgning udført: '+(live&&live.searchedAt||'nej')+'\nWebkilder:\n'+sourceText+'\n\nJobopslag:\n'+job.job+'\n\nVigtigt: Søgeresultater kommer fra et eksternt webindeks. Kildesider er ikke garanteret direkte live-hentet eller faktatjekket. Scorerne er lokale, regelbaserede indikatorer, ikke AI.';
+ const assessment=buildEvidenceAssessment(job);
+ const topSources=assessment.metrics.ranked.slice(0,8).map(source=>{
+  const trust=sourceTrustAssessment(source,live);
+  return '- '+source.title+' — '+source.url+' ['+source.domain+']\n  Kildetype: '+trust.label+'\n  '+(source.description||'Intet uddrag');
+ }).join('\n');
+ const forText=assessment.forItems.map(item=>'- '+item.text+(item.source?' [Kilde: '+item.source.url+']':'')).join('\n');
+ const againstText=assessment.againstItems.map(item=>'- '+item.text+(item.source?' [Kilde: '+item.source.url+']':'')).join('\n');
+ const text='JOBANALYSE: '+job.title+'\nVirksomhed: '+job.company+'\nDato: '+new Date(job.created).toLocaleString('da-DK')+
+ '\n\nKILDEBASERET KONKLUSION\n'+assessment.conclusion+
+ '\n\nTALER FOR\n'+(forText||'- Ingen positive forhold identificeret.')+
+ '\n\nTALER IMOD / RISICI\n'+(againstText||'- Ingen konkrete risikosignaler identificeret; dette er ikke bevis for fravær af risiko.')+
+ '\n\nCV-OVERLAP (REGELBASERET TEKSTSAMMENLIGNING)\nNøgleords-overlap: '+(job.matched||[]).join(', ')+'\nNøgleord fra opslaget, der ikke blev fundet i CV-teksten: '+(job.gaps||[]).join(', ')+
+ '\n\nKILDEDÆKNING\nPotentielt relevante søgeresultater: '+assessment.metrics.relevant.length+'\nUafhængige hoveddomæner: '+assessment.metrics.domains.length+'\nKildedækning: '+assessment.metrics.score+'/100 (tæller kun mod målet om mindst 6 relevante kilder fra mindst 4 domæner; ikke en sandsynlighed eller sandhedsscore).'+
+ '\n\nKILDER PRIORITERET EFTER KILDETYPE\n'+(topSources||'- Ingen relevante webkilder.')+
+ '\n\nLIVE-SØGNING UDFØRT: '+(live&&live.searchedAt||'nej')+
+ '\n\nBEGRÆNSNINGER\nPersonaer indgår ikke i jobmatch-konklusionen. Kildebaseret vurdering bruger webindeks, søgeresultater og tilgængelige uddrag; kildesider er ikke garanteret direkte live-hentet eller uafhængigt faktatjekket. Bekræft det originale jobopslag, aktuelle status og alle vigtige forhold på kildesiderne. CV-overlap er kun tekstligt og dokumenterer ikke i sig selv kompetencer.';
  download('jobanalyse.txt',text,'text/plain;charset=utf-8');
 }
 function renderProposals(){const p=state.proposalTexts||[];el('proposalState').textContent=p.length?'Vælg ét forslag. Ansøgningsteksten opdateres først, når du aktivt vælger et forslag.':'Ingen forslag endnu. Analysér et job under Jobopslag først. Der bliver ikke indsat tekst automatisk.';el('proposals').innerHTML=p.length?p.map((t,i)=>'<div class="item"><h3>Forslag '+(i+1)+'</h3><p>'+escapeHtml(t.slice(0,170))+'…</p><button onclick="chooseProposal('+i+')">Brug dette forslag</button></div>').join(''):'<div class="empty">Tre forslag vises her, når du har analyseret et job.</div>';el('apptext').value=state.application||''}

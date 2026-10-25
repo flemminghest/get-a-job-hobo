@@ -65,25 +65,25 @@ function normalizeApplicationDrafts(raw, meta) {
   const author = "Jacob";
   const titles = ["Fagligt match og motivation", "Samarbejde og arbejdsform", "Personlig motivation og bidrag"];
   return raw.drafts.slice(0, 3).map((draft, index) => {
-    let text = String(draft && draft.text || "").replace(/\\r\\n?/g, "\\n").trim();
+    let text = String(draft && draft.text || "").replace(/\r\n?/g, "\n").trim();
     if (text.length < 450) throw new Error("Et af ansøgningsforslagene er for kort. Prøv igen.");
     text = text
-      .replace(/\\[?\\s*dit navn\\s*\\]?/gi, author)
-      .replace(/\\beksempelvirksomhed\\b/gi, company || "jeres virksomhed")
-      .replace(/\\bexample company\\b/gi, company || "jeres virksomhed")
-      .replace(/^\\s*(?:KÆRE|Kære)\\s+[^\\n]*\\n+/i, "")
-      .replace(/(?:^|\\n)\\s*(?:Mange hilsner|Venlig hilsen|Med venlig hilsen|Bedste hilsner|Mvh\\.?)\\s*[\\s\\S]*$/i, "")
+      .replace(/\[?\s*dit navn\s*\]?/gi, author)
+      .replace(/\beksempelvirksomhed\b/gi, company || "jeres virksomhed")
+      .replace(/\bexample company\b/gi, company || "jeres virksomhed")
+      .replace(/^\s*(?:KÆRE|Kære)\s+[^\n]*\n+/i, "")
+      .replace(/(?:^|\n)\s*(?:Mange hilsner|Venlig hilsen|Med venlig hilsen|Bedste hilsner|Mvh\.?)\s*[\s\S]*$/i, "")
       .trim();
-    if (company) text = text.replace(/\\bjeres virksomhed\\b/gi, company);
-    if (/\\b(?:dit navn|\\[Jacob\\]|Eksempelvirksomhed|Example Company)\\b/i.test(text)) {
+    if (company) text = text.replace(/\bjeres virksomhed\b/gi, company);
+    if (/\b(?:dit navn|\[Jacob\]|Eksempelvirksomhed|Example Company)\b/i.test(text)) {
       throw new Error("Et ansøgningsforslag indeholdt en pladsholder, som ikke kunne rettes sikkert.");
     }
-    const wordCount = text.split(/\\s+/).filter(Boolean).length;
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
     if (wordCount < 110) throw new Error("Et af ansøgningsforslagene er for kort. Prøv igen.");
     return {
       title: titles[index],
       focus: String(draft && draft.focus || "").slice(0, 400),
-      text: greeting + "\\n\\n" + text + "\\n\\nMange hilsner\\n//" + author
+      text: greeting + "\n\n" + text + "\n\nMange hilsner\n//" + author
     };
   });
 }

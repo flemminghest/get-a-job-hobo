@@ -50,3 +50,21 @@ Jobresultatet viser i stedet:
 - **Kildedækning:** måler kun opfyldelsen af målet om 6 relevante resultater/4 domæner; det er ikke en sandsynlighed for at få jobbet.
 
 Konklusionen viser kildehenvisninger, og eksporten indeholder argumenter for/imod og prioriterede kilder. Forskellige kildetyper rangeres forskelligt, men en rangering er ikke garanti for korrekthed. Purilis resultater og uddrag er ikke det samme som direkte kontrol af originalsiden, og appen skal derfor ikke kalde stillingen aktiv eller fremlægge en sikker anbefaling uden verificerede kilder.
+
+
+## Kompetencevurdering ud fra CV-dokumentation
+Jobanalysen indeholder en kompetencemodel, som udtrækker kompetenceområder, der faktisk nævnes i stillingens titel eller jobtekst, og sammenholder dem med CV-tekst. For hvert område vises:
+- Kravet og den tekst, som blev fundet i jobopslaget.
+- CV-tekst, der understøtter kompetencen, hvis den findes.
+- Status: konkret handlings-/resultattekst, kompetencen er blot nævnt, eller der blev ikke fundet dokumentation i CV-teksten.
+- Eksterne referencer fra relevante jobopslag og kompetenceprofiler, når de findes i live-søgningen.
+
+Fravær af et CV-fund betyder ikke, at kandidaten mangler kompetencen; det betyder, at CV-teksten ikke dokumenterer den. Årstal alene tæller ikke som dokumentation for en kompetence. Den viste kompetencedokumentation er en regelbaseret indikator og ikke en AI-vurdering eller objektivt bevis på færdighedsniveau.
+
+### ESCO og øvrige kilder
+Ved jobanalyse foretages en særskilt søgning efter **ESCO — European Skills, Competences, Qualifications and Occupations**, EU-Kommissionens standardiserede klassifikation af jobprofiler og tilknyttede kompetencer. Der søges også efter det originale jobopslag, arbejdsgiverens officielle hjemmeside, LinkedIn-jobopslag, Jobindex, Jobnet, Workindenmark samt fagmedier/sammenlignelige jobkrav. ESCO hjælper med at sætte rollekrav i en standardiseret kompetenceramme, mens originalopslaget er det vigtigste grundlag for arbejdsgiverens konkrete krav.
+
+Hvis ESCO ikke findes i søgeindekset for et bestemt job, vises en fast henvisning til ESCO's officielle side om kompetencebaseret jobmatch. Den mærkes eksplicit som en metodekilde og tæller ikke som et fund i den konkrete søgning. Søgeresultaterne og ESCO/rolleprofiler beviser ikke kandidatens kompetencer og kontrollerer ikke automatisk, at en stilling stadig er åben.
+
+ESCO's officielle oplysninger om kompetencebaseret jobmatch: https://esco.ec.europa.eu/da/node/124
+ESCO API og klassifikation: https://esco.ec.europa.eu/en/use-esco/use-esco-services-api

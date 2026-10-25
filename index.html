@@ -551,7 +551,7 @@ function updateModelIntegrationStatus(){
  }
  const badge=el('modelConnectionStatus');if(badge){badge.textContent=status;badge.className=cls}
  const summary=el('panelAiSummaryStatus');if(summary){summary.textContent=status;summary.className=configured&&lastSuccess?'pill':'chip'}
- const model=el('modelNameStatus');if(model)model.textContent=lastModel||'Model valgt i Vercel';
+ const model=el('modelNameStatus');if(model)model.textContent=configured?(lastModel||'Model vælges på serveren'):'Ikke tilkoblet';
  const app=el('applicationAiStatus');if(app){app.textContent=applicationStatus;app.className=configured&&lastSuccess?'pill':'chip'}
 }
 
@@ -1415,7 +1415,7 @@ function clearPanelAiSettings(){
  try{sessionStorage.removeItem('gajh_ai_endpoint');sessionStorage.removeItem('gajh_ai_access_code')}catch(e){}
  if(el('panelAiUrl'))el('panelAiUrl').value='';
  if(el('panelAiCode'))el('panelAiCode').value='';
- try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error')}catch(e){}
+ try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error');sessionStorage.removeItem('gajh_ai_last_model')}catch(e){}
  updateModelIntegrationStatus();
  const settings=el('panelAiSettings');if(settings)settings.open=true;
  notify('panelAiStatus','AI-indstillinger ryddet. CV kan vurderes lokalt, men andre materialetyper kræver sprogmodellen.','warnbox');

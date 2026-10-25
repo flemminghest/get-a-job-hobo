@@ -303,6 +303,8 @@ function bindDiscoveryEvents(){
 function initializeDiscovery(){
  syncNetworkSearchPreferencesFromCV();syncOpportunityInputs();renderDiscoveryResults();renderJobOpportunities();renderFollowUps();bindDiscoveryEvents();
 }
+window.saveNetworkSearchPreferences=saveNetworkSearchPreferences;
+window.syncJobSearchPreferences=syncJobSearchPreferences;
 window.searchNetworkProspects=searchNetworkProspects;
 window.searchNetworkCommunities=searchNetworkCommunities;
 window.searchJobOpportunities=searchJobOpportunities;

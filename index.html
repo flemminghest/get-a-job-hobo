@@ -719,6 +719,7 @@ function extractApplicationTasks(jobText){
  for(const line of candidates){
   if(line.length<25||line.length>260||skip.test(line))continue;
   if(/\bsøger\s+(?:en|et|medarbejder|a|an)\b|\bis looking for\b|\bseeks\b/i.test(line))continue;
+  if(/^(?:erfaring med|experience with|qualifications?|skills|requirements?|kendskab til|must have|nice to have)\b/i.test(line))continue;
   if(!taskPattern.test(line))continue;
   if(/^(created|applications? will be|salary|location|job type|full time|fuldtid|ansøgningsfrist)/i.test(line))continue;
   if(!out.includes(line))out.push(line);
@@ -752,7 +753,8 @@ function buildLocalApplicationDrafts(job){
  const greeting=getApplicationGreeting(job,company,contact);
  const title=String(job&&job.title||state.jobtitle||'stillingen').trim();
  const tasks=extractApplicationTasks(job&&job.job||state.jobtext||'');
- const taskPhrase=joinDanish(tasks.slice(0,2))||'de centrale opgaver i stillingen';
+ const taskStarts=tasks.slice(0,2).map(task=>task.replace(/[.!?]$/,'').replace(/^([A-ZÆØÅ])/,letter=>letter.toLowerCase()));
+ const taskPhrase=taskStarts.length?'at '+taskStarts[0]+(taskStarts[1]?' og at '+taskStarts[1]:''):'at arbejde med de centrale opgaver i stillingen';
  const evidence=extractApplicationCvEvidence(cv,assessment);
  const areas=joinDanish(evidence.areas.slice(0,3));
  const areaPhrase=areas?'arbejde med '+areas:'de erfaringer, jeg har opbygget i mine tidligere roller';
@@ -761,11 +763,11 @@ function buildLocalApplicationDrafts(job){
  const employer=company?' hos '+company:'';
  const roleLine=title&&title!=='stillingen'?'stillingen som '+title:'stillingen';
  const firstOpening=low
-  ?'Jeg har læst '+roleLine+employer+', og jeg vil gerne være ærlig om, at mit CV ikke dokumenterer direkte erfaring med alle de faglige opgaver, I beskriver. Det der alligevel fanger min interesse, er '+taskPhrase+'.'
+  ?'Jeg har læst '+roleLine+employer+', og jeg vil gerne være ærlig om, at mit CV ikke dokumenterer direkte erfaring med alle de faglige opgaver, I beskriver. Det der alligevel fanger min interesse, er muligheden for '+taskPhrase+'.'
   :'Jeg har læst '+roleLine+employer+', og jeg er ret sikker på, at der kan være et godt match. Det der især fanger min interesse, er '+taskPhrase+'.';
  const commonExperience=areas
-  ?'I mine tidligere roller har jeg især arbejdet med '+areas+'. Det er erfaring, jeg gerne vil bringe i spil hos jer, og jeg synes især, det er interessant at se, hvordan den kan bruges i arbejdet med '+taskPhrase+'.'
-  :'I mine tidligere roller har jeg opbygget erfaring, som jeg gerne vil sætte i spil i en ny sammenhæng. Jeg vil helst være konkret om, hvad jeg kommer med, og uddybe de eksempler fra min baggrund, der er mest relevante for opgaverne hos jer.';
+  ?'I mine tidligere roller har jeg især arbejdet med '+areas+'. Den erfaring vil jeg gerne bringe i spil hos jer og uddybe med konkrete eksempler fra mit arbejde.'
+  :'Jeg vil gerne sætte mine tidligere erfaringer i spil hos jer og uddybe de konkrete eksempler, der passer bedst til rollen.';
  const collaboration=/samarbejd|team|bureau|kollega|tværfag|partner|stakeholder|inhouse/i.test(cv);
  const workStyle=collaboration
   ?'Jeg har været vant til at samarbejde med andre fagligheder og få forskellige perspektiver med i arbejdet. Jeg synes, at det er vigtigt både at kunne tage ansvar for sine egne opgaver og få samarbejdet med kolleger og resten af organisationen til at fungere.'
@@ -776,8 +778,8 @@ function buildLocalApplicationDrafts(job){
  const closing='Selvom jeg har meget mere på hjerte, vil jeg begrænse mig her og se frem til at hilse på jer over en kop kaffe.';
  const signoff='Mange hilsner\n//Jacob';
  const drafts=[
-  {title:'Fagligt match og motivation',focus:'Hvorfor opgaverne tiltaler dig, og hvilken erfaring du kan bringe ind.',text:greeting+'\n\n'+firstOpening+'\n\n'+commonExperience+'\n\n'+evidencePhrase+' Jeg kan godt lide, når der er en tydelig opgave, hvor man både skal tænke sig om og få tingene til at fungere i praksis. Jeg vil gerne bruge min erfaring til at bidrage til de mål, I har sat for rollen, og samtidig lære jeres måde at arbejde på.\n\n'+honestGap+'\n\n'+closing+'\n\n'+signoff},
-  {title:'Samarbejde og arbejdsform',focus:'Hvordan du løser opgaver sammen med andre og bidrager til teamet.',text:greeting+'\n\n'+(low?'Det der især interesserer mig ved '+roleLine+employer+', er muligheden for at lære opgaverne ordentligt at kende og blive en del af et team, hvor man hjælper hinanden med at få hverdagen til at fungere.':'Det der især interesserer mig ved '+roleLine+employer+', er kombinationen af '+taskPhrase+' og samarbejdet med de mennesker, der er med til at få opgaverne til at lykkes.')+'\n\n'+commonExperience+'\n\n'+workStyle+'\n\n'+evidencePhrase+' Jeg synes, at godt arbejde både handler om at tage ansvar for det, man selv sidder med, og om at være nysgerrig på, hvordan ens indsats hænger sammen med resten af teamets arbejde.\n\n'+(low?'Jeg vil ikke påstå, at mit CV allerede dokumenterer alle de faglige krav. Til gengæld vil jeg gerne være åben om mit udgangspunkt og tale om, hvad der kan læres gennem oplæring.':'Jeg vil gerne bidrage med den erfaring, jeg har, og samtidig være nysgerrig på, hvor I gerne vil udvikle arbejdet yderligere.')+'\n\n'+closing+'\n\n'+signoff},
+  {title:'Fagligt match og motivation',focus:'Hvorfor opgaverne tiltaler dig, og hvilken erfaring du kan bringe ind.',text:greeting+'\n\n'+firstOpening+'\n\n'+commonExperience+'\n\n'+evidencePhrase+' Jeg kan godt lide, når arbejdet kræver omtanke og ender i noget, der kan bruges i praksis. Jeg vil gerne bidrage og samtidig lære jeres måde at arbejde på.\n\n'+honestGap+'\n\n'+closing+'\n\n'+signoff},
+  {title:'Samarbejde og arbejdsform',focus:'Hvordan du løser opgaver sammen med andre og bidrager til teamet.',text:greeting+'\n\n'+(low?'Det der især interesserer mig ved '+roleLine+employer+', er muligheden for at lære opgaverne ordentligt at kende og blive en del af et team, hvor man hjælper hinanden med at få hverdagen til at fungere.':'Det der især interesserer mig ved '+roleLine+employer+', er både de konkrete arbejdsopgaver og samarbejdet med de mennesker, der er med til at få dem til at lykkes.')+'\n\n'+commonExperience+'\n\n'+workStyle+'\n\n'+evidencePhrase+' For mig handler godt arbejde både om at tage ansvar og forstå, hvordan ens indsats hænger sammen med resten af teamet.\n\n'+(low?'Jeg vil ikke påstå, at mit CV allerede dokumenterer alle de faglige krav. Til gengæld vil jeg gerne være åben om mit udgangspunkt og tale om, hvad der kan læres gennem oplæring.':'Jeg vil gerne bidrage med den erfaring, jeg har, og samtidig være nysgerrig på, hvor I gerne vil udvikle arbejdet yderligere.')+'\n\n'+closing+'\n\n'+signoff},
   {title:'Personlig motivation og bidrag',focus:'En mere personlig og samtaleorienteret indgang til stillingen.',text:greeting+'\n\n'+(low?'Jeg har læst opslaget til '+roleLine+employer+', og jeg kan se, at det vil kræve, at jeg lærer nogle nye faglige opgaver. Det vil jeg hellere sige åbent end prøve at få mit CV til at lyde som noget, det ikke er.':'Jeg har læst opslaget til '+roleLine+employer+', og jeg kan sagtens se mig selv blive en del af det arbejde, I beskriver. Jeg bliver især nysgerrig på '+taskPhrase+'.')+'\n\n'+(areas?'Min baggrund er især præget af '+areas+'.':'Min baggrund rummer erfaringer, som jeg gerne vil sætte i spil og uddybe gennem konkrete eksempler.')+' Jeg kan godt lide at forstå, hvorfor en opgave er vigtig, og hvordan man får den løst på en måde, der giver mening for både kolleger, kunder og organisationen.'+'\n\n'+evidencePhrase+' Hvis vi taler sammen, vil jeg gerne fortælle mere om de valg, jeg har truffet i mit arbejde, hvad jeg har lært undervejs, og hvordan jeg kan bruge det hos jer.\n\n'+(low?'Hvis I vurderer, at min baggrund og motivation kan være relevant trods det faglige spring, vil jeg sætte pris på muligheden for at tale sammen.':'Jeg håber derfor, at I kan se en interessant profil i min erfaring, og at vi kan tage en samtale om, hvordan den kan passe ind hos jer.')+'\n\n'+closing+'\n\n'+signoff}
  ];
  return {drafts,company,contact,greeting};

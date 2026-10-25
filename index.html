@@ -697,7 +697,7 @@ const COMPETENCY_LIBRARY=[
 function hasCompetencyTerm(text,term){const hay=' '+normalizeSearchText(text)+' ',needle=' '+normalizeSearchText(term)+' ';return !!needle.trim()&&hay.includes(needle)}
 function extractSkillSnippet(text,aliases){
  const segments=String(text||'').split(/[\r\n•]+|[.!?]\s+/).map(x=>x.trim()).filter(Boolean);
- const action=/implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\b\d{2,}\b/i;
+ const action=/implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\bled to\s+\d{3,}\b|\b\d{1,3}(?:,\d{3})+\b/i;
  const hits=segments.filter(segment=>aliases.some(alias=>hasCompetencyTerm(segment,alias)));
  if(!hits.length)return '';
  hits.sort((a,b)=>(action.test(b)?4:0)+Math.min(b.length,260)/260-(action.test(a)?4:0)-Math.min(a.length,260)/260);
@@ -722,7 +722,7 @@ function buildCompetencyAssessment(jobText,cvText,title,research){
   const jobEvidence=extractSkillSnippet(job+' '+titleText,jobAliases);
   const cvEvidence=extractSkillSnippet(cv,cvAliases);
   const priority=competencyPriority(jobEvidence,jobAliases);
-  const specificEvidence=cvEvidence&&/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\b\d{2,}\b)/i.test(cvEvidence);
+  const specificEvidence=cvEvidence&&/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|ansvarlig|arbejdede med|erfaring med|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\b\d+\s?%|\bled to\s+\d{3,}\b|\b\d{1,3}(?:,\d{3})+\b)/i.test(cvEvidence);
   const status=cvAliases.length?(specificEvidence?'evidenced':'mentioned'):'missing';
   const sourceRefs=(research&&Array.isArray(research.sources)?research.sources:[]).filter(source=>{
    if(!source.searchedLive||!source.relevant)return false;

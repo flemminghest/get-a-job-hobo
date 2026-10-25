@@ -201,6 +201,48 @@ label{font-size:14px;font-weight:750}
 @media(max-width:800px){.app-pdf-modal{padding:6px}.app-pdf-modal-card{max-height:98vh;width:100%;padding:10px;border-radius:16px}.app-pdf-layout{grid-template-columns:minmax(0,1fr);overflow:auto;gap:8px}.app-pdf-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:10px;overflow:visible}.app-pdf-controls h3,.app-pdf-filename,.app-pdf-color-error,.app-pdf-actions{grid-column:1/-1}.app-pdf-viewer{min-height:0}.app-pdf-frame{height:56vh;min-height:320px}.app-pdf-modal-head{padding-bottom:8px}}
 @media(prefers-reduced-motion:reduce){.app-pdf-modal .research-modal-card{animation:none}}
 
+
+/* LinkedIn discovery, cross-portal job search and follow-up pipeline */
+#page-network .network-discovery-actions{display:flex;gap:9px;flex-wrap:wrap}
+.inline-count{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#e6f5ec;color:#176b45;font-size:12px;margin-left:4px}
+.discovery-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:12px;padding-top:8px}
+.discovery-section-head h2,.discovery-section-head h3{margin:0 0 4px}
+.discovery-section-head p{margin:0;max-width:800px;font-size:13px;line-height:1.55}
+.discovery-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.discovery-card{display:flex;flex-direction:column;min-width:0;padding:15px;border:1px solid #dce6ef;border-radius:15px;background:linear-gradient(180deg,#fff,#fbfcfe);gap:8px}
+.discovery-card:hover{border-color:#bcd4e0;box-shadow:0 6px 18px #17324c0a}
+.discovery-card h3{font-size:16px;line-height:1.35;margin:0;color:#1c334d;overflow-wrap:anywhere}
+.discovery-card p{margin:0;font-size:13px;line-height:1.55;color:#5f7289;overflow-wrap:anywhere}
+.discovery-card .lead-company{font-size:12px;font-weight:800;color:#248069}
+.discovery-card .lead-snippet{color:#425971}
+.discovery-card .lead-reason{font-size:12px;color:#60748b;background:#f4f7fb;border-radius:8px;padding:8px 9px}
+.discovery-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.discovery-source{display:inline-flex;align-items:center;gap:5px;max-width:70%;font-size:11px;font-weight:800;color:#596f84;background:#eff4f8;border-radius:999px;padding:5px 9px;overflow-wrap:anywhere}
+.discovery-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+.discovery-actions button{font-size:12px;padding:8px 10px;min-height:36px}
+.discovery-actions a{display:inline-flex;align-items:center;font-size:12px;font-weight:800;color:#087f86;text-decoration:none;padding:7px 2px}
+.discovery-actions a:hover{text-decoration:underline}
+.discovery-matched{display:flex;gap:5px;flex-wrap:wrap}
+.discovery-matched .chip{font-size:11px;padding:4px 7px}
+.job-source-links{display:flex;gap:8px;flex-wrap:wrap}
+.job-source-links a{font-size:12px;font-weight:800;padding:7px 10px;border:1px solid #dce5ef;border-radius:9px;color:#176c70;text-decoration:none;background:#f8fbfc}
+.job-source-links a:hover{background:#e8f6f5}
+.followup-card{grid-column:1/-1}
+.followup-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.followup-fields label{display:block;font-size:11px;margin-bottom:4px}
+.followup-fields input,.followup-fields select,.followup-fields textarea{width:100%;min-width:0}
+.followup-fields textarea{min-height:62px;resize:vertical}
+.followup-card .followup-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.followup-card .followup-title{min-width:0}
+.followup-status-chip{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:5px 9px;background:#eef3f8;color:#536980}
+.followup-status-chip.overdue{background:#fff0ee;color:#b6423d}
+.followup-status-chip.done{background:#e3f6ea;color:#147448}
+#page-opportunities .hero,#page-followups .hero{background:linear-gradient(118deg,#123f37 0%,#17684e 56%,#149770 100%)}
+#page-opportunities .hero .eyebrow,#page-followups .hero .eyebrow{color:#b5f1d4}
+#page-opportunities .kpi strong,#page-followups .kpi strong{color:#176b4d}
+@media(max-width:800px){.discovery-results{grid-template-columns:1fr}.followup-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){#page-network .network-discovery-actions{display:grid;grid-template-columns:1fr}.followup-fields{grid-template-columns:1fr}.discovery-section-head{align-items:flex-start}.discovery-card{padding:13px}}
+
 /* Search progress modal / lightbox */
 .research-modal[hidden]{display:none!important}.research-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px}.research-modal-backdrop{position:absolute;inset:0;background:rgba(12,28,43,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.research-modal-card{position:relative;width:min(760px,100%);max-height:min(88vh,900px);overflow:auto;background:#fff;border:1px solid rgba(220,232,239,.95);border-radius:24px;padding:clamp(20px,4vw,34px);box-shadow:0 30px 100px rgba(5,23,39,.32);animation:researchModalIn .22s ease-out}@keyframes researchModalIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}.research-modal-heading{display:flex;align-items:center;gap:17px}.research-modal-heading .eyebrow{margin-bottom:4px}.research-modal-heading h2{font-size:clamp(22px,3vw,28px);line-height:1.2;margin:0;color:#1c344b}.research-modal-description{font-size:14px;line-height:1.65;color:#64758a;margin:18px 0 20px}.research-spinner{display:inline-block;flex:0 0 auto;width:42px;height:42px;border:4px solid #d8eee5;border-top-color:#16866b;border-right-color:#16866b;border-radius:50%;animation:researchSpin .8s linear infinite}@keyframes researchSpin{to{transform:rotate(360deg)}}.research-spinner-small{width:16px;height:16px;border-width:2px}.research-modal-progress-row{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800;color:#52667b;margin-bottom:8px}.research-modal-progress{height:8px;border-radius:99px;background:#eaf0f3;overflow:hidden}.research-modal-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#16866b,#69c69d);border-radius:99px;transition:width .25s ease}.research-modal-queries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:18px}.research-modal-query{min-width:0;display:flex;flex-direction:column;gap:5px;padding:12px 13px;border:1px solid #e0e8ed;border-radius:13px;background:#fbfcfd}.research-modal-query strong{font-size:12px;line-height:1.4;color:#223951}.research-modal-query small{font-size:11px;color:#718196;line-height:1.4}.research-modal-query-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#728195}.research-modal-query-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#bec9d4;flex:0 0 auto}.research-modal-query[data-done="true"] .research-modal-query-status:before{background:#16966c}.research-modal-query[data-error="true"] .research-modal-query-status:before{background:#c45353}.research-modal-query[data-done="true"] .research-modal-query-status{color:#217553}.research-modal-query[data-error="true"] .research-modal-query-status{color:#a04444}.research-modal-footer{display:flex;align-items:flex-start;gap:10px;border-top:1px solid #e8edf1;margin-top:18px;padding-top:14px;font-size:11px;line-height:1.55;color:#758497}@media(max-width:600px){.research-modal{padding:10px}.research-modal-card{border-radius:18px;padding:20px 15px;max-height:92vh}.research-modal-queries{grid-template-columns:1fr}.research-modal-heading{align-items:flex-start}.research-modal-heading .research-spinner{width:34px;height:34px}}
 /* AI thinking modal: spinner, honest indeterminate progress, and elapsed timer */
@@ -324,7 +366,7 @@ label{font-size:14px;font-weight:750}
 #proposals .proposal-card button{margin-top:2px}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand">✳ <b>Get a Job</b> Hobo</div><nav class="nav" id="nav">
-<button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal prototype · AI kræver separat backend-opsætning<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
+<button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="opportunities">⌕ &nbsp; Jobmuligheder</button><button data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="followups">✓ &nbsp; Opfølgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal prototype · AI kræver separat backend-opsætning<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
 <main><div class="topline"><span class="muted" id="crumb">Dit jobsøgningsarbejdsrum</span><span class="pill">Gratis prototype</span></div>
 
 <section class="section" id="page-home"><div class="hero"><div class="eyebrow">DIT NÆSTE SKRIDT</div><h1>Du behøver ikke starte fra nul.</h1><p>Hold styr på job, CV, ansøgninger og dit netværk i ét arbejdsrum. Dine data bliver i denne browser.</p><div class="actions"><button onclick="go('job')">Analyser et jobopslag →</button><button class="secondary" onclick="go('network')">Find forbindelser</button></div></div><div class="kpis"><div class="kpi"><label>CV</label><strong id="kcv">Ikke tilføjet</strong><span>Gemmes lokalt</span></div><div class="kpi"><label>Analyser</label><strong id="kanalysis">0</strong><span>Gemte jobforløb</span></div><div class="kpi"><label>Forbindelser</label><strong id="kcontacts">0</strong><span>Importér LinkedIn CSV</span></div><div class="kpi"><label>Ansøgning</label><strong id="kapp">Tom</strong><span>Udfyldes ved dit valg</span></div></div><div class="grid"><div class="card"><h2>Kom godt i gang</h2><div class="statline"><span>1. Tilføj dit CV</span><button class="secondary fit" onclick="go('cv')">Åbn CV</button></div><div class="statline"><span>2. Indsæt et jobopslag</span><button class="secondary fit" onclick="go('job')">Analyser</button></div><div class="statline"><span>3. Vælg ansøgningsforslag</span><button class="secondary fit" onclick="go('application')">Ansøgning</button></div></div><div class="card"><h2>Hvad er tilkoblet?</h2><div class="statline"><span>CV, kladder, CSV og backup</span><span class="pill">Lokalt</span></div><div class="statline"><span>Sprogmodel (OpenAI via Vercel)</span><span class="chip" id="modelConnectionStatus">Kontrollerer…</span></div><div class="statline"><span>AI-model</span><span class="chip" id="modelNameStatus">OpenAI API</span></div><div class="statline"><span>Motiveret ansøgning med AI</span><span class="chip" id="applicationAiStatus">Kontrollerer…</span></div><div class="statline"><span>Live-websøgning (webindeks)</span><span class="chip" id="liveResearchStatus">Afventer test</span></div><div class="statline"><span>Direkte verificering af kildesider</span><span class="chip">Ikke tilkoblet</span></div><div class="statline"><span>LinkedIn API</span><span class="chip">Ikke tilkoblet</span></div><p class="footnote">Jobmatch og live-websøgning er særskilte funktioner. CV-/tekstvurdering og ansøgningsforslag kan bruge OpenAI via Vercel, når forbindelsen er konfigureret. Live-websøgning bruger et eksternt indeks; kildesider verificeres ikke automatisk.</p></div></div></section>
@@ -372,6 +414,18 @@ label{font-size:14px;font-weight:750}
     <button class="warn" onclick="clearNetwork()">Slet importerede forbindelser</button>
   </div>
 </div>
+
+<div class="card stack" style="margin-top:16px" id="networkDiscoveryWorkspace">
+ <div><div class="eyebrow" style="color:#087f86">UDVID DIT NETVÆRK</div><h2 style="margin-bottom:6px">Find relevante personer, firmaer og faglige samtaler</h2><p class="muted" style="margin-top:0">Søg efter offentligt indekserede profiler og faglige opslag ud fra din profil. Match med dine importerede 1.-gradsforbindelser filtreres lokalt, så du kan prioritere nye kontakter.</p></div>
+ <div class="formrow"><div><label for="networkSearchTerms">Profilord og kompetencer</label><input id="networkSearchTerms" placeholder="CRM, marketing automation, content, dataanalyse…" value="CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI" oninput="saveNetworkSearchPreferences()"><small class="muted">Du kan rette søgeordene. Dit fulde CV sendes ikke til søge-API'et.</small></div><div><label for="networkSearchLocation">Geografi</label><input id="networkSearchLocation" placeholder="København og omegn" value="København og omegn" oninput="saveNetworkSearchPreferences()"><small class="muted">Fx København, Danmark, hybrid eller remote.</small></div></div>
+ <div class="network-discovery-actions"><button id="networkProspectsSearchButton" onclick="searchNetworkProspects()">Find personer og virksomheder</button><button id="networkCommunitiesSearchButton" class="secondary" onclick="searchNetworkCommunities()">Find grupper og opslag</button><button class="secondary" onclick="go('followups')">Se opfølgning <span id="followupCountBadge" class="inline-count">0</span></button></div>
+ <div id="networkDiscoveryStatus" class="notice">Klar til søgning. Søgninger starter først, når du klikker på en af knapperne.</div>
+ <div class="discovery-section-head"><div><h3>Personer og firmaer, du ikke er connected med</h3><p class="muted">Profiler og organisationer, der ser relevante ud ud fra de valgte søgeord. Aktuel rolle skal kontrolleres på originalprofilen.</p></div><span class="chip" id="networkProspectsMeta">0 forslag</span></div>
+ <div id="networkProspectsResults" class="discovery-results"><div class="empty">Klik på “Find personer og virksomheder” for at hente offentligt indekserede resultater.</div></div>
+ <div class="discovery-section-head"><div><h3>Faggrupper og opslag med relevante signaler</h3><p class="muted">Fx faglige diskussioner, netværksgrupper og opslag, hvor virksomheder eller fagfolk omtaler ansættelse, opgaver eller kompetencer.</p></div><span class="chip" id="networkCommunitiesMeta">0 forslag</span></div>
+ <div id="networkCommunitiesResults" class="discovery-results"><div class="empty">Klik på “Find grupper og opslag” for at søge.</div></div>
+ <div class="notice">Kildebegrænsning: Resultaterne kommer fra et offentligt webindeks, ikke fra en officiel LinkedIn API. Søgningen logger ikke ind på LinkedIn, scraper ikke private profiler og sender ikke forbindelsesanmodninger. Åbn selv den oprindelige side og kontrollér rolle, dato og kontekst.</div>
+</div>
 <div class="card stack" style="margin-top:16px">
   <div><div class="eyebrow" style="color:#087f86">OPDATÉR DIT NETVÆRK</div><h2 style="margin-bottom:6px">Tilføj eller opdatér dine LinkedIn-data</h2><p class="muted" style="margin-top:0">Vælg CSV-filerne fra din udpakkede LinkedIn-eksport. Importen sker lokalt. Hvis du importerer Connections.csv igen, erstatter den den nuværende forbindelsesliste.</p></div>
   <div class="import-actions">
@@ -394,6 +448,26 @@ label{font-size:14px;font-weight:750}
 </div>
 </section>
 
+
+<section class="section" id="page-opportunities">
+ <div class="hero"><div class="eyebrow">JOB, DER ER VÆRD AT UNDERSØGE</div><h1>Oplagte jobmuligheder — på tværs af portaler.</h1><p>Find offentligt indekserede opslag på LinkedIn, Jobindex, HK Jobportal, Jobnet, Workindenmark, StepStone og relevante karrieresider. Sortér efter overlap i profilord, gem jobs og send interessante opslag til CV-vurderingen.</p><div class="actions"><button id="jobOpportunitiesSearchButton" onclick="searchJobOpportunities()">Søg efter relevante job</button><button class="secondary" onclick="go('cv')">Opdatér mit CV</button></div></div>
+ <div class="kpis"><div class="kpi"><label>Fundet</label><strong id="jobOpportunityCount">0</strong><span>Offentligt indekserede opslag</span></div><div class="kpi"><label>Profilord</label><strong id="jobKeywordCount">0</strong><span>Ord fra søgeprofilen</span></div><div class="kpi"><label>Gemte til opfølgning</label><strong id="jobTrackedCount">0</strong><span>Lokalt i denne browser</span></div><div class="kpi"><label>Sidste søgning</label><strong id="jobLastSearchLabel">Ikke søgt</strong><span>Kontrollér altid originalopslaget</span></div></div>
+ <div class="card stack"><div><h2>Din søgeprofil</h2><p class="muted">De samme profilord som under LinkedIn & netværk. De bruges som søgeord, ikke som en automatisk sandhed om dine kvalifikationer.</p></div>
+  <div class="formrow"><div><label for="jobSearchTerms">Profilord</label><input id="jobSearchTerms" placeholder="CRM, marketing automation, digital marketing…" oninput="syncJobSearchPreferences()"></div><div><label for="jobSearchLocation">Geografi</label><input id="jobSearchLocation" placeholder="København og omegn" oninput="syncJobSearchPreferences()"></div></div>
+  <div id="jobSearchStatus" class="notice">Klar til søgning. Det fulde CV sendes ikke til søge-API'et.</div>
+  <div class="job-source-links"><a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/jobs/">LinkedIn Jobs ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobindex.dk/">Jobindex ↗</a><a target="_blank" rel="noopener noreferrer" href="https://jobportal.hk.dk/">HK Jobportal ↗</a><a target="_blank" rel="noopener noreferrer" href="https://job.jobnet.dk/">Jobnet ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.workindenmark.dk/">Workindenmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.stepstone.dk/">StepStone ↗</a></div>
+  <div class="discovery-section-head"><div><h2>Job, der matcher dine søgeord</h2><p class="muted">Søgningen tæller profilord, som findes i titel og offentligt uddrag. Det er ikke en sandsynlighed for at få jobbet og ikke en verificering af, at opslaget stadig er aktivt.</p></div><span id="jobOpportunitiesMeta" class="chip">0 forslag</span></div>
+  <div id="jobOpportunitiesResults" class="discovery-results"><div class="empty">Klik på “Søg efter relevante job” for at hente aktuelle søgeresultater fra det offentlige webindeks.</div></div>
+ </div>
+</section>
+<section class="section" id="page-followups">
+ <div class="hero green"><div class="eyebrow">DIN JOBSØGNINGS-PIPELINE</div><h1>Opfølgning, der gør det lettere at komme videre.</h1><p>Hold styr på mennesker, virksomheder, opslag, næste skridt og datoer. Alt gemmes lokalt i din browser, og du bestemmer selv, hvornår du kontakter nogen eller søger et job.</p><div class="actions"><button onclick="go('network')">Find kontakter</button><button class="secondary" onclick="go('opportunities')">Find job</button><button class="secondary" onclick="exportFollowUps()">Eksportér opfølgningsliste</button></div></div>
+ <div class="kpis"><div class="kpi"><label>Åbne punkter</label><strong id="followupOpenCount">0</strong><span>Kræver næste skridt</span></div><div class="kpi"><label>Forfaldne</label><strong id="followupOverdueCount">0</strong><span>Dato er passeret</span></div><div class="kpi"><label>Kontaktet / ansøgt</label><strong id="followupContactedCount">0</strong><span>Aktiv fremdrift</span></div><div class="kpi"><label>Færdige</label><strong id="followupClosedCount">0</strong><span>Lukkede punkter</span></div></div>
+ <div class="card stack"><div class="formrow"><div><label for="followupFilter">Vis</label><select id="followupFilter" onchange="renderFollowUps()"><option value="open">Åbne punkter</option><option value="all">Alle</option><option value="overdue">Forfaldne</option><option value="contacts">Kontakter og netværk</option><option value="jobs">Job og ansøgninger</option><option value="closed">Lukkede</option></select></div><div><label for="followupSearch">Søg i opfølgning</label><input id="followupSearch" placeholder="Navn, virksomhed eller notat…" oninput="renderFollowUps()"></div></div>
+  <div class="notice">God rutine: undersøg kontakten/jobbet først; planlæg en konkret næste handling; følg op efter 3–5 arbejdsdage, hvis du ikke har fået svar; registrér svar og luk eller planlæg igen. Datoer er dine egne påmindelser — appen sender ikke automatisk beskeder.</div>
+  <div id="followupsResults" class="discovery-results"><div class="empty">Når du gemmer en kontakt, et opslag eller et job til opfølgning, vises det her.</div></div>
+ </div>
+</section>
 <section class="section" id="page-history"><div class="hero purple"><div class="eyebrow">DIT ARBEJDSRUM</div><h1>Gem, eksportér og gendan.</h1><p>Dine data gemmes lokalt i browseren. Brug backup, hvis du vil flytte dem eller beskytte dig mod tab.</p></div><div class="grid"><div class="card stack"><h2>Backup</h2><p class="muted">Eksportér lokale data til en JSON-fil. Backup kan indeholde dit CV, ansøgninger og forbindelser — opbevar den privat.</p><button onclick="exportBackup()">Eksportér backup</button><label for="backupfile">Gendan backup</label><input type="file" id="backupfile" accept=".json,application/json" onchange="restoreBackup(event)"><button class="warn" onclick="clearAll()">Slet alle lokale data</button><div id="backupmsg" class="notice" hidden></div></div><div class="card stack"><h2>Historik</h2><div id="historyList" class="list"><div class="empty">Ingen gemte analyser endnu.</div></div><button class="secondary" onclick="exportHistory()">Eksportér historik som tekst</button></div></div><div class="card" style="margin-top:16px"><h2>Om denne version</h2><div class="statline"><span>CV, kladder og CSV-import</span><span class="pill">Lokal funktion</span></div><div class="statline"><span>Jobmatch / panel</span><span class="chip">Regelbaseret demo</span></div><div class="statline"><span>AI-personaer</span><span class="chip">Valgfri sikker backend — kræver opsætning</span></div><div class="statline"><span>Live-research / LinkedIn API</span><span class="chip">Afhænger af separat integration</span></div><div class="statline"><span>Synkronisering mellem enheder</span><span class="chip">Ikke tilkoblet</span></div></div></section>
 
 <div class="footnote">Privatliv: CV, ansøgninger og importerede CSV-data gemmes lokalt i browseren. Hvis du aktiverer AI-panelet og vurderer CV’et, sendes CV-teksten og et eventuelt stillingsopslag gennem din konfigurerede Vercel-backend til OpenAI API. Uden AI-indstillinger sendes CV’et ikke til modellen. Ved live-søgning sendes jobtitel, virksomhedsnavn og udvalgte søgeord fra jobopslaget til Purilis offentlige websøge-API. CV, ansøgningstekst og LinkedIn-forbindelser indgår ikke i søgeforespørgslerne. På en offentlig hjemmeside er kildekoden synlig, men dine importerede data indlejres ikke i den. Brug backup.</div>
@@ -476,7 +550,7 @@ label{font-size:14px;font-weight:750}
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3F7897',applicationSignoffHex:'#183755'};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3F7897',applicationSignoffHex:'#183755',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
@@ -516,6 +590,23 @@ function normalizeCompetencyAssessment(raw){
  const references=Array.isArray(raw.references)?raw.references.slice(0,8).filter(ref=>ref&&typeof ref==='object').map(ref=>({title:String(ref.title||'').slice(0,300),url:safeHttpUrl(ref.url),domain:String(ref.domain||'').slice(0,200),categoryId:String(ref.categoryId||'').slice(0,100),kind:String(ref.kind||'').slice(0,200),description:String(ref.description||'').slice(0,500),trust:String(ref.trust||'').slice(0,200),staticReference:!!ref.staticReference})):[];
  return {rows,requiredCount:rows.length,documentedCount:rows.filter(row=>row.status==='evidenced').length,mentionedCount:rows.filter(row=>row.status==='mentioned').length,missingCount:rows.filter(row=>row.status==='missing').length,coverageScore:raw.coverageScore==null?null:Math.max(0,Math.min(100,Number(raw.coverageScore)||0)),references,method:String(raw.method||'').slice(0,1000)};
 }
+function normalizeResearchRecords(raw,defaultType){
+ if(!Array.isArray(raw))return [];
+ return raw.slice(0,120).filter(x=>x&&typeof x==='object'&&!Array.isArray(x)).map((x,index)=>{
+  const url=safeHttpUrl(x.url);if(!url)return null;
+  let domain='';try{domain=new URL(url).hostname.replace(/^www\\./i,'')}catch(e){}
+  const type=typeof x.type==='string'&&/^(person|company|post|group|job|other)$/.test(x.type)?x.type:(defaultType||'other');
+  return {id:typeof x.id==='string'||typeof x.id==='number'?String(x.id):String(Date.now())+'-'+index,type,title:typeof x.title==='string'?x.title.slice(0,500):domain,company:typeof x.company==='string'?x.company.slice(0,300):'',url,domain:typeof x.domain==='string'?x.domain.slice(0,200):domain,description:typeof x.description==='string'?x.description.slice(0,1200):'',sourceLabel:typeof x.sourceLabel==='string'?x.sourceLabel.slice(0,120):domain,queryLabel:typeof x.queryLabel==='string'?x.queryLabel.slice(0,160):'',matchedTerms:Array.isArray(x.matchedTerms)?x.matchedTerms.slice(0,12).filter(v=>typeof v==='string').map(v=>v.slice(0,80)):[],createdAt:typeof x.createdAt==='string'?x.createdAt.slice(0,50):'',saved:!!x.saved};
+ }).filter(Boolean);
+}
+function normalizeFollowUpRecords(raw){
+ if(!Array.isArray(raw))return [];
+ const statuses=['to_review','ready','contacted','replied','applied','closed'];
+ return raw.slice(0,300).filter(x=>x&&typeof x==='object'&&!Array.isArray(x)).map((x,index)=>{
+  const url=safeHttpUrl(x.url);
+  return {id:typeof x.id==='string'||typeof x.id==='number'?String(x.id):String(Date.now())+'-'+index,type:['contact','post','group','job','company'].includes(x.type)?x.type:'other',title:typeof x.title==='string'?x.title.slice(0,500):'Uden titel',company:typeof x.company==='string'?x.company.slice(0,300):'',url,domain:typeof x.domain==='string'?x.domain.slice(0,200):'',description:typeof x.description==='string'?x.description.slice(0,1200):'',sourceLabel:typeof x.sourceLabel==='string'?x.sourceLabel.slice(0,120):'',status:statuses.includes(x.status)?x.status:'to_review',dueDate:typeof x.dueDate==='string'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(x.dueDate)?x.dueDate:'',note:typeof x.note==='string'?x.note.slice(0,1500):'',createdAt:typeof x.createdAt==='string'?x.createdAt.slice(0,50):new Date().toISOString()};
+ }).filter(x=>x.title);
+}
 function normalizeState(raw){
  const out={...blank,proposalTexts:[],history:[],connections:[],savedJobs:[],sources:[]};
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return out;
@@ -537,6 +628,14 @@ function normalizeState(raw){
  out.history=Array.isArray(raw.history)?raw.history.slice(0,50).filter(h=>h&&typeof h==='object'&&!Array.isArray(h)).map((h,i)=>({id:Number.isSafeInteger(Number(h.id))?Number(h.id):Date.now()+i,title:typeof h.title==='string'?h.title.slice(0,500):'',company:typeof h.company==='string'?h.company.slice(0,500):'',created:typeof h.created==='string'?h.created.slice(0,80):new Date().toISOString(),contentScore:h.contentScore==null?null:clampScore(h.contentScore),appScore:h.appScore==null?null:clampScore(h.appScore),matched:Array.isArray(h.matched)?h.matched.slice(0,100).filter(v=>typeof v==='string').map(v=>v.slice(0,100)):[],gaps:Array.isArray(h.gaps)?h.gaps.slice(0,100).filter(v=>typeof v==='string').map(v=>v.slice(0,100)):[],job:typeof h.job==='string'?h.job.slice(0,30000):'',liveResearch:normalizeLiveResearch(h.liveResearch),competencyAssessment:normalizeCompetencyAssessment(h.competencyAssessment),savedOnly:!!h.savedOnly})): [];
  out.connections=Array.isArray(raw.connections)?raw.connections.slice(0,10000).filter(c=>c&&typeof c==='object'&&!Array.isArray(c)).map(c=>({first:typeof c.first==='string'?c.first.slice(0,300):'',last:typeof c.last==='string'?c.last.slice(0,300):'',url:safeProfileUrl(c.url),email:typeof c.email==='string'?c.email.slice(0,400):'',company:typeof c.company==='string'?c.company.slice(0,600):'',position:typeof c.position==='string'?c.position.slice(0,800):'',date:typeof c.date==='string'?c.date.slice(0,100):'',raw:null})): [];
  out.savedJobs=Array.isArray(raw.savedJobs)?raw.savedJobs.slice(0,10000).filter(j=>j&&typeof j==='object'&&!Array.isArray(j)).map(j=>({title:typeof j.title==='string'?j.title.slice(0,1000):'',company:typeof j.company==='string'?j.company.slice(0,1000):'',url:safeHttpUrl(j.url)})).filter(j=>j.title||j.company||j.url): [];
+ out.networkSearchTerms=typeof raw.networkSearchTerms==='string'?raw.networkSearchTerms.slice(0,600):blank.networkSearchTerms;
+ out.networkSearchLocation=typeof raw.networkSearchLocation==='string'?raw.networkSearchLocation.slice(0,300):blank.networkSearchLocation;
+ out.networkProspects=normalizeResearchRecords(raw.networkProspects,'person');
+ out.networkCommunities=normalizeResearchRecords(raw.networkCommunities,'post');
+ out.jobOpportunities=normalizeResearchRecords(raw.jobOpportunities,'job');
+ out.followUps=normalizeFollowUpRecords(raw.followUps);
+ out.networkLastSearch=typeof raw.networkLastSearch==='string'?raw.networkLastSearch.slice(0,50):'';
+ out.jobLastSearch=typeof raw.jobLastSearch==='string'?raw.jobLastSearch.slice(0,50):'';
  out.sources=Array.isArray(raw.sources)?raw.sources.slice(0,500).filter(x=>x&&typeof x==='object'&&!Array.isArray(x)).map(x=>{const url=safeHttpUrl(x.url);if(!url)return null;const u=new URL(url);let path=u.pathname;while(path.endsWith('/'))path=path.slice(0,-1);return {title:typeof x.title==='string'?x.title.slice(0,1000):u.hostname,url,canonical:u.origin+path,host:u.hostname,domain:registrableDomain(u.hostname),verified:false}}).filter(Boolean): [];
  return out;
 }
@@ -583,11 +682,13 @@ function go(name,bypassLowMatchWarning){
  }
  document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id==='page-'+name));
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===name));
- const label={home:'Overblik',job:'Jobopslag',cv:'Mit CV',application:'Motiveret ansøgning',panel:'Spørg panelet',network:'LinkedIn & netværk',history:'Historik & backup'}[name]||name;
+ const label={home:'Overblik',job:'Jobopslag',cv:'Mit CV',application:'Motiveret ansøgning',panel:'Spørg panelet',network:'LinkedIn & netværk',opportunities:'Jobmuligheder',followups:'Opfølgning',history:'Historik & backup'}[name]||name;
  el('crumb').textContent=label;
  if(name==='cv')el('cvtext').value=state.cv||'';
  if(name==='application')renderProposals();
- if(name==='network')renderNetwork();
+ if(name==='network'){renderNetwork();renderDiscoveryResults()}
+ if(name==='opportunities'){syncOpportunityInputs();renderJobOpportunities()}
+ if(name==='followups')renderFollowUps();
  if(name==='history')renderHistory();
  window.scrollTo({top:0,behavior:'smooth'});
 }

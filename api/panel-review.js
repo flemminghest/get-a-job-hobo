@@ -148,7 +148,7 @@ Returnér KUN gyldig JSON med denne struktur:
       "strengths": [{"title":"", "observation":"", "whyItMatters":"", "evidence":""}],
       "weaknesses": [{"title":"", "observation":"", "whyItMatters":"", "evidence":""}],
       "recommendations": [{"priority":"Høj|Mellem|Lav", "action":"", "why":"", "exampleRewrite":""}],
-      "jobRelevance": "Konkret vurdering af match mod opslaget eller forklaring på at opslag mangler",
+      "jobRelevance": "Vurdering af materialets relevans for den angivne kontekst eller forklaring på, hvorfor kontekst mangler",
       "confidenceNote": "Hvad teksten giver og ikke giver grundlag for"
     }
   ]

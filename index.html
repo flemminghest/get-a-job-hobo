@@ -718,6 +718,7 @@ function extractApplicationTasks(jobText){
  const out=[];
  for(const line of candidates){
   if(line.length<25||line.length>260||skip.test(line))continue;
+  if(/\bsøger\s+(?:en|et|medarbejder|a|an)\b|\bis looking for\b|\bseeks\b/i.test(line))continue;
   if(!taskPattern.test(line))continue;
   if(/^(created|applications? will be|salary|location|job type|full time|fuldtid|ansøgningsfrist)/i.test(line))continue;
   if(!out.includes(line))out.push(line);

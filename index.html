@@ -1533,6 +1533,8 @@ function drawPdfHeader(doc,portraitDataUrl){
  doc.setFillColor(177,177,177);doc.circle(82,8.2,1.2,'F');doc.ellipse(82,11,2.3,1.5,'F');
  doc.setFontSize(8.5);doc.setTextColor(32,32,32);
  doc.text('mail@pferd.dk',82,22);doc.text('+45 2331 9975',82,29.5);doc.text('Min LinkedIn',82,37);
+ // Keep the white circular picture base behind either choice.
+ doc.setFillColor(255,255,255);doc.circle(174,25,17.5,'F');
  // Use a circular PNG crop of the selected portrait, or the native vector avatar.
  if(portraitDataUrl){
   doc.addImage(portraitDataUrl,'PNG',156.5,7.5,35,35,'application-portrait','FAST');

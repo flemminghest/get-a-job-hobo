@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Get a Job Hobo">
+  <rect width="64" height="64" rx="16" fill="#183755"/>
+  <circle cx="32" cy="32" r="23" fill="#078c91"/>
+  <path d="M32 10.5 35.8 26l14.7-6.3L39.2 32l11.3 12.3L35.8 38 32 53.5 28.2 38l-14.7 6.3L24.8 32 13.5 19.7 28.2 26z" fill="#fff"/>
+  <circle cx="32" cy="32" r="5.2" fill="#183755"/>
+</svg>

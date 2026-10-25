@@ -4,7 +4,7 @@ The GitHub Pages site is static, so it cannot keep an OpenAI API key secret. The
 
 ## What this enables
 
-When configured, the Recruiter, Copywriter, CMO and CEO personas use the OpenAI Responses API to produce specific, evidence-based feedback. The model is instructed to quote the submitted CV accurately, explain why each observation matters, prioritize improvements and avoid inventing facts. The existing rule-based assessment remains available if AI settings are not configured.
+When configured, the Recruiter, Copywriter, CMO and CEO personas use the OpenAI Responses API to produce specific, evidence-based feedback. The same secure endpoint also generates three longer Danish cover-letter drafts based on your CV and the job posting. The drafts follow the tone of your uploaded sample: direct, personal, warm and slightly informal, use a contact name when explicitly found, use the company name when reliably identified, and always sign off with `Mange hilsner` and `//Jacob`. They are displayed in full-width cards stacked vertically. If no contact or company name is found, the system avoids inventing one. The model is instructed to quote the submitted CV accurately, explain why each observation matters, prioritize improvements and avoid inventing facts. The existing rule-based assessment remains available if AI settings are not configured.
 
 ## One-time setup
 

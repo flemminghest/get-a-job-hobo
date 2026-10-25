@@ -158,7 +158,25 @@ label{font-size:14px;font-weight:750}
 .live-source-card .live-source-excerpt{color:#53667a;line-height:1.65;font-size:13px;margin:10px 0 13px;overflow-wrap:anywhere}
 .live-source-card .profile-link{margin-top:2px}
 #page-job #jobmsg{white-space:normal}
-.research-plan{padding:18px}.research-plan>p{font-size:13px;line-height:1.6}.research-plan-list{display:grid;gap:8px;margin-top:12px}.research-plan-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 13px;border:1px solid #e1e8ef;border-radius:13px;background:#fbfcfd}.research-plan-main{min-width:0;display:flex;flex-direction:column;gap:4px}.research-plan-main strong{font-size:13px;color:#22374e}.research-plan-main small{font-size:11px;color:#687b8e;line-height:1.45;overflow-wrap:anywhere}.research-plan-main .research-query{color:#7a8796}.research-plan-main .research-error-text{color:#9d4141}.research-plan-status{display:flex;align-items:flex-end;flex-direction:column;gap:6px;white-space:nowrap}.research-count{font-size:11px;color:#637589;font-weight:750}.research-status{font-size:11px;font-weight:800;padding:5px 8px;border-radius:999px;white-space:normal;text-align:center}.research-found{background:#e2f5e9;color:#1d754d}.research-review{background:#fff2d8;color:#855e17}.research-error{background:#ffe8e6;color:#a2423f}.research-none{background:#edf1f5;color:#637286}.live-source-card{padding:15px 16px;border-color:#dce7ed;background:linear-gradient(120deg,#fff,#fbfcfd)}.live-source-card h3{margin-bottom:4px;line-height:1.35;overflow-wrap:anywhere}.live-source-card .live-source-excerpt{color:#53667a;line-height:1.65;font-size:13px;margin:10px 0 13px;overflow-wrap:anywhere}#page-job details summary{font-weight:750;cursor:pointer}#page-job details p{font-size:12px;line-height:1.55;overflow-wrap:anywhere;border-bottom:1px solid #e5ebf1;padding:8px 0}@media(max-width:600px){.research-plan-row{grid-template-columns:minmax(0,1fr);gap:8px}.research-plan-status{flex-direction:row;align-items:center;justify-content:flex-start}}/* Search progress modal / lightbox */
+.research-plan{padding:18px}.research-plan>p{font-size:13px;line-height:1.6}.research-plan-list{display:grid;gap:8px;margin-top:12px}.research-plan-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 13px;border:1px solid #e1e8ef;border-radius:13px;background:#fbfcfd}.research-plan-main{min-width:0;display:flex;flex-direction:column;gap:4px}.research-plan-main strong{font-size:13px;color:#22374e}.research-plan-main small{font-size:11px;color:#687b8e;line-height:1.45;overflow-wrap:anywhere}.research-plan-main .research-query{color:#7a8796}.research-plan-main .research-error-text{color:#9d4141}.research-plan-status{display:flex;align-items:flex-end;flex-direction:column;gap:6px;white-space:nowrap}.research-count{font-size:11px;color:#637589;font-weight:750}.research-status{font-size:11px;font-weight:800;padding:5px 8px;border-radius:999px;white-space:normal;text-align:center}.research-found{background:#e2f5e9;color:#1d754d}.research-review{background:#fff2d8;color:#855e17}.research-error{background:#ffe8e6;color:#a2423f}.research-none{background:#edf1f5;color:#637286}.live-source-card{padding:15px 16px;border-color:#dce7ed;background:linear-gradient(120deg,#fff,#fbfcfd)}.live-source-card h3{margin-bottom:4px;line-height:1.35;overflow-wrap:anywhere}.live-source-card .live-source-excerpt{color:#53667a;line-height:1.65;font-size:13px;margin:10px 0 13px;overflow-wrap:anywhere}#page-job details summary{font-weight:750;cursor:pointer}#page-job details p{font-size:12px;line-height:1.55;overflow-wrap:anywhere;border-bottom:1px solid #e5ebf1;padding:8px 0}@media(max-width:600px){.research-plan-row{grid-template-columns:minmax(0,1fr);gap:8px}.research-plan-status{flex-direction:row;align-items:center;justify-content:flex-start}}
+/* Low-match warning before opening the motivation-letter page */
+.low-match-modal[hidden]{display:none!important}
+.low-match-modal{z-index:11000}
+.low-match-modal-card{width:min(620px,100%);padding:clamp(24px,4vw,38px);color:#20384f}
+.low-match-close{position:absolute;right:16px;top:12px;width:38px;height:38px;min-height:38px;padding:0;border-radius:50%;background:#eef3f6;color:#354b60;font-size:28px;line-height:1}
+.low-match-close:hover{background:#dfe9ef;color:#1c344b}
+.low-match-eyebrow{color:#9c5a08;margin-bottom:10px}
+.low-match-modal-card h2{font-size:clamp(23px,3vw,30px);line-height:1.22;margin:0 38px 18px 0;color:#1c344b}
+.low-match-score-row{display:flex;align-items:center;gap:12px;margin:0 0 18px;flex-wrap:wrap}
+.low-match-score{display:inline-flex;align-items:center;justify-content:center;border-radius:14px;background:#fff0d9;color:#8b4d06;font-size:23px;font-weight:800;padding:10px 15px}
+.low-match-score-label{font-size:13px;color:#66798c}
+.low-match-modal-card p{font-size:15px;line-height:1.7;color:#42586d;margin:0 0 13px}
+.low-match-modal-card .low-match-caveat{font-size:13px;color:#65788b;border-top:1px solid #e5ebef;padding-top:12px;margin-top:8px}
+.low-match-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:22px}
+.low-match-actions button{min-height:44px}
+@media(max-width:580px){.low-match-actions{flex-direction:column-reverse}.low-match-actions button{width:100%}}
+
+/* Search progress modal / lightbox */
 .research-modal[hidden]{display:none!important}.research-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px}.research-modal-backdrop{position:absolute;inset:0;background:rgba(12,28,43,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.research-modal-card{position:relative;width:min(760px,100%);max-height:min(88vh,900px);overflow:auto;background:#fff;border:1px solid rgba(220,232,239,.95);border-radius:24px;padding:clamp(20px,4vw,34px);box-shadow:0 30px 100px rgba(5,23,39,.32);animation:researchModalIn .22s ease-out}@keyframes researchModalIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}.research-modal-heading{display:flex;align-items:center;gap:17px}.research-modal-heading .eyebrow{margin-bottom:4px}.research-modal-heading h2{font-size:clamp(22px,3vw,28px);line-height:1.2;margin:0;color:#1c344b}.research-modal-description{font-size:14px;line-height:1.65;color:#64758a;margin:18px 0 20px}.research-spinner{display:inline-block;flex:0 0 auto;width:42px;height:42px;border:4px solid #d8eee5;border-top-color:#16866b;border-right-color:#16866b;border-radius:50%;animation:researchSpin .8s linear infinite}@keyframes researchSpin{to{transform:rotate(360deg)}}.research-spinner-small{width:16px;height:16px;border-width:2px}.research-modal-progress-row{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800;color:#52667b;margin-bottom:8px}.research-modal-progress{height:8px;border-radius:99px;background:#eaf0f3;overflow:hidden}.research-modal-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#16866b,#69c69d);border-radius:99px;transition:width .25s ease}.research-modal-queries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:18px}.research-modal-query{min-width:0;display:flex;flex-direction:column;gap:5px;padding:12px 13px;border:1px solid #e0e8ed;border-radius:13px;background:#fbfcfd}.research-modal-query strong{font-size:12px;line-height:1.4;color:#223951}.research-modal-query small{font-size:11px;color:#718196;line-height:1.4}.research-modal-query-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#728195}.research-modal-query-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#bec9d4;flex:0 0 auto}.research-modal-query[data-done="true"] .research-modal-query-status:before{background:#16966c}.research-modal-query[data-error="true"] .research-modal-query-status:before{background:#c45353}.research-modal-query[data-done="true"] .research-modal-query-status{color:#217553}.research-modal-query[data-error="true"] .research-modal-query-status{color:#a04444}.research-modal-footer{display:flex;align-items:flex-start;gap:10px;border-top:1px solid #e8edf1;margin-top:18px;padding-top:14px;font-size:11px;line-height:1.55;color:#758497}@media(max-width:600px){.research-modal{padding:10px}.research-modal-card{border-radius:18px;padding:20px 15px;max-height:92vh}.research-modal-queries{grid-template-columns:1fr}.research-modal-heading{align-items:flex-start}.research-modal-heading .research-spinner{width:34px;height:34px}}
 /* Source-weighted job assessment; personas are intentionally excluded from job matching */
 .evidence-conclusion{margin:16px 0;padding:22px;border:1px solid #dce8e5;border-radius:20px;background:linear-gradient(145deg,#fff 0%,#fbfdfc 100%);box-shadow:0 8px 24px rgba(24,55,75,.04)}
@@ -319,6 +337,23 @@ label{font-size:14px;font-weight:750}
 
 <div class="footnote">Privatliv: CV, ansøgninger og importerede CSV-data gemmes lokalt i browseren. Hvis du aktiverer AI-panelet og vurderer CV’et, sendes CV-teksten og et eventuelt stillingsopslag gennem din konfigurerede Vercel-backend til OpenAI API. Uden AI-indstillinger sendes CV’et ikke til modellen. Ved live-søgning sendes jobtitel, virksomhedsnavn og udvalgte søgeord fra jobopslaget til Purilis offentlige websøge-API. CV, ansøgningstekst og LinkedIn-forbindelser indgår ikke i søgeforespørgslerne. På en offentlig hjemmeside er kildekoden synlig, men dine importerede data indlejres ikke i den. Brug backup.</div>
 </main></div>
+<div id="lowMatchModal" class="research-modal low-match-modal" hidden role="dialog" aria-modal="true" aria-labelledby="lowMatchTitle" aria-describedby="lowMatchDescription" tabindex="-1">
+ <div class="research-modal-backdrop" onclick="closeLowMatchModal()"></div>
+ <section class="research-modal-card low-match-modal-card">
+  <button id="lowMatchClose" type="button" class="low-match-close" aria-label="Luk advarsel" onclick="closeLowMatchModal()">×</button>
+  <div class="eyebrow low-match-eyebrow">VURDÉR MATCHET FØRST</div>
+  <h2 id="lowMatchTitle">Jeg vil anbefale, at du ikke søger dette job</h2>
+  <div class="low-match-score-row"><span class="low-match-score" id="lowMatchScore">—/100</span><span class="low-match-score-label">Dokumenteret kompetencematch</span></div>
+  <p id="lowMatchDescription">Den aktuelle kompetencescore er under 20/100. Det tyder på, at stillingen ligger meget langt fra de kompetencer, dit CV dokumenterer.</p>
+  <p>Min anbefaling er, at du ikke bruger tid på en ansøgning til dette job på det nuværende grundlag. Overvej i stedet stillinger, der ligger tættere på din erfaring, eller afklar først, om relevant overførbar erfaring, oplæring eller andre kvalifikationer ændrer vurderingen.</p>
+  <p class="low-match-caveat">Scoren vurderer det, der er dokumenteret i CV’et — ikke alt, du eventuelt kan. Du kan stadig vælge at fortsætte.</p>
+  <div class="low-match-actions">
+   <button type="button" class="secondary" onclick="closeLowMatchModal()">Luk og bliv ved jobanalysen</button>
+   <button type="button" onclick="continueToApplicationAnyway()">Fortsæt til ansøgningen alligevel</button>
+  </div>
+ </section>
+</div>
+
 <div id="researchModal" class="research-modal" hidden role="dialog" aria-modal="true" aria-labelledby="researchModalTitle" aria-describedby="researchModalDescription" tabindex="-1">
  <div class="research-modal-backdrop"></div>
  <section class="research-modal-card">
@@ -390,7 +425,58 @@ function loadState(){try{return normalizeState(JSON.parse(localStorage.getItem(K
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));document.getElementById('storageStatus').textContent='Data gemt lokalt i denne browser';return true}catch(e){document.getElementById('storageStatus').textContent='Lokal lagring fuld/blokeret — eksportér backup';return false}}
 function el(id){return document.getElementById(id)}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function go(name){document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id==='page-'+name));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===name));const label={home:'Overblik',job:'Jobopslag',cv:'Mit CV',application:'Motiveret ansøgning',panel:'Spørg panelet',network:'LinkedIn & netværk',history:'Historik & backup'}[name]||name;el('crumb').textContent=label; if(name==='cv')el('cvtext').value=state.cv||'';if(name==='application')renderProposals();if(name==='network')renderNetwork();if(name==='history')renderHistory();window.scrollTo({top:0,behavior:'smooth'})}
+let lowMatchReturnFocus=null;
+let previousBodyOverflow='';
+function getCurrentCompetencyScore(){
+ const assessment=state.activeJob&&state.activeJob.competencyAssessment;
+ if(!assessment||assessment.coverageScore===null||assessment.coverageScore===undefined||assessment.coverageScore==='')return null;
+ const score=Number(assessment.coverageScore);
+ return Number.isFinite(score)?score:null;
+}
+function openLowMatchModal(score){
+ const modal=el('lowMatchModal');
+ if(!modal)return;
+ lowMatchReturnFocus=document.activeElement;
+ previousBodyOverflow=document.body.style.overflow;
+ el('lowMatchScore').textContent=Math.round(score)+'/100';
+ modal.hidden=false;
+ document.body.style.overflow='hidden';
+ const first=el('lowMatchClose');
+ if(first)first.focus();
+}
+function closeLowMatchModal(){
+ const modal=el('lowMatchModal');
+ if(!modal)return;
+ modal.hidden=true;
+ document.body.style.overflow=previousBodyOverflow;
+ if(lowMatchReturnFocus&&typeof lowMatchReturnFocus.focus==='function')lowMatchReturnFocus.focus();
+ lowMatchReturnFocus=null;
+}
+function continueToApplicationAnyway(){
+ closeLowMatchModal();
+ go('application',true);
+}
+function go(name,bypassLowMatchWarning){
+ if(name==='application'&&!bypassLowMatchWarning){
+  const score=getCurrentCompetencyScore();
+  if(score!==null&&score<20){openLowMatchModal(score);return}
+ }
+ document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id==='page-'+name));
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===name));
+ const label={home:'Overblik',job:'Jobopslag',cv:'Mit CV',application:'Motiveret ansøgning',panel:'Spørg panelet',network:'LinkedIn & netværk',history:'Historik & backup'}[name]||name;
+ el('crumb').textContent=label;
+ if(name==='cv')el('cvtext').value=state.cv||'';
+ if(name==='application')renderProposals();
+ if(name==='network')renderNetwork();
+ if(name==='history')renderHistory();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'){
+  const modal=el('lowMatchModal');
+  if(modal&&!modal.hidden)closeLowMatchModal();
+ }
+});
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
 function updateIntegrationStatus(research){const badge=el('liveResearchStatus');if(!badge)return;const historyHit=state.history.find(item=>item.liveResearch);const last=research||(state.activeJob&&state.activeJob.liveResearch)||(historyHit&&historyHit.liveResearch);badge.className='chip';if(!last){badge.textContent='Afventer test';return}if(last.status==='searching'){badge.className='pill';badge.textContent='Søgning i gang…';return}if(Number(last.successfulQueries)>0){badge.className='pill';badge.textContent='Søge-API svarer';return}badge.className='chip';badge.textContent='Seneste søgning fejlede'}
 function updateOverview(){el('kcv').textContent=state.cv.trim()?'Klar':'Ikke tilføjet';el('kanalysis').textContent=state.history.length;el('kcontacts').textContent=state.connections.length;el('kapp').textContent=state.application.trim()?'Kladde':'Tom';el('netCount').textContent=state.connections.length;el('savedJobCount').textContent=state.savedJobs.length;const companies=new Set(state.connections.map(c=>(c.company||'').trim()).filter(Boolean));el('companyCount').textContent=companies.size;el('recruiterCount').textContent=state.connections.filter(isRecruiter).length;updateIntegrationStatus();persist()}

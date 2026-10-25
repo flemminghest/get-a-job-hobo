@@ -230,6 +230,15 @@ module.exports = async function handler(req, res) {
     ? JSON.stringify({ requestedOutputFormat: "json", cv, job, title: title || null, company: company || null, contactName: contactName || null, greetingLine: greetingLine || null, authorName, writingStyle: "Dansk, direkte, varm, let uformel og personlig. Sammenhængende korte afsnit; konkret motivation, erfaring, samarbejde og menneskelig afslutning. Return valid json." })
     : JSON.stringify({ requestedOutputFormat: "json", cv, job: job || null, selectedRoles: roles });
   const requestId = crypto.randomUUID();
+  const requestStartedAt = Date.now();
+  console.info("[panel-review] Starting OpenAI request", {
+    requestId,
+    task,
+    model,
+    inputChars: input.length,
+    outputTokenLimit: task === "application-drafts" ? 4000 : 7000,
+    reasoningEffort: "low"
+  });
   let upstream;
   try {
     upstream = await fetch("https://api.openai.com/v1/responses", {
@@ -240,13 +249,13 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model,
-        reasoning: { effort: "medium" },
+        reasoning: { effort: "low" },
         instructions: task === "application-drafts"
           ? applicationDraftInstructions + "\n\nReturn valid json matching the requested schema. Skriv tre forslag til en motiveret ansøgning på dansk ud fra det indsendte CV og jobopslag. Brug oplysningerne i json-inputtet som fakta. Brug den angivne greetingLine ordret og afslut med //Jacob. Returnér kun JSON."
           : instructions + "\n\nReturn valid json matching the requested schema. Vurdér KUN disse valgte personaer: " + roles.join(", ") + ". Returnér præcis én vurdering for hver valgt persona og ingen andre.",
         input,
         text: { format: { type: "json_object" } },
-        max_output_tokens: task === "application-drafts" ? 6000 : 7000
+        max_output_tokens: task === "application-drafts" ? 4000 : 7000
       }),
       signal: AbortSignal.timeout(55_000)
     });
@@ -272,6 +281,11 @@ module.exports = async function handler(req, res) {
     });
   }
 
+  console.info("[panel-review] OpenAI response received", {
+    requestId,
+    status: upstream.status,
+    durationMs: Date.now() - requestStartedAt
+  });
   const responseText = await upstream.text();
   let payload;
   try { payload = JSON.parse(responseText); } catch { payload = null; }

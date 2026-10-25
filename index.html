@@ -184,7 +184,15 @@ label{font-size:14px;font-weight:750}
 .app-pdf-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line);padding:0 2px 12px}
 .app-pdf-modal-head h2{margin:0;font-size:clamp(19px,2.3vw,26px);letter-spacing:-.5px}
 .app-pdf-modal-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
-.app-pdf-close{background:#f3f6fa!important;color:#233951!important;padding:7px 12px!important}
+.app-pdf-close{width:42px;height:42px;min-width:42px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 42px;border:1px solid #dce5ef!important;border-radius:50%!important;background:#f3f6fa!important;color:#233951!important;padding:0!important;box-shadow:none}
+.app-pdf-close:hover{background:#e6eef7!important;border-color:#bbcadb!important}
+.app-pdf-close:focus-visible{outline:3px solid #078c91;outline-offset:2px}
+.app-pdf-close svg{width:21px;height:21px;display:block}
+.app-pdf-modal,.app-pdf-modal button,.app-pdf-modal input,.app-pdf-modal select,.app-pdf-modal label{font-family:Roboto,Arial,sans-serif}
+.app-pdf-portrait-controls{border-top:1px solid #dce5ef;padding-top:12px;margin-top:3px}
+.app-pdf-help{font-size:12px;line-height:1.45;color:#60748b;margin:3px 0}
+.app-pdf-small-button{font-size:12px!important;padding:8px 10px!important}
+#appPortraitUpload{width:100%;font:12px Roboto,Arial,sans-serif;padding:7px;background:#fff;border:1px solid #dce5ef;border-radius:8px}
 .app-pdf-layout{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:14px;min-height:0;flex:1}
 .app-pdf-controls{background:#f7f9fb;border:1px solid var(--line);border-radius:14px;padding:15px;display:flex;flex-direction:column;gap:12px;overflow:auto}
 .app-pdf-controls h3{margin:0;font-size:15px}
@@ -521,11 +529,23 @@ label{font-size:14px;font-weight:750}
  <section class="research-modal-card app-pdf-modal-card">
   <div class="app-pdf-modal-head">
    <div><h2 id="appPdfTitle">Forhåndsvisning af ansøgning</h2><p id="appPdfDescription">Redigér ansøgningen i tekstfeltet, eller skift farverne her. Eksporten bruger dit brevpapir og gemmes som en ny PDF.</p></div>
-   <button type="button" class="secondary app-pdf-close" onclick="closeApplicationPdfModal()" aria-label="Luk forhåndsvisning">Luk ✕</button>
+   <button type="button" class="app-pdf-close" onclick="closeApplicationPdfModal()" aria-label="Luk forhåndsvisning" title="Luk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
   </div>
   <div class="app-pdf-layout">
    <aside class="app-pdf-controls">
     <h3>Farver på brevpapiret</h3>
+    <div class="app-pdf-color-row app-pdf-portrait-controls">
+     <label for="appPortraitMode">Billede i cirklen</label>
+     <select id="appPortraitMode" onchange="changeApplicationPortraitMode(this.value)">
+      <option value="avatar">Brug avatar</option>
+      <option value="photo">Behold mit portrætfoto</option>
+     </select>
+     <label for="appPortraitUpload">Vælg eller skift portrætfoto</label>
+     <input id="appPortraitUpload" type="file" accept="image/png,image/jpeg,image/webp" onchange="handleApplicationPortraitUpload(this)">
+     <p class="app-pdf-help">Portrættet gemmes lokalt i denne browser og sendes ikke til en AI-tjeneste.</p>
+     <button type="button" class="secondary app-pdf-small-button" onclick="clearApplicationPortrait()">Fjern gemt portrætfoto</button>
+     <p id="appPortraitStatus" class="app-pdf-help" aria-live="polite">Avataren vises i cirklen. Vælg et foto for at bruge dit portræt.</p>
+    </div>
     <div class="app-pdf-color-row">
      <label for="appGreetingHex">Baggrund: KÆRE + hilsenlinje</label>
      <input id="appGreetingHex" type="text" maxlength="7" value="#3F7897" autocomplete="off" spellcheck="false">
@@ -551,7 +571,7 @@ label{font-size:14px;font-weight:750}
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3F7897',applicationSignoffHex:'#183755',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3F7897',applicationSignoffHex:'#183755',applicationPortraitMode:'avatar',applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
@@ -615,6 +635,8 @@ function normalizeState(raw){
  out.panelDocumentType=['cv','application','article','email','other'].includes(raw.panelDocumentType)?raw.panelDocumentType:'cv';
  out.applicationGreetingHex=typeof raw.applicationGreetingHex==='string'&&/^#?[0-9a-fA-F]{6}$/.test(raw.applicationGreetingHex)?('#'+raw.applicationGreetingHex.replace(/^#/,'').toUpperCase()):'#3F7897';
  out.applicationSignoffHex=typeof raw.applicationSignoffHex==='string'&&/^#?[0-9a-fA-F]{6}$/.test(raw.applicationSignoffHex)?('#'+raw.applicationSignoffHex.replace(/^#/,'').toUpperCase()):'#183755';
+ out.applicationPortraitMode=raw.applicationPortraitMode==='photo'?'photo':'avatar';
+ out.applicationPortraitDataUrl=typeof raw.applicationPortraitDataUrl==='string'&&/^data:image\/(?:jpeg|png);base64,/i.test(raw.applicationPortraitDataUrl)&&raw.applicationPortraitDataUrl.length<=700000?raw.applicationPortraitDataUrl:'';
  for(const key of Object.keys(limits))if(typeof raw[key]==='string')out[key]=raw[key].slice(0,limits[key]);
  out.proposalTexts=Array.isArray(raw.proposalTexts)?raw.proposalTexts.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,30000)):[];
  out.proposalTitles=Array.isArray(raw.proposalTitles)?raw.proposalTitles.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,100)):[];
@@ -1490,7 +1512,7 @@ function parseApplicationForPdf(rawText){
  }
  return {greeting:greeting||'teamet og hvem der ellers læser med',body};
 }
-function drawPdfHeader(doc){
+function drawPdfHeader(doc,portraitDataUrl){
  // Native vector letterhead: the gray contact blocks and circular profile area mirror the supplied layout.
  doc.setFillColor(126,126,126);doc.rect(0,0,74,50,'F');
  doc.setFillColor(214,214,214);doc.rect(74,0,77,50,'F');
@@ -1511,13 +1533,16 @@ function drawPdfHeader(doc){
  doc.setFillColor(177,177,177);doc.circle(82,8.2,1.2,'F');doc.ellipse(82,11,2.3,1.5,'F');
  doc.setFontSize(8.5);doc.setTextColor(32,32,32);
  doc.text('mail@pferd.dk',82,22);doc.text('+45 2331 9975',82,29.5);doc.text('Min LinkedIn',82,37);
- // A neutral silhouette keeps the portrait's circular placement without depending on an external image.
- doc.setFillColor(255,255,255);doc.circle(174,25,17.5,'F');
- doc.setDrawColor(216,216,216);doc.setLineWidth(0.25);doc.circle(174,25,17.5,'S');
- doc.setFillColor(202,202,202);doc.ellipse(174,34,10.1,6.7,'F');
- doc.setFillColor(172,172,172);doc.ellipse(174,21,5.2,6.0,'F');
- doc.setFillColor(142,142,142);doc.ellipse(174,17.6,5.2,2.1,'F');
- doc.setFillColor(202,202,202);doc.ellipse(174,32,7.8,5.5,'F');
+ // Use a circular PNG crop of the selected portrait, or the native vector avatar.
+ if(portraitDataUrl){
+  doc.addImage(portraitDataUrl,'PNG',156.5,7.5,35,35,'application-portrait','FAST');
+ }else{
+  doc.setFillColor(202,202,202);doc.ellipse(174,34,10.1,6.7,'F');
+  doc.setFillColor(172,172,172);doc.ellipse(174,21,5.2,6.0,'F');
+  doc.setFillColor(142,142,142);doc.ellipse(174,17.6,5.2,2.1,'F');
+  doc.setFillColor(202,202,202);doc.ellipse(174,32,7.8,5.5,'F');
+ }
+ doc.setDrawColor(216,216,216);doc.setLineWidth(0.25);doc.circle(174,25,17.5,'S')
 }
 function drawPdfGreeting(doc,greeting,color){
  const [r,g,b]=hexToRgb(color);
@@ -1545,22 +1570,93 @@ function drawPdfClosing(doc,color,y){
   doc.text(line,12.5,top+6.05);
  });
 }
+function loadApplicationPortraitImage(src){
+ return new Promise((resolve,reject)=>{
+  const image=new Image();
+  image.onload=()=>resolve(image);
+  image.onerror=()=>reject(new Error('Billedet kunne ikke indlæses.'));
+  image.src=src;
+ });
+}
+async function getApplicationPortraitForPdf(){
+ if(state.applicationPortraitMode!=='photo'||!state.applicationPortraitDataUrl)return null;
+ const image=await loadApplicationPortraitImage(state.applicationPortraitDataUrl);
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
+ const ctx=canvas.getContext('2d');
+ if(!ctx)throw new Error('Browseren kunne ikke klargøre portrættet.');
+ const width=image.naturalWidth||image.width,height=image.naturalHeight||image.height;
+ const size=Math.min(width,height),sx=(width-size)/2,sy=(height-size)/2;
+ ctx.clearRect(0,0,512,512);ctx.save();ctx.beginPath();ctx.arc(256,256,256,0,Math.PI*2);ctx.clip();
+ ctx.drawImage(image,sx,sy,size,size,0,0,512,512);ctx.restore();
+ return canvas.toDataURL('image/png');
+}
+function updateApplicationPortraitStatus(message){
+ const node=el('appPortraitStatus');if(node)node.textContent=message;
+}
+function changeApplicationPortraitMode(mode){
+ state.applicationPortraitMode=mode==='photo'?'photo':'avatar';
+ persist();markApplicationPdfOutdated();
+ if(state.applicationPortraitMode==='photo'&&!state.applicationPortraitDataUrl){
+  updateApplicationPortraitStatus('Der er ikke gemt et portrætfoto endnu. Vælg en billedfil nedenfor; avataren vises indtil da.');
+ }else{
+  updateApplicationPortraitStatus(state.applicationPortraitMode==='photo'?'Dit gemte portrætfoto vises i cirklen.':'Avataren vises i cirklen.');
+ }
+ if(el('appPreviewModal')&&!el('appPreviewModal').hidden)renderApplicationPdfPreview(false);
+}
+async function handleApplicationPortraitUpload(input){
+ const file=input&&input.files&&input.files[0];if(!file)return;
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type)){
+  updateApplicationPortraitStatus('Vælg en JPG-, PNG- eller WebP-billedfil.');input.value='';return;
+ }
+ if(file.size>12*1024*1024){
+  updateApplicationPortraitStatus('Billedet er over 12 MB. Vælg et mindre foto.');input.value='';return;
+ }
+ try{
+  const source=await new Promise((resolve,reject)=>{
+   const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('Billedfilen kunne ikke læses.'));reader.readAsDataURL(file);
+  });
+  const image=await loadApplicationPortraitImage(source);
+  const originalWidth=image.naturalWidth||image.width,originalHeight=image.naturalHeight||image.height;
+  const scale=Math.min(1,640/Math.max(originalWidth,originalHeight));
+  const width=Math.max(1,Math.round(originalWidth*scale)),height=Math.max(1,Math.round(originalHeight*scale));
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Browseren kunne ikke behandle billedet.');
+  ctx.drawImage(image,0,0,width,height);
+  const compressed=canvas.toDataURL('image/jpeg',0.82);
+  if(compressed.length>700000)throw new Error('Billedet fylder for meget efter komprimering. Prøv et mindre foto.');
+  state.applicationPortraitDataUrl=compressed;state.applicationPortraitMode='photo';persist();markApplicationPdfOutdated();
+  if(el('appPortraitMode'))el('appPortraitMode').value='photo';
+  updateApplicationPortraitStatus('Portrættet er gemt lokalt i denne browser og bruges i PDF’ens cirkel.');
+  if(el('appPreviewModal')&&!el('appPreviewModal').hidden)await renderApplicationPdfPreview(false);
+ }catch(error){
+  updateApplicationPortraitStatus('Kunne ikke gemme portrættet: '+String(error&&error.message||error));
+ }
+}
+function clearApplicationPortrait(){
+ state.applicationPortraitDataUrl='';state.applicationPortraitMode='avatar';persist();markApplicationPdfOutdated();
+ if(el('appPortraitMode'))el('appPortraitMode').value='avatar';
+ if(el('appPortraitUpload'))el('appPortraitUpload').value='';
+ updateApplicationPortraitStatus('Det gemte portrætfoto er fjernet. Avataren vises i cirklen.');
+ if(el('appPreviewModal')&&!el('appPreviewModal').hidden)renderApplicationPdfPreview(false);
+}
+
 async function createApplicationPdfBlob(){
  if(!window.jspdf||!window.jspdf.jsPDF)throw new Error('PDF-biblioteket blev ikke indlæst. Kontrollér netværket, og genindlæs siden.');
  const {jsPDF}=window.jspdf;
+ const portraitDataUrl=await getApplicationPortraitForPdf();
  const greetingColor=applicationHexColor(state.applicationGreetingHex,'#3F7897');
  const signoffColor=applicationHexColor(state.applicationSignoffHex,'#183755');
  const parsed=parseApplicationForPdf(el('apptext').value);
  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
  const pageWidth=210,pageHeight=297,left=10.5,textWidth=pageWidth-left-10.5;
- drawPdfHeader(doc);
+ drawPdfHeader(doc,portraitDataUrl);
  let y=drawPdfGreeting(doc,parsed.greeting,greetingColor);
  doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,42,78);
  const lineHeight=4.9,paragraphGap=4.0;
  const paragraphs=parsed.body.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
  const newPage=()=>{
   doc.addPage('a4','portrait');
-  drawPdfHeader(doc);
+  drawPdfHeader(doc,portraitDataUrl);
   y=58;
   doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,42,78);
  };
@@ -1585,6 +1681,8 @@ function openApplicationPdfModal(){
  if(typeof modal.focus==='function')modal.focus({preventScroll:true});
  if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3F7897';
  if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#183755';
+ if(el('appPortraitMode'))el('appPortraitMode').value=state.applicationPortraitMode||'avatar';
+ if(el('appPortraitStatus'))el('appPortraitStatus').textContent=state.applicationPortraitMode==='photo'&&state.applicationPortraitDataUrl?'Dit portrætfoto er gemt lokalt og vises i cirklen.':state.applicationPortraitMode==='photo'?'Vælg dit portrætfoto herunder; avataren vises indtil da.':'Avataren vises i cirklen. Vælg et foto for at bruge dit portræt.';
  updateApplicationPdfSwatches();
  if(el('appPdfFilename'))el('appPdfFilename').textContent=applicationPdfFilename||getApplicationPdfFilename();
 }

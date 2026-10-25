@@ -62,7 +62,7 @@ function jobQueries(profile){
  return [
   {id:'linkedin-jobs',label:'LinkedIn Jobs',targetSite:'linkedin.com',query:'site:linkedin.com/jobs/view '+terms+' '+loc+' Denmark',fallbackQuery:'LinkedIn Jobs '+terms+' '+loc+' Denmark'},
   {id:'jobindex',label:'Jobindex',targetSite:'jobindex.dk',query:'site:jobindex.dk/jobannonce '+terms+' '+loc,fallbackQuery:'site:jobindex.dk '+terms+' '+loc+' job'},
-  {id:'hk-jobportal',label:'HK Jobportal',targetSite:'jobportal.hk.dk',query:'site:jobportal.hk.dk '+terms+' '+loc,fallbackQuery:'HK Jobportal '+terms+' '+loc},
+  {id:'hk-jobportal',label:'HK Jobportal',targetSite:'hk.dk',query:'site:hk.dk jobportal '+terms+' '+loc,fallbackQuery:'HK Jobportal '+terms+' '+loc},
   {id:'jobnet',label:'Jobnet',targetSite:'job.jobnet.dk',query:'site:job.jobnet.dk '+terms+' '+loc,fallbackQuery:'site:jobnet.dk '+terms+' '+loc+' job'},
   {id:'workindenmark',label:'Workindenmark',targetSite:'workindenmark.dk',query:'site:workindenmark.dk '+terms+' '+loc,fallbackQuery:'Workindenmark '+terms+' jobs Denmark'},
   {id:'stepstone',label:'StepStone',targetSite:'stepstone.dk',query:'site:stepstone.dk '+terms+' '+loc,fallbackQuery:'StepStone Denmark '+terms+' '+loc},

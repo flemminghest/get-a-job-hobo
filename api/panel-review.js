@@ -227,8 +227,8 @@ module.exports = async function handler(req, res) {
 
   const model = String(process.env.OPENAI_MODEL || "gpt-6.1-sol").trim();
   const input = task === "application-drafts"
-    ? JSON.stringify({ cv, job, title: title || null, company: company || null, contactName: contactName || null, greetingLine: greetingLine || null, authorName, writingStyle: "Dansk, direkte, varm, let uformel og personlig. Sammenhængende korte afsnit; konkret motivation, erfaring, samarbejde og menneskelig afslutning." })
-    : JSON.stringify({ cv, job: job || null, selectedRoles: roles });
+    ? JSON.stringify({ requestedOutputFormat: "json", cv, job, title: title || null, company: company || null, contactName: contactName || null, greetingLine: greetingLine || null, authorName, writingStyle: "Dansk, direkte, varm, let uformel og personlig. Sammenhængende korte afsnit; konkret motivation, erfaring, samarbejde og menneskelig afslutning. Return valid json." })
+    : JSON.stringify({ requestedOutputFormat: "json", cv, job: job || null, selectedRoles: roles });
   let upstream;
   try {
     upstream = await fetch("https://api.openai.com/v1/responses", {
@@ -241,8 +241,8 @@ module.exports = async function handler(req, res) {
         model,
         reasoning: { effort: "medium" },
         instructions: task === "application-drafts"
-          ? applicationDraftInstructions + "\n\nSkriv tre forslag til en motiveret ansøgning på dansk ud fra det indsendte CV og jobopslag. Brug oplysningerne i JSON-inputtet som fakta. Brug den angivne greetingLine ordret og afslut med //Jacob. Returnér kun JSON."
-          : instructions + "\n\nVurdér KUN disse valgte personaer: " + roles.join(", ") + ". Returnér præcis én vurdering for hver valgt persona og ingen andre.",
+          ? applicationDraftInstructions + "\n\nReturn valid json matching the requested schema. Skriv tre forslag til en motiveret ansøgning på dansk ud fra det indsendte CV og jobopslag. Brug oplysningerne i json-inputtet som fakta. Brug den angivne greetingLine ordret og afslut med //Jacob. Returnér kun JSON."
+          : instructions + "\n\nReturn valid json matching the requested schema. Vurdér KUN disse valgte personaer: " + roles.join(", ") + ". Returnér præcis én vurdering for hver valgt persona og ingen andre.",
         input,
         text: { format: { type: "json_object" } },
         max_output_tokens: task === "application-drafts" ? 6000 : 7000

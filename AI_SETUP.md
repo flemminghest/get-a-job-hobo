@@ -16,9 +16,9 @@ When configured, the panel supports four material types: CV, job application, ar
    - `OPENAI_MODEL` (optional): defaults to `gpt-6.1-sol`.
 3. Redeploy the Vercel project after saving the environment variables.
 4. Copy the Vercel project URL. Its endpoint is `https://YOUR-PROJECT.vercel.app/api/panel-review`.
-5. Open the GitHub Pages site, go to **Spørg panelet**, and enter the full endpoint URL and the same `APP_ACCESS_CODE` in **AI-indstillinger**. Save for this browser session.
+5. Open the GitHub Pages site, go to **Spørg panelet**, and enter the full endpoint URL and the same `APP_ACCESS_CODE` in **AI-indstillinger**. Save the settings. They are stored in this browser's local storage and persist across tabs and browser restarts on the same browser/device. If you clear site data, use private browsing, or switch browser/device, you may need to enter them again.
 
-The API key remains only in Vercel's server-side environment. The access code is kept in the current browser session, not in the app's persistent backup or local data.
+The API key remains only in Vercel's server-side environment. The endpoint URL and access code are stored in this browser's local storage, not in the public Git repository or the app's CV/job backup. Anyone with access to this browser profile may be able to inspect local browser storage; do not use a shared or untrusted browser. Do not commit `OPENAI_API_KEY` or `APP_ACCESS_CODE` to Git.
 
 ## Privacy and cost
 

@@ -1431,7 +1431,7 @@ function clearPanelAiSettings(){
  try{sessionStorage.removeItem('gajh_ai_endpoint');sessionStorage.removeItem('gajh_ai_access_code')}catch(e){}
  if(el('panelAiUrl'))el('panelAiUrl').value='';
  if(el('panelAiCode'))el('panelAiCode').value='';
- try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error');sessionStorage.removeItem('gajh_ai_last_model')}catch(e){}
+ try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error');sessionStorage.removeItem('gajh_ai_last_model');sessionStorage.removeItem('gajh_ai_application_success');sessionStorage.removeItem('gajh_ai_application_error')}catch(e){}
  updateModelIntegrationStatus();
  const settings=el('panelAiSettings');if(settings)settings.open=true;
  notify('panelAiStatus','AI-indstillinger ryddet. CV kan vurderes lokalt, men andre materialetyper kræver sprogmodellen.','warnbox');

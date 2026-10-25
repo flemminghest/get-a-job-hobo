@@ -1529,6 +1529,30 @@ function parseApplicationForPdf(rawText){
  }
  return {greeting:greeting||'teamet og hvem der ellers læser med',body};
 }
+function getApplicationAvatarDataUrl(){
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
+ const ctx=canvas.getContext('2d');
+ if(!ctx)return '';
+ ctx.clearRect(0,0,512,512);
+ ctx.save();
+ ctx.beginPath();ctx.arc(256,256,256,0,Math.PI*2);ctx.clip();
+ // Smooth charcoal shoulder silhouette, with a soft vertical gradient like the approved reference.
+ const shoulders=ctx.createLinearGradient(0,320,0,512);
+ shoulders.addColorStop(0,'#666666');shoulders.addColorStop(.48,'#515151');shoulders.addColorStop(1,'#3f3f3f');
+ ctx.beginPath();
+ ctx.moveTo(28,512);ctx.lineTo(28,482);
+ ctx.bezierCurveTo(50,420,83,380,130,357);
+ ctx.bezierCurveTo(165,340,205,334,256,334);
+ ctx.bezierCurveTo(310,334,353,343,390,362);
+ ctx.bezierCurveTo(439,388,470,431,485,482);
+ ctx.lineTo(485,512);ctx.closePath();ctx.fillStyle=shoulders;ctx.fill();
+ // Featureless rounded head, softly shaded from light gray to darker gray.
+ const head=ctx.createLinearGradient(0,82,0,305);
+ head.addColorStop(0,'#a5a5a5');head.addColorStop(.48,'#929292');head.addColorStop(1,'#6f6f6f');
+ ctx.beginPath();ctx.ellipse(256,198,108,116,0,0,Math.PI*2);ctx.fillStyle=head;ctx.fill();
+ ctx.restore();
+ return canvas.toDataURL('image/png');
+}
 function drawPdfHeader(doc,portraitDataUrl){
  // Headeren følger det vedhæftede brevpapir: skrå overkant, grå kontaktfelter og stort portræt.
  doc.setFillColor(118,119,121);
@@ -1548,15 +1572,14 @@ function drawPdfHeader(doc,portraitDataUrl){
  doc.setFillColor(177,177,177);doc.circle(83,10.1,1.35,'F');doc.ellipse(83,13.2,2.7,1.7,'F');
  doc.setFontSize(8.5);doc.setTextColor(20,20,20);
  doc.text('mail@pferd.dk',82,27.8);doc.text('+45 2331 9975',82,35.2);doc.text('Min LinkedIn',82,42.4);
- // Hvid cirkel under både PDF-portrættet og den valgbare avatar.
+ // Diskret skygge under cirklen, hvid baggrund og tynd lys kant.
+ doc.setFillColor(218,220,222);doc.circle(170.8,36.8,30.7,'F');
  doc.setFillColor(255,255,255);doc.circle(170,36,30.7,'F');
  if(portraitDataUrl){
   doc.addImage(portraitDataUrl,'PNG',139.3,5.3,61.4,61.4,'application-portrait','FAST');
  }else{
-  doc.setFillColor(202,202,202);doc.ellipse(170,45.4,17.8,11.3,'F');
-  doc.setFillColor(172,172,172);doc.ellipse(170,29.8,8.9,10.2,'F');
-  doc.setFillColor(142,142,142);doc.ellipse(170,26,9.1,3.6,'F');
-  doc.setFillColor(202,202,202);doc.ellipse(170,43.4,14.4,8.7,'F');
+  const avatarDataUrl=getApplicationAvatarDataUrl();
+  if(avatarDataUrl)doc.addImage(avatarDataUrl,'PNG',139.3,5.3,61.4,61.4,'application-avatar','FAST');
  }
  doc.setDrawColor(216,216,216);doc.setLineWidth(0.25);doc.circle(170,36,30.7,'S');
 }

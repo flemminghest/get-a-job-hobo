@@ -261,6 +261,7 @@ module.exports = async function handler(req, res) {
     model,
     inputChars: input.length,
     outputTokenLimit: task === "application-drafts" ? 4000 : 7000,
+    timeoutMs: 270_000,
     reasoningEffort: "low"
   });
   let upstream;
@@ -281,7 +282,7 @@ module.exports = async function handler(req, res) {
         text: { format: { type: "json_object" } },
         max_output_tokens: task === "application-drafts" ? 4000 : 7000
       }),
-      signal: AbortSignal.timeout(55_000)
+      signal: AbortSignal.timeout(270_000)
     });
   } catch (error) {
     const errorName = String(error && error.name || "Error").slice(0, 100);

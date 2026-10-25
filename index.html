@@ -237,6 +237,16 @@ label{font-size:14px;font-weight:750}
 #page-panel .panel-result-section li:last-child{margin-bottom:0}
 #page-panel .panel-persona-result .chip{white-space:normal;text-align:center;line-height:1.35;max-width:180px;padding:7px 10px}
 @media(max-width:620px){#page-panel .panel-persona-result{padding:16px}#page-panel .panel-persona-result .row{display:block}#page-panel .panel-persona-result .fit{margin-top:8px}}
+
+/* Full-width application drafts that preserve Jacob's paragraph rhythm */
+#proposals.proposal-stack{grid-template-columns:minmax(0,1fr)!important;align-items:stretch}
+#proposals .proposal-card{width:100%;min-width:0;padding:22px 24px;border-radius:16px}
+#proposals .proposal-card .row{align-items:flex-start}
+#proposals .proposal-card .row>div:first-child{min-width:0}
+#proposals .proposal-card h3{font-size:19px;margin:0 0 5px}
+#proposals .proposal-focus{margin:0;font-size:13px;line-height:1.5}
+#proposals .proposal-preview{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75;color:#354b63;margin:13px 0 18px;font-size:15px;max-width:100%}
+#proposals .proposal-card button{margin-top:2px}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand">✳ <b>Get a Job</b> Hobo</div><nav class="nav" id="nav">
 <button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal prototype · AI kræver separat backend-opsætning<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
@@ -248,7 +258,7 @@ label{font-size:14px;font-weight:750}
 
 <section class="section" id="page-job"><div class="hero"><div class="eyebrow">JOBOPSLAG</div><h1>Undersøg dit match, før du søger.</h1><p>Indsæt en stilling og sammenlign den med dit CV. Ved analyse søger appen automatisk på nettet efter mulige kilder om virksomheden og rollen. Søgetjenesten modtager jobtitel og virksomhed — ikke dit CV eller dine LinkedIn-forbindelser. Scores er fortsat foreløbige og regelbaserede, ikke AI.</p><div class="actions"><button onclick="analyzeJob()">Analyser jobopslag →</button><button class="secondary" onclick="demoJob()">Indsæt demoopslag</button></div></div><div class="card stack"><div class="formrow"><div><label for="jobtitle">Jobtitel</label><input id="jobtitle" placeholder="Fx Digital Marketing Manager"></div><div><label for="company">Virksomhed</label><input id="company" placeholder="Virksomhedens navn"></div><div class="wide"><label for="jobtext">Jobopslagets tekst</label><textarea id="jobtext" rows="10" placeholder="Indsæt hele jobopslaget her…"></textarea></div></div><div class="formrow"><div><label for="sourcetitle">Kildetitel (valgfrit)</label><input id="sourcetitle" placeholder="Fx originalt jobopslag"></div><div><label for="sourceurl">Kilde-URL (valgfrit)</label><input id="sourceurl" placeholder="https://…"></div></div><div class="toolbar"><button onclick="analyzeJob()">Analyser job</button><button class="secondary" onclick="addSourceFromJob()">Tilføj jobkilde</button><button class="secondary" onclick="saveJobOnly()">Gem job uden analyse</button></div><div id="jobmsg" class="notice" hidden></div></div><div id="jobresult" class="card stack" style="margin-top:16px"><div class="empty">Indsæt et jobopslag og vælg “Analyser job” for at få et foreløbigt CV-match samt aktuelle webindeksresultater.</div></div><div class="card" style="margin-top:16px"><h2>Dine egne supplerende kilder</h2><p class="muted">Live-søgningen og dens kildeplan vises inde i analysen ovenfor. Her kan du tilføje egne supplerende links; de tælles adskilt fra websøgeresultaterne.</p><div class="formrow"><div><label for="srcname">Kildens navn</label><input id="srcname" placeholder="Titel på kilde"></div><div><label for="srcurl">URL</label><input id="srcurl" placeholder="https://example.com/artikel"></div></div><div class="toolbar" style="margin-top:10px"><button onclick="addSource()">Tilføj kilde</button><button class="secondary" onclick="sourceSummary()">Opdatér kildestatus</button></div><div id="sources" class="list" style="margin-top:12px"></div><div id="sourceStatus" class="notice warnbox" style="margin-top:12px">Ingen manuelle kilder registreret. Jobanalysen søger automatisk i et eksternt webindeks. Resultater og domænedækning vises i analysen; kilder er ikke direkte live-verificeret.</div></div></section>
 
-<section class="section" id="page-application"><div class="hero rose"><div class="eyebrow">MOTIVERET ANSØGNING</div><h1>Din ansøgning begynder med dit valg.</h1><p>Feltet starter blankt. Analysér først et job, og vælg derefter et af tre forslag, før du redigerer teksten.</p><div class="actions"><button onclick="go('job')">Gå til jobanalyse →</button><button class="secondary" onclick="previewApplication()">Forhåndsvisning</button></div></div><div class="card stack"><div id="proposalState" class="notice">Ingen forslag endnu. Analysér et job under Jobopslag først. Der bliver ikke indsat tekst automatisk.</div><div id="proposals" class="grid"><div class="empty">Tre forslag vises her, når du har analyseret et job.</div></div><div><label for="apptext">Motiveret ansøgning</label><textarea id="apptext" rows="15" placeholder="Ansøgningen er blank, indtil du vælger et forslag."></textarea></div><div class="toolbar"><button onclick="saveApplication()">Gem ansøgning</button><button class="secondary" onclick="previewApplication()">Vis forhåndsvisning</button><button class="secondary" onclick="exportText('apptext','motiveret-ansoegning.txt')">Download tekst</button><button class="warn" onclick="clearApplication()">Ryd ansøgning</button></div><div id="appPreview" class="output" hidden></div></div></section>
+<section class="section" id="page-application"><div class="hero rose"><div class="eyebrow">MOTIVERET ANSØGNING</div><h1>Din ansøgning begynder med dit valg.</h1><p>Tre gennemarbejdede udkast i din direkte, personlige og let uformelle stil. Når AI er sat op under “Spørg panelet”, skrives forslagene med en sprogmodel ud fra dit CV og stillingsopslaget.</p><div class="actions"><button onclick="go('job')">Gå til jobanalyse →</button><button class="secondary" onclick="makeProposals()">Lav tre nye forslag</button><button class="secondary" onclick="previewApplication()">Forhåndsvisning</button></div></div><div class="card stack"><div id="proposalState" class="notice">Ingen forslag endnu. Analysér et job under Jobopslag først. Der bliver ikke indsat tekst automatisk.</div><div id="proposals" class="grid proposal-stack"><div class="empty">Tre forslag vises her, når du har analyseret et job.</div></div><div><label for="apptext">Motiveret ansøgning</label><textarea id="apptext" rows="15" placeholder="Ansøgningen er blank, indtil du vælger et forslag."></textarea></div><div class="toolbar"><button onclick="saveApplication()">Gem ansøgning</button><button class="secondary" onclick="previewApplication()">Vis forhåndsvisning</button><button class="secondary" onclick="exportText('apptext','motiveret-ansoegning.txt')">Download tekst</button><button class="warn" onclick="clearApplication()">Ryd ansøgning</button></div><div id="appPreview" class="output" hidden></div></div></section>
 
 <section class="section" id="page-panel"><div class="hero purple"><div class="eyebrow">SPØRG PANELET</div><h1>Få en grundig vurdering af dit CV.</h1><p>Brug en sprogmodel til en nuanceret vurdering fra Recruiter, Copywriter, CMO og CEO. Modellen skal underbygge sine observationer med konkrete CV-passager og foreslå prioriterede forbedringer. AI kræver en sikker backend-konfiguration; ellers bruges den lokale regelbaserede vurdering.</p></div><div class="card stack" id="panelAiSettings"><div><div class="eyebrow" style="color:#087f86">AI-INDSTILLINGER</div><h2 style="margin-bottom:6px">Tilslut sprogmodellen</h2><p class="muted" style="margin:0">AI-vurderingen kører via en beskyttet Vercel-funktion. API-nøglen ligger på serveren — ikke i denne side. Se <a href="https://github.com/flemminghest/get-a-job-hobo/blob/main/AI_SETUP.md" target="_blank" rel="noopener noreferrer">opsætningsvejledningen</a>.</p></div><div class="formrow"><div class="wide"><label for="panelAiUrl">AI-endpoint (Vercel URL)</label><input id="panelAiUrl" type="url" placeholder="https://dit-projekt.vercel.app/api/panel-review" autocomplete="url"></div><div class="wide"><label for="panelAiCode">Adgangskode til AI-endpoint</label><input id="panelAiCode" type="password" placeholder="Den APP_ACCESS_CODE, du har sat i Vercel" autocomplete="off"></div></div><div class="toolbar"><button onclick="savePanelAiSettings()" class="secondary">Gem indstillinger i denne session</button><button onclick="clearPanelAiSettings()" class="secondary">Ryd AI-indstillinger</button></div><div id="panelAiStatus" class="notice">AI er ikke konfigureret. Uden endpoint og adgangskode bruges den lokale regelbaserede vurdering.</div><p class="footnote">Privatliv: Når AI er aktiv, sendes CV-teksten og et eventuelt stillingsopslag til din Vercel-backend og videre til OpenAI API for at lave vurderingen. Brug ikke oplysninger, du ikke ønsker at dele. OpenAI API-forbrug faktureres separat fra ChatGPT-abonnementet.</p></div><div class="card stack"><div class="formrow"><div class="wide"><label for="paneltext">CV-tekst, der skal vurderes</label><textarea id="paneltext" rows="10" placeholder="Brug knappen nedenfor til at hente dit gemte CV, eller indsæt CV-teksten her…"></textarea></div><div class="wide"><label for="paneljob">Stillingsopslag (valgfrit — gør vurderingen mere målrettet)</label><textarea id="paneljob" rows="5" placeholder="Indsæt et stillingsopslag, hvis CV’et også skal vurderes op mod et bestemt job…"></textarea></div></div><label>Vælg rådgivere</label><div class="checkgrid persona-grid">
 <label class="checkline persona-option recruiter-option"><input type="checkbox" value="Recruiter" checked><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3.5"/><path d="M2.5 20v-1.8a5.5 5.5 0 0 1 5.5-5.5h2.5"/><circle cx="17" cy="16.5" r="4"/><path d="m15.2 16.5 1.2 1.2 2.4-2.5"/></svg></span><span class="persona-copy"><strong>Recruiter</strong><small>Relevans, krav og samtalepotentiale</small></span></label>
@@ -322,7 +332,7 @@ label{font-size:14px;font-weight:750}
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelJob:'',panelRevision:''};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelJob:'',panelRevision:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
@@ -360,6 +370,10 @@ function normalizeState(raw){
  const limits={cv:300000,jobtitle:500,company:500,jobtext:150000,application:30000,panelText:30000,panelJob:50000,panelRevision:50000};
  for(const key of Object.keys(limits))if(typeof raw[key]==='string')out[key]=raw[key].slice(0,limits[key]);
  out.proposalTexts=Array.isArray(raw.proposalTexts)?raw.proposalTexts.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,30000)):[];
+ out.proposalTitles=Array.isArray(raw.proposalTitles)?raw.proposalTitles.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,100)):[];
+ out.proposalFocuses=Array.isArray(raw.proposalFocuses)?raw.proposalFocuses.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,300)):[];
+ out.proposalMode=raw.proposalMode==='ai'?'ai':'local';
+ out.proposalNotice=typeof raw.proposalNotice==='string'?raw.proposalNotice.slice(0,700):'';
  out.selectedProposal=Number.isInteger(raw.selectedProposal)&&raw.selectedProposal>=0&&raw.selectedProposal<3?raw.selectedProposal:-1;
  if(raw.activeJob&&typeof raw.activeJob==='object'&&!Array.isArray(raw.activeJob)){
   const j=raw.activeJob;
@@ -640,30 +654,170 @@ async function analyzeJob(){
  else if(relevantCount>=6&&domainCount>=4)notify('jobmsg','Matchvurderingen er gennemført. Live-søgningen fandt '+rawCount+' søgeresultater, heraf '+relevantCount+' potentielt relevante fra '+domainCount+' domæner. Kontrollér originalkilder separat.','goodbox');
  else notify('jobmsg','Matchvurderingen er gennemført. Live-søgningen fandt '+rawCount+' søgeresultater, heraf '+relevantCount+' potentielt relevante fra '+domainCount+' domæner. Den faglige matchscore afhænger ikke af søgningen.','warnbox');
 }
-function makeProposals(){
- const j=state.activeJob;if(!j)return;
- const a=j.competencyAssessment||{};
- const positive=(a.rows||[]).filter(row=>row.status==='evidenced').sort((x,y)=>y.weight-x.weight).slice(0,3).map(row=>row.label);
- const mentioned=(a.rows||[]).filter(row=>row.status==='mentioned').sort((x,y)=>y.weight-x.weight).slice(0,2).map(row=>row.label);
- const gaps=(a.rows||[]).filter(row=>row.status==='missing').sort((x,y)=>y.weight-x.weight).slice(0,3).map(row=>row.label);
- const match=positive.concat(mentioned).slice(0,4).join(', ')||'relevante erfaringer, som jeg gerne vil uddybe';
- const who=j.company||'jeres virksomhed',t=j.title||'stillingen';
- const low=(a.coverageScore==null||a.coverageScore<35);
- if(low){
-  state.proposalTexts=[
-   'Jeg søger stillingen som '+t+' hos '+who+', fordi jeg er motiveret for at bevæge mig ind i området. Min hidtidige erfaring ligger primært inden for andre fagområder, så jeg vil ikke fremstille mig selv som erfaren inden for '+(gaps.slice(0,2).join(' og ')||'alle stillingens kerneopgaver')+'. Jeg er indstillet på at lære og følge den oplæring, der kræves. Jeg kan bidrage med '+match+' og vil gerne drøfte, om min motivation og læringsparathed kan være relevant for jer.\n\nMange hilsner\n[Dit navn]',
-   'Det er et bevidst brancheskift, jeg søger med stillingen som '+t+' hos '+who+'. Jeg kan se, at jobbet kræver erfaring med '+(gaps.join(', ')||'flere konkrete arbejdsopgaver')+', som mit CV ikke dokumenterer tilstrækkeligt. Jeg vil derfor være åben om mit udgangspunkt og høre, om den tilbudte oplæring gør det muligt at komme godt ind i rollen. Jeg kommer med erfaring inden for '+match+' og en seriøs indstilling til at lære jobbet.\n\nMange hilsner\n[Dit navn]',
-   'Jeg er interesseret i stillingen hos '+who+', fordi jeg gerne vil udvikle mig i en mere praktisk retning. Mit CV viser ikke direkte erfaring med alle de centrale opgaver, herunder '+(gaps.slice(0,2).join(' og ')||'de vigtigste faglige krav')+'. Jeg vil derfor gerne afklare, hvilke forudsætninger I forventer ved start, og hvad der kan læres gennem grundig oplæring. Jeg kan bidrage med '+match+' og en oprigtig motivation for et skifte.\n\nMange hilsner\n[Dit navn]'
-  ];
- }else{
-  state.proposalTexts=[
-   'Jeg søger stillingen som '+t+' hos '+who+', fordi den matcher min erfaring med '+match+'. Jeg vil gerne bidrage med konkrete resultater og samtidig uddybe, hvordan min baggrund passer til de vigtigste opgaver i rollen.\n\nMange hilsner\n[Dit navn]',
-   'Det, der især interesserer mig ved stillingen hos '+who+', er muligheden for at bruge mine kompetencer inden for '+match+'. Jeg trives med at omsætte erfaring til løsninger, der hjælper teamet og virksomheden. Jeg vil gerne fortælle mere om konkrete eksempler fra mit arbejde.\n\nMange hilsner\n[Dit navn]',
-   'Jeg kan bidrage til rollen som '+t+' med erfaring inden for '+match+'. Jeg er samtidig opmærksom på '+(gaps.length?'at '+gaps.join(' og ')+' kan kræve en nærmere afklaring':'at kravene skal vurderes i forhold til de konkrete opgaver')+'. Jeg ser frem til at uddybe mit match ved en samtale.\n\nMange hilsner\n[Dit navn]'
-  ];
- }
- state.selectedProposal=-1;persist()
+function isPlaceholderCompany(value){
+ const text=String(value||'').trim();
+ return !text||/^(eksempelvirksomhed|example company|demo company|company name|virksomhed ikke angivet|ukendt|n\/a|test company)$/i.test(text);
 }
+function getApplicationCompany(job){
+ const stored=String(job&&job.company||state.company||'').trim();
+ if(!isPlaceholderCompany(stored))return stored;
+ const text=String(job&&job.job||state.jobtext||'');
+ const lines=text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+ for(const line of lines){
+  const explicit=line.match(/(?:arbejdsgiver|virksomhed|company(?: name)?|employer)\s*[:\-]\s*([^\n,.;]+)/i);
+  if(explicit&&!isPlaceholderCompany(explicit[1]))return explicit[1].trim();
+ }
+ for(const line of lines){
+  const idx=line.search(/\bsøger\s+(?:en|et|medarbejder|a|an)\b/i);
+  if(idx>0){
+   let candidate=line.slice(0,idx).trim().replace(/^(?:job summary|job description|company|employer|arbejdsgiver)\s*[:\-]?\s*/i,'').trim();
+   if(candidate.length>2&&candidate.length<70&&candidate.split(/\s+/).length<=6&&!/^(vi|we|jeg|i|this company|the company)$/i.test(candidate)&&!isPlaceholderCompany(candidate))return candidate;
+  }
+ }
+ return '';
+}
+function getApplicationContact(job){
+ const text=String(job&&job.job||state.jobtext||'');
+ const patterns=[
+  /(?:kontaktperson|kontakt|contact person|contact|spørgsmål kan rettes til|hør mere hos)\s*(?:[:\-]\s*|\s+til\s+|\s+hos\s+)([A-ZÆØÅ][A-Za-zÆØÅæøåÉéÜüÖöÄä.'-]+(?:\s+[A-ZÆØÅ][A-Za-zÆØÅæøåÉéÜüÖöÄä.'-]+){0,2})/,
+  /(?:du er velkommen til at kontakte|contact)\s+([A-ZÆØÅ][A-Za-zÆØÅæøåÉéÜüÖöÄä.'-]+(?:\s+[A-ZÆØÅ][A-Za-zÆØÅæøåÉéÜüÖöÄä.'-]+){1,2})/
+ ];
+ const candidateText=text.split(/\r?\n/).slice(0,100).join('\n');
+ for(const re of patterns){
+  const match=candidateText.match(re);
+  if(match&&match[1]){
+   const name=match[1].trim().replace(/[.,;:]+$/,'');
+   if(name.split(/\s+/).length>=1&&!/^(team|teamet|os|vores|virksomheden|the team|hr)$/i.test(name))return name;
+  }
+ }
+ return '';
+}
+function getApplicationTeam(job){
+ const text=String((job&&job.title||'')+' '+(job&&job.job||state.jobtext||'')).toLowerCase();
+ if(/marketing|digital content|content manager|seo|campaign|brand|kommunikation|social media/.test(text))return 'marketingteam';
+ if(/dækmont|mekanik|værksted|automekan|wheel|tyre fitter/.test(text))return 'værkstedsteam';
+ if(/salg|sales|account executive|business development/.test(text))return 'salgsteam';
+ if(/økonomi|finance|accounting|regnskab|bogholder/.test(text))return 'økonomiteam';
+ if(/data scientist|dataanal|analytics|business intelligence|power bi/.test(text))return 'data- og analyseteam';
+ if(/design|creative|art director|grafisk/.test(text))return 'designteam';
+ if(/software|developer|engineer|it-specialist|udvikler|teknisk/.test(text))return 'techteam';
+ if(/kundeservice|customer support|support specialist/.test(text))return 'kundeserviceteam';
+ return 'teamet';
+}
+function getApplicationGreeting(job,company,contact){
+ const team=getApplicationTeam(job);
+ if(contact)return 'KÆRE '+contact+', '+team+' og hvem der ellers læser med';
+ if(company)return 'KÆRE '+team+' hos '+company+' og hvem der ellers læser med';
+ return 'KÆRE '+team+' og hvem der ellers læser med';
+}
+function extractApplicationTasks(jobText){
+ const text=String(jobText||'');
+ const candidates=text.split(/\r?\n|(?<=[.!?])\s+/).map(x=>x.replace(/^\s*[-–—•*]+\s*/,'').trim()).filter(Boolean);
+ const taskPattern=/\b(ansvar(?:lig)?|opgaver?|arbejdsopgaver|arbejde med|planlæg|koordiner|udvikl|implement|drive|optim|analys|kampagn|indhold|kommunik|samarbejd|monter|afbalancer|reparer|kontrol|betjen|klargør|support|manage|develop|deliver|lead|build|design|create|maintain|improve|coordinate|customer|marketing|data|strategy|project|reporting|budget|team|service)\w*/i;
+ const skip=/^(job summary|job description|qualifications?|responsibilities|skills|requirements|about us|your profile|vi søger|om jobbet|om virksomheden|ansvarsområder|arbejdsopgaver|kvalifikationer|kompetencer|dine opgaver|vi tilbyder|vi forventer)\s*:?\s*$/i;
+ const out=[];
+ for(const line of candidates){
+  if(line.length<25||line.length>260||skip.test(line))continue;
+  if(!taskPattern.test(line))continue;
+  if(/^(created|applications? will be|salary|location|job type|full time|fuldtid|ansøgningsfrist)/i.test(line))continue;
+  if(!out.includes(line))out.push(line);
+  if(out.length>=4)break;
+ }
+ return out;
+}
+function extractApplicationCvEvidence(cvText,assessment){
+ const rows=Array.isArray(assessment&&assessment.rows)?assessment.rows:[];
+ const direct=rows.filter(row=>row.status==='evidenced'&&row.cvEvidence&&row.cvEvidence.length>10).sort((a,b)=>(b.weight||0)-(a.weight||0));
+ const mentioned=rows.filter(row=>row.status==='mentioned'&&row.cvEvidence&&row.cvEvidence.length>10).sort((a,b)=>(b.weight||0)-(a.weight||0));
+ const areas=[...new Set(direct.map(row=>row.label))].slice(0,4);
+ const evidence=[...new Set(direct.concat(mentioned).map(row=>String(row.cvEvidence||'').replace(/\s+/g,' ').trim()))].slice(0,3);
+ const text=String(cvText||'');
+ const fallback=text.split(/\r?\n|(?<=[.!?])\s+(?=[A-ZÆØÅ])/).map(x=>x.trim()).filter(x=>x.length>=35&&x.length<=240&&!/^(profil|erfaring|uddannelse|kompetencer|skills|experience|education)\s*:?$/i.test(x));
+ const relevantFallback=fallback.filter(line=>/\b(arbejdede|udviklede|ansvarlig|erfaring|samarbejd|ledte|planlagde|koordinerede|skabte|optimerede|campaign|marketing|data|CRM|budget|team|project|developed|managed|improved|led|built|created|worked with)\b/i.test(line));
+ return {areas,evidence:evidence.length?evidence:relevantFallback.slice(0,3),hasDirect:direct.length>0,hasMentioned:mentioned.length>0};
+}
+function joinDanish(items){
+ const clean=[...new Set((items||[]).map(x=>String(x||'').trim()).filter(Boolean))];
+ if(!clean.length)return '';
+ if(clean.length===1)return clean[0];
+ if(clean.length===2)return clean[0]+' og '+clean[1];
+ return clean.slice(0,-1).join(', ')+' og '+clean[clean.length-1];
+}
+function buildLocalApplicationDrafts(job){
+ const cv=String(state.cv||el('cvtext').value||'').trim();
+ const assessment=job&&job.competencyAssessment||{};
+ const company=getApplicationCompany(job);
+ const contact=getApplicationContact(job);
+ const greeting=getApplicationGreeting(job,company,contact);
+ const title=String(job&&job.title||state.jobtitle||'stillingen').trim();
+ const tasks=extractApplicationTasks(job&&job.job||state.jobtext||'');
+ const taskPhrase=joinDanish(tasks.slice(0,2))||'de centrale opgaver i stillingen';
+ const evidence=extractApplicationCvEvidence(cv,assessment);
+ const areas=joinDanish(evidence.areas.slice(0,3));
+ const areaPhrase=areas?'arbejde med '+areas:'de erfaringer, jeg har opbygget i mine tidligere roller';
+ const evidencePhrase=evidence.evidence[0]?'Et konkret eksempel fra mit CV er: “'+evidence.evidence[0]+'”.':'Jeg vil gerne uddybe de konkrete opgaver og resultater fra mine tidligere roller, som er mest relevante for jer.';
+ const low=assessment.coverageScore!=null&&assessment.coverageScore<35;
+ const employer=company?' hos '+company:'';
+ const roleLine=title&&title!=='stillingen'?'stillingen som '+title:'stillingen';
+ const firstOpening=low
+  ?'Jeg har læst '+roleLine+employer+', og jeg vil gerne være ærlig om, at mit CV ikke dokumenterer direkte erfaring med alle de faglige opgaver, I beskriver. Det der alligevel fanger min interesse, er '+taskPhrase+'.'
+  :'Jeg har læst '+roleLine+employer+', og jeg er ret sikker på, at der kan være et godt match. Det der især fanger min interesse, er '+taskPhrase+'.';
+ const commonExperience=areas
+  ?'I mine tidligere roller har jeg især arbejdet med '+areas+'. Det er erfaring, jeg gerne vil bringe i spil hos jer, og jeg synes især, det er interessant at se, hvordan den kan bruges i arbejdet med '+taskPhrase+'.'
+  :'I mine tidligere roller har jeg opbygget erfaring, som jeg gerne vil sætte i spil i en ny sammenhæng. Jeg vil helst være konkret om, hvad jeg kommer med, og uddybe de eksempler fra min baggrund, der er mest relevante for opgaverne hos jer.';
+ const collaboration=/samarbejd|team|bureau|kollega|tværfag|partner|stakeholder|inhouse/i.test(cv);
+ const workStyle=collaboration
+  ?'Jeg har været vant til at samarbejde med andre fagligheder og få forskellige perspektiver med i arbejdet. Jeg synes, at det er vigtigt både at kunne tage ansvar for sine egne opgaver og få samarbejdet med kolleger og resten af organisationen til at fungere.'
+  :'Jeg lægger vægt på at forstå opgaven og de mennesker, der skal bruge resultatet. Når flere fagligheder er involveret, er det vigtigt for mig at få forventningerne afstemt og gøre det tydeligt, hvad der skal ske, og hvorfor.';
+ const honestGap=low
+  ?'Jeg er samtidig opmærksom på, at der er faglige områder, jeg skal lære, før jeg kan løse alle opgaver selvstændigt. Hvis I er åbne for en kandidat, der kommer med overførbare erfaringer og vil gå seriøst ind i oplæringen, vil jeg gerne tale med jer om det.'
+  :'Jeg ved også, at et CV ikke kan fortælle hele historien. Jeg vil derfor gerne uddybe, hvor jeg har haft ansvaret, hvordan jeg arbejder i praksis, og hvilke resultater jeg kan stå inde for.';
+ const closing='Selvom jeg har meget mere på hjerte, vil jeg begrænse mig her og se frem til at hilse på jer over en kop kaffe.';
+ const signoff='Mange hilsner\n//Jacob';
+ const drafts=[
+  {title:'Fagligt match og motivation',focus:'Hvorfor opgaverne tiltaler dig, og hvilken erfaring du kan bringe ind.',text:greeting+'\n\n'+firstOpening+'\n\n'+commonExperience+'\n\n'+evidencePhrase+' Jeg kan godt lide, når der er en tydelig opgave, hvor man både skal tænke sig om og få tingene til at fungere i praksis. Jeg vil gerne bruge min erfaring til at bidrage til de mål, I har sat for rollen, og samtidig lære jeres måde at arbejde på.\n\n'+honestGap+'\n\n'+closing+'\n\n'+signoff},
+  {title:'Samarbejde og arbejdsform',focus:'Hvordan du løser opgaver sammen med andre og bidrager til teamet.',text:greeting+'\n\n'+(low?'Det der især interesserer mig ved '+roleLine+employer+', er muligheden for at lære opgaverne ordentligt at kende og blive en del af et team, hvor man hjælper hinanden med at få hverdagen til at fungere.':'Det der især interesserer mig ved '+roleLine+employer+', er kombinationen af '+taskPhrase+' og samarbejdet med de mennesker, der er med til at få opgaverne til at lykkes.')+'\n\n'+commonExperience+'\n\n'+workStyle+'\n\n'+evidencePhrase+' Jeg synes, at godt arbejde både handler om at tage ansvar for det, man selv sidder med, og om at være nysgerrig på, hvordan ens indsats hænger sammen med resten af teamets arbejde.\n\n'+(low?'Jeg vil ikke påstå, at mit CV allerede dokumenterer alle de faglige krav. Til gengæld vil jeg gerne være åben om mit udgangspunkt og tale om, hvad der kan læres gennem oplæring.':'Jeg vil gerne bidrage med den erfaring, jeg har, og samtidig være nysgerrig på, hvor I gerne vil udvikle arbejdet yderligere.')+'\n\n'+closing+'\n\n'+signoff},
+  {title:'Personlig motivation og bidrag',focus:'En mere personlig og samtaleorienteret indgang til stillingen.',text:greeting+'\n\n'+(low?'Jeg har læst opslaget til '+roleLine+employer+', og jeg kan se, at det vil kræve, at jeg lærer nogle nye faglige opgaver. Det vil jeg hellere sige åbent end prøve at få mit CV til at lyde som noget, det ikke er.':'Jeg har læst opslaget til '+roleLine+employer+', og jeg kan sagtens se mig selv blive en del af det arbejde, I beskriver. Jeg bliver især nysgerrig på '+taskPhrase+'.')+'\n\n'+(areas?'Min baggrund er især præget af '+areas+'.':'Min baggrund rummer erfaringer, som jeg gerne vil sætte i spil og uddybe gennem konkrete eksempler.')+' Jeg kan godt lide at forstå, hvorfor en opgave er vigtig, og hvordan man får den løst på en måde, der giver mening for både kolleger, kunder og organisationen.'+'\n\n'+evidencePhrase+' Hvis vi taler sammen, vil jeg gerne fortælle mere om de valg, jeg har truffet i mit arbejde, hvad jeg har lært undervejs, og hvordan jeg kan bruge det hos jer.\n\n'+(low?'Hvis I vurderer, at min baggrund og motivation kan være relevant trods det faglige spring, vil jeg sætte pris på muligheden for at tale sammen.':'Jeg håber derfor, at I kan se en interessant profil i min erfaring, og at vi kan tage en samtale om, hvordan den kan passe ind hos jer.')+'\n\n'+closing+'\n\n'+signoff}
+ ];
+ return {drafts,company,contact,greeting};
+}
+async function makeProposals(){
+ const j=state.activeJob;if(!j){notify('proposalState','Analysér et job først, så forslagene kan målrettes det konkrete stillingsopslag.','warnbox');return}
+ state.selectedProposal=-1;
+ const cv=String(state.cv||el('cvtext').value||'').trim();
+ if(cv.length<80){notify('proposalState','Indsæt og gem dit CV under “Mit CV”, før du laver en motiveret ansøgning.','warnbox');return}
+ const jobText=String(j.job||state.jobtext||'');
+ const company=getApplicationCompany(j);
+ const contact=getApplicationContact(j);
+ const greetingLine=getApplicationGreeting(j,company,contact);
+ const settings=typeof getPanelAiSettings==='function'?getPanelAiSettings():{url:'',code:''};
+ if(settings.url&&settings.code){
+  state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.proposalMode='ai';state.proposalNotice='Sprogmodellen skriver tre udkast i din stil ud fra CV og stillingsopslag…';state.generatingProposals=true;
+  persist();renderProposals();
+  try{
+   const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-drafts',cv,job:jobText,title:j.title||state.jobtitle||'',company,contactName:contact,greetingLine,authorName:'Jacob'})});
+   let data;try{data=await response.json()}catch(e){data=null}
+   if(!response.ok||!data||!Array.isArray(data.drafts)||data.drafts.length<3)throw new Error(data&&data.error?data.error:'AI-endpointet returnerede ikke tre gyldige forslag.');
+   state.proposalTexts=data.drafts.slice(0,3).map(x=>String(x.text||''));
+   state.proposalTitles=data.drafts.slice(0,3).map(x=>String(x.title||''));
+   state.proposalFocuses=data.drafts.slice(0,3).map(x=>String(x.focus||''));
+   if(state.proposalTexts.some(t=>t.length<450||/\[Dit navn\]|Eksempelvirksomhed/i.test(t)))throw new Error('Et forslag var for kort eller indeholdt en pladsholder.');
+   state.proposalMode='ai';state.proposalNotice='AI-udkast fra sprogmodellen. Gennemgå altid fakta og formuleringer, før du bruger teksten.';state.generatingProposals=false;
+   state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'goodbox');return;
+  }catch(error){
+   state.generatingProposals=false;
+   const fallback=buildLocalApplicationDrafts(j);
+   state.proposalTexts=fallback.drafts.map(d=>d.text);state.proposalTitles=fallback.drafts.map(d=>d.title);state.proposalFocuses=fallback.drafts.map(d=>d.focus);state.proposalMode='local';
+   state.proposalNotice='AI kunne ikke nås ('+String(error&&error.message||'ukendt fejl').slice(0,180)+'). Der vises derfor lokale, stiltilpassede udkast i stedet — de er ikke genereret af sprogmodellen.';
+   state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');return;
+  }
+ }
+ const fallback=buildLocalApplicationDrafts(j);
+ state.proposalTexts=fallback.drafts.map(d=>d.text);state.proposalTitles=fallback.drafts.map(d=>d.title);state.proposalFocuses=fallback.drafts.map(d=>d.focus);state.proposalMode='local';state.generatingProposals=false;
+ state.proposalNotice='Lokale, stiltilpassede udkast. For at få sprogmodellen til at skrive dem, skal AI-endpoint og adgangskode først sættes op under “Spørg panelet”.';
+ state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');
+}
+
 function sourceTrustAssessment(source,research){
  const url=safeHttpUrl(source.url);let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){}
  const broad=String(source.kind||'').toLowerCase().includes('bredere søgning');
@@ -907,7 +1061,24 @@ function exportJob(){
  '\n\nBEGRÆNSNINGER\nPersonaer indgår ikke i jobmatch-konklusionen. Kompetencer markeres som konkret dokumenteret, nævnt eller ikke fundet ud fra CV-tekst; “ikke fundet” er ikke bevis for manglende evne. Søgeresultater og ESCO-/jobprofilhenvisninger giver referencekontekst, men kildesider er ikke garanteret direkte live-hentet eller uafhængigt faktatjekket. Bekræft originale krav og aktualitet på selve kildesiderne.';
  download('jobanalyse.txt',text,'text/plain;charset=utf-8');
 }
-function renderProposals(){const p=state.proposalTexts||[];el('proposalState').textContent=p.length?'Vælg ét forslag. Ansøgningsteksten opdateres først, når du aktivt vælger et forslag.':'Ingen forslag endnu. Analysér et job under Jobopslag først. Der bliver ikke indsat tekst automatisk.';el('proposals').innerHTML=p.length?p.map((t,i)=>'<div class="item"><h3>Forslag '+(i+1)+'</h3><p>'+escapeHtml(t.slice(0,170))+'…</p><button onclick="chooseProposal('+i+')">Brug dette forslag</button></div>').join(''):'<div class="empty">Tre forslag vises her, når du har analyseret et job.</div>';el('apptext').value=state.application||''}
+function renderProposals(){
+ const p=state.proposalTexts||[];
+ const defaultTitles=['Fagligt match og motivation','Samarbejde og arbejdsform','Personlig motivation og bidrag'];
+ if(state.generatingProposals){
+  el('proposalState').textContent='Sprogmodellen skriver tre længere udkast i din stil…';
+  el('proposalState').className='notice';
+ }else{
+  el('proposalState').textContent=state.proposalNotice||(p.length?'Vælg et forslag. Hele ansøgningen vises herunder; teksten kopieres først til editoren, når du aktivt vælger et forslag.':'Ingen forslag endnu. Analysér et job under Jobopslag først.');
+  el('proposalState').className='notice '+(state.proposalMode==='ai'?'goodbox':p.length?'':'warnbox');
+ }
+ el('proposals').className='grid proposal-stack';
+ el('proposals').innerHTML=p.length?p.map((text,i)=>{
+  const title=(state.proposalTitles||[])[i]||defaultTitles[i]||('Forslag '+(i+1));
+  const focus=(state.proposalFocuses||[])[i]||'';
+  return '<article class="item proposal-card"><div class="row"><div><h3>Forslag '+(i+1)+' — '+escapeHtml(title)+'</h3>'+(focus?'<p class="muted proposal-focus">'+escapeHtml(focus)+'</p>':'')+'</div><span class="chip">'+(state.proposalMode==='ai'?'Sprogmodel':'Lokalt udkast')+'</span></div><p class="proposal-preview">'+escapeHtml(text)+'</p><button onclick="chooseProposal('+i+')">Brug dette forslag</button></article>';
+ }).join(''):(state.generatingProposals?'<div class="empty">Vent mens de tre forslag bliver skrevet…</div>':'<div class="empty">Tre forslag vises her, når du har analyseret et job.</div>');
+ el('apptext').value=state.application||'';
+}
 function chooseProposal(i){if(!state.proposalTexts||!state.proposalTexts[i])return;state.selectedProposal=i;state.application=state.proposalTexts[i];el('apptext').value=state.application;el('appPreview').hidden=true;persist();updateOverview();notify('proposalState','Forslag '+(i+1)+' er valgt. Du kan nu redigere teksten.','goodbox')}
 function saveApplication(){state.application=el('apptext').value;persist();updateOverview();notify('proposalState',state.application.trim()?'Ansøgningen er gemt lokalt.':'Ansøgningen er stadig blank.','goodbox')}
 function clearApplication(){if(el('apptext').value.trim()&&!confirm('Vil du rydde ansøgningen?'))return;state.application='';state.selectedProposal=-1;el('apptext').value='';el('appPreview').hidden=true;persist();updateOverview();notify('proposalState','Ansøgningen er blank. Vælg et forslag for at begynde.')}

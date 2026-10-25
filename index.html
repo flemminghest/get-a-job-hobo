@@ -179,35 +179,36 @@ label{font-size:14px;font-weight:750}
 
 
 /* Application PDF preview modal and letterhead color controls */
-.app-pdf-modal{z-index:13000;padding:12px}
-.app-pdf-modal-card{width:min(1450px,98vw);max-width:none;max-height:96vh;overflow:hidden;padding:18px;display:flex;flex-direction:column;gap:12px}
-.app-pdf-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line);padding:0 2px 12px}
-.app-pdf-modal-head h2{margin:0;font-size:clamp(19px,2.3vw,26px);letter-spacing:-.5px}
-.app-pdf-modal-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
-.app-pdf-close{width:42px;height:42px;min-width:42px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 42px;border:1px solid #dce5ef!important;border-radius:50%!important;background:#f3f6fa!important;color:#233951!important;padding:0!important;box-shadow:none}
+.app-pdf-modal{z-index:13000;padding:16px}
+.app-pdf-modal-card{width:min(1450px,98vw);max-width:none;max-height:96vh;overflow:hidden;padding:clamp(18px,2.2vw,34px);display:flex;flex-direction:column;gap:18px;border-radius:28px}
+.app-pdf-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;border-bottom:1px solid #d7e1ec;padding:0 2px 18px}
+.app-pdf-modal-head h2{margin:0;font-size:clamp(27px,3.1vw,46px);line-height:1.12;letter-spacing:-1.1px;color:#172d4b}
+.app-pdf-modal-head p{margin:12px 0 0;color:#62758d;font-size:clamp(14px,1.45vw,21px);line-height:1.45;max-width:1100px}
+.app-pdf-close{width:64px;height:64px;min-width:64px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 64px;border:2px solid #dce5ef!important;border-radius:50%!important;background:#f3f6fa!important;color:#233951!important;padding:0!important;box-shadow:none}
 .app-pdf-close:hover{background:#e6eef7!important;border-color:#bbcadb!important}
 .app-pdf-close:focus-visible{outline:3px solid #078c91;outline-offset:2px}
-.app-pdf-close svg{width:21px;height:21px;display:block}
+.app-pdf-close svg{width:30px;height:30px;display:block}
 .app-pdf-modal,.app-pdf-modal button,.app-pdf-modal input,.app-pdf-modal select,.app-pdf-modal label{font-family:Roboto,Arial,sans-serif}
-.app-pdf-portrait-controls{border-top:1px solid #dce5ef;padding-top:12px;margin-top:3px}
-.app-pdf-help{font-size:12px;line-height:1.45;color:#60748b;margin:3px 0}
-.app-pdf-small-button{font-size:12px!important;padding:8px 10px!important}
-#appPortraitUpload{width:100%;font:12px Roboto,Arial,sans-serif;padding:7px;background:#fff;border:1px solid #dce5ef;border-radius:8px}
-.app-pdf-layout{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:14px;min-height:0;flex:1}
-.app-pdf-controls{background:#f7f9fb;border:1px solid var(--line);border-radius:14px;padding:15px;display:flex;flex-direction:column;gap:12px;overflow:auto}
-.app-pdf-controls h3{margin:0;font-size:15px}
-.app-pdf-controls label{font-size:12px;margin-bottom:4px}
-.app-pdf-controls input[type=text]{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:15px;font-weight:750;letter-spacing:.4px;text-transform:uppercase}
-.app-pdf-color-row{display:grid;gap:4px}
-.app-pdf-color-preview{height:18px;border-radius:6px;border:1px solid #c9d3df}
-.app-pdf-filename{overflow-wrap:anywhere;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#314b62;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
-.app-pdf-viewer{min-width:0;min-height:0;display:flex;flex-direction:column;background:#edf1f5;border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.app-pdf-viewer-status{font-size:12px;color:#536980;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line);min-height:35px}
-.app-pdf-frame{display:block;width:100%;height:calc(96vh - 155px);min-height:450px;border:0;background:#e9eef3}
-.app-pdf-actions{display:flex;gap:8px;flex-wrap:wrap}
-.app-pdf-actions button{width:100%}
-.app-pdf-color-error{color:#a43b40;font-size:12px;margin:0}
-@media(max-width:800px){.app-pdf-modal{padding:6px}.app-pdf-modal-card{max-height:98vh;width:100%;padding:10px;border-radius:16px}.app-pdf-layout{grid-template-columns:minmax(0,1fr);overflow:auto;gap:8px}.app-pdf-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:10px;overflow:visible}.app-pdf-controls h3,.app-pdf-filename,.app-pdf-color-error,.app-pdf-actions{grid-column:1/-1}.app-pdf-viewer{min-height:0}.app-pdf-frame{height:56vh;min-height:320px}.app-pdf-modal-head{padding-bottom:8px}}
+.app-pdf-portrait-controls{border-top:1px solid #dce5ef;padding-top:18px;margin-top:2px}
+.app-pdf-help{font-size:clamp(13px,1.25vw,17px);line-height:1.55;color:#60748b;margin:4px 0}
+.app-pdf-small-button{font-size:clamp(14px,1.2vw,17px)!important;padding:14px 15px!important;border-radius:14px!important}
+#appPortraitMode{min-height:58px;padding:13px 16px;font-size:clamp(15px,1.35vw,19px);border-radius:14px}
+#appPortraitUpload{width:100%;min-height:62px;font:clamp(14px,1.2vw,18px) Roboto,Arial,sans-serif;padding:10px 12px;background:#fff;border:1px solid #dce5ef;border-radius:14px}
+.app-pdf-layout{display:grid;grid-template-columns:minmax(330px,.82fr) minmax(0,1.18fr);gap:24px;min-height:0;flex:1}
+.app-pdf-controls{background:#f7f9fb;border:1px solid #dce5ef;border-radius:24px;padding:clamp(18px,2vw,30px);display:flex;flex-direction:column;gap:18px;overflow:auto}
+.app-pdf-controls h3{margin:0;font-size:clamp(20px,1.9vw,30px);letter-spacing:-.5px;color:#172d4b}
+.app-pdf-controls label{font-size:clamp(14px,1.3vw,19px);margin-bottom:6px;color:#172d4b}
+.app-pdf-controls input[type=text]{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:16px;font-weight:750;letter-spacing:.4px;text-transform:uppercase}
+.app-pdf-color-row{display:grid;gap:7px}
+.app-pdf-color-preview{height:20px;border-radius:8px;border:1px solid #c9d3df}
+.app-pdf-filename{overflow-wrap:anywhere;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#314b62;font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+.app-pdf-viewer{min-width:0;min-height:0;display:flex;flex-direction:column;background:#edf1f5;border:1px solid #dce5ef;border-radius:24px;overflow:hidden}
+.app-pdf-viewer-status{font-size:clamp(13px,1.35vw,19px);color:#536980;padding:13px 18px;background:#fff;border-bottom:1px solid var(--line);min-height:50px}
+.app-pdf-frame{display:block;width:100%;height:calc(94vh - 205px);min-height:430px;flex:1;border:0;background:#e9eef3}
+.app-pdf-actions{display:flex;gap:10px;flex-wrap:wrap}
+.app-pdf-actions button{width:100%;padding:13px 15px}
+.app-pdf-color-error{color:#a43b40;font-size:13px;margin:0}
+@media(max-width:800px){.app-pdf-modal{padding:6px}.app-pdf-modal-card{max-height:98vh;width:100%;padding:12px;border-radius:18px;gap:12px}.app-pdf-modal-head{padding-bottom:12px;gap:10px}.app-pdf-modal-head h2{font-size:clamp(22px,5vw,30px);letter-spacing:-.5px}.app-pdf-modal-head p{font-size:13px;margin-top:6px}.app-pdf-close{width:42px;height:42px;min-width:42px;flex-basis:42px}.app-pdf-close svg{width:21px;height:21px}.app-pdf-layout{grid-template-columns:minmax(0,1fr);overflow:auto;gap:10px}.app-pdf-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px;overflow:visible;border-radius:16px}.app-pdf-controls h3,.app-pdf-filename,.app-pdf-color-error,.app-pdf-actions{grid-column:1/-1}.app-pdf-controls h3{font-size:19px}.app-pdf-controls label{font-size:13px}.app-pdf-help{font-size:12px}.app-pdf-viewer{min-height:0;border-radius:16px}.app-pdf-viewer-status{font-size:12px;padding:8px 10px;min-height:36px}.app-pdf-frame{height:56vh;min-height:320px;flex:none}#appPortraitMode{min-height:44px;font-size:14px;padding:8px}#appPortraitUpload{min-height:45px;font-size:12px;padding:7px}.app-pdf-small-button{font-size:12px!important;padding:9px!important}}
 @media(prefers-reduced-motion:reduce){.app-pdf-modal .research-modal-card{animation:none}}
 
 
@@ -537,14 +538,14 @@ label{font-size:14px;font-weight:750}
     <div class="app-pdf-color-row app-pdf-portrait-controls">
      <label for="appPortraitMode">Billede i cirklen</label>
      <select id="appPortraitMode" onchange="changeApplicationPortraitMode(this.value)">
+      <option value="photo">Brug portrætfoto fra PDF</option>
       <option value="avatar">Brug avatar</option>
-      <option value="photo">Brug portrætfoto</option>
      </select>
      <label for="appPortraitUpload">Vælg eller skift portrætfoto</label>
      <input id="appPortraitUpload" type="file" accept="image/png,image/jpeg,image/webp" onchange="handleApplicationPortraitUpload(this)">
-     <p class="app-pdf-help">Reference-PDF’ens portræt bruges som standard. Dit eget foto gemmes kun lokalt i browseren.</p>
-     <button type="button" class="secondary app-pdf-small-button" onclick="clearApplicationPortrait()">Brug PDF’ens portræt igen</button>
-     <p id="appPortraitStatus" class="app-pdf-help" aria-live="polite">Reference-PDF’ens portræt bruges automatisk. Du kan vælge dit eget foto eller skifte til avatar.</p>
+     <p class="app-pdf-help">Dit portræt bruges som standard og gemmes lokalt i denne browser. Hvis billedet ikke kan indlæses, vises en avatar automatisk.</p>
+     <button type="button" class="secondary app-pdf-small-button" onclick="clearApplicationPortrait()">Brug portrættet fra PDF igen</button>
+     <p id="appPortraitStatus" class="app-pdf-help" aria-live="polite">Portrættet fra reference-PDF’en bruges automatisk. Hvis det ikke kan indlæses, vises en avatar i stedet.</p>
     </div>
     <div class="app-pdf-color-row">
      <label for="appGreetingHex">Baggrund: KÆRE + hilsenlinje</label>
@@ -665,7 +666,21 @@ function normalizeState(raw){
  return out;
 }
 let state=loadState();
-function loadState(){try{return normalizeState(JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return normalizeState({})}}
+const PORTRAIT_DEFAULT_MIGRATION_KEY='gajh_portrait_reference_default_v1';
+function loadState(){
+ let raw={};try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){raw={}}
+ try{
+  if(localStorage.getItem(PORTRAIT_DEFAULT_MIGRATION_KEY)!=='1'){
+   if(raw&&typeof raw==='object'&&!Array.isArray(raw)){
+    if(!raw.applicationPortraitDataUrl){raw.applicationPortraitMode='photo';raw.applicationPortraitModeChosen=false}
+    const hex=String(raw.applicationGreetingHex||'').replace(/^#/,'');
+    if(/^[0-9a-fA-F]{6}$/.test(hex)){const red=parseInt(hex.slice(0,2),16),green=parseInt(hex.slice(2,4),16),blue=parseInt(hex.slice(4,6),16);if(red>180&&red>green*1.35&&red>blue*1.35&&green<150)raw.applicationGreetingHex='#3E7099'}
+   }
+   localStorage.setItem(PORTRAIT_DEFAULT_MIGRATION_KEY,'1');
+  }
+ }catch(e){}
+ return normalizeState(raw)
+}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));document.getElementById('storageStatus').textContent='Data gemt lokalt i denne browser';return true}catch(e){document.getElementById('storageStatus').textContent='Lokal lagring fuld/blokeret — eksportér backup';return false}}
 function el(id){return document.getElementById(id)}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -1581,28 +1596,35 @@ function loadApplicationPortraitImage(src){
 }
 async function getApplicationPortraitForPdf(){
  if(state.applicationPortraitMode!=='photo')return null;
- const portraitSource=state.applicationPortraitDataUrl||'./portrait-jacob.png';
- const image=await loadApplicationPortraitImage(portraitSource);
- const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
- const ctx=canvas.getContext('2d');
- if(!ctx)throw new Error('Browseren kunne ikke klargøre portrættet.');
- const width=image.naturalWidth||image.width,height=image.naturalHeight||image.height;
- const size=Math.min(width,height),sx=(width-size)/2,sy=(height-size)/2;
- ctx.clearRect(0,0,512,512);ctx.save();ctx.beginPath();ctx.arc(256,256,256,0,Math.PI*2);ctx.clip();
- ctx.drawImage(image,sx,sy,size,size,0,0,512,512);ctx.restore();
- return canvas.toDataURL('image/png');
+ try{
+  const portraitSource=state.applicationPortraitDataUrl||new URL('./portrait-jacob.png',document.baseURI).href;
+  const image=await loadApplicationPortraitImage(portraitSource);
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw new Error('Browseren kunne ikke klargøre portrættet.');
+  const width=image.naturalWidth||image.width,height=image.naturalHeight||image.height;
+  if(!width||!height)throw new Error('Billedet har ingen gyldige dimensioner.');
+  const size=Math.min(width,height),sx=(width-size)/2,sy=(height-size)/2;
+  ctx.clearRect(0,0,512,512);ctx.save();ctx.beginPath();ctx.arc(256,256,256,0,Math.PI*2);ctx.clip();
+  ctx.drawImage(image,sx,sy,size,size,0,0,512,512);ctx.restore();
+  return canvas.toDataURL('image/png');
+ }catch(error){
+  updateApplicationPortraitStatus('Portrættet kunne ikke indlæses — en neutral avatar vises i cirklen i stedet.');
+  return null;
+ }
 }
 function updateApplicationPortraitStatus(message){
  const node=el('appPortraitStatus');if(node)node.textContent=message;
 }
+function getApplicationPortraitStatusText(){
+ if(state.applicationPortraitMode==='avatar')return 'Avatar er valgt til cirklen.';
+ if(state.applicationPortraitDataUrl)return 'Dit valgte portrætfoto vises i cirklen. Hvis billedet ikke kan læses, bruges en avatar i stedet.';
+ return 'Portrættet fra reference-PDF’en bruges automatisk. Hvis det ikke kan indlæses, vises en avatar i stedet.';
+}
 function changeApplicationPortraitMode(mode){
  state.applicationPortraitMode=mode==='photo'?'photo':'avatar';
  state.applicationPortraitModeChosen=true;persist();markApplicationPdfOutdated();
- updateApplicationPortraitStatus(state.applicationPortraitMode==='avatar'
-  ?'Avatar er valgt til cirklen.'
-  :state.applicationPortraitDataUrl
-   ?'Dit valgte portrætfoto vises i cirklen.'
-   :'Portrættet fra reference-PDF’en bruges automatisk.');
+ updateApplicationPortraitStatus(getApplicationPortraitStatusText());
  if(el('appPreviewModal')&&!el('appPreviewModal').hidden)renderApplicationPdfPreview(false);
 }
 async function handleApplicationPortraitUpload(input){
@@ -1638,7 +1660,7 @@ function clearApplicationPortrait(){
  state.applicationPortraitDataUrl='';state.applicationPortraitMode='photo';state.applicationPortraitModeChosen=true;persist();markApplicationPdfOutdated();
  if(el('appPortraitMode'))el('appPortraitMode').value='photo';
  if(el('appPortraitUpload'))el('appPortraitUpload').value='';
- updateApplicationPortraitStatus('Dit valgte foto er fjernet. Reference-PDF’ens portræt bruges nu.');
+ updateApplicationPortraitStatus('Dit valgte foto er fjernet. Portrættet fra reference-PDF’en bruges nu; hvis det ikke kan indlæses, vises en avatar.');
  if(el('appPreviewModal')&&!el('appPreviewModal').hidden)renderApplicationPdfPreview(false);
 }
 
@@ -1684,7 +1706,7 @@ function openApplicationPdfModal(){
  if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3E7099';
  if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#1F325E';
  if(el('appPortraitMode'))el('appPortraitMode').value=state.applicationPortraitMode||'avatar';
- if(el('appPortraitStatus'))el('appPortraitStatus').textContent=state.applicationPortraitMode==='avatar'?'Avatar er valgt til cirklen.':state.applicationPortraitDataUrl?'Dit valgte portrætfoto vises i cirklen.':'Reference-PDF’ens portræt bruges automatisk.';
+ if(el('appPortraitStatus'))el('appPortraitStatus').textContent=getApplicationPortraitStatusText();
  updateApplicationPdfSwatches();
  if(el('appPdfFilename'))el('appPdfFilename').textContent=applicationPdfFilename||getApplicationPdfFilename();
 }

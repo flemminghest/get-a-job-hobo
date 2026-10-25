@@ -191,6 +191,35 @@ label{font-size:14px;font-weight:750}
 .evidence-source-row strong{font-size:12px;line-height:1.4;color:#2c4157;overflow-wrap:anywhere}
 .evidence-source-row small{font-size:10px;line-height:1.45;color:#728195;overflow-wrap:anywhere}
 @media(max-width:720px){.evidence-conclusion{padding:16px}.evidence-conclusion-header{flex-direction:column}.evidence-pro-con{grid-template-columns:1fr}.evidence-source-row{grid-template-columns:minmax(0,1fr)}}
+/* Competency evidence panel */
+.competency-assessment{margin:15px 0 18px;padding:20px;border:1px solid #dbe7e5;border-radius:18px;background:linear-gradient(145deg,#fff 0%,#fbfdfc 100%)}
+.competency-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.competency-header .eyebrow{font-size:10px;letter-spacing:1.2px;font-weight:850;color:#16836b;margin-bottom:5px}
+.competency-header h3{margin:0;color:#20374e;font-size:20px;line-height:1.3}
+.competency-score{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:9px 12px;border-radius:12px;background:#e5f5ed;color:#156a48;font-size:18px;font-weight:900}
+.competency-summary{font-size:13px;line-height:1.6;color:#40566c;margin:12px 0 6px}
+.competency-method{font-size:11px;line-height:1.55;margin:0 0 13px}
+.competency-legend{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+.competency-badge{display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;border-radius:999px;font-size:10px;line-height:1.25;font-weight:800;white-space:normal;text-align:center}
+.competency-strong{background:#e2f5e9;color:#176b45}.competency-mentioned{background:#fff1d8;color:#885e15}.competency-missing{background:#edf1f5;color:#5b6b7e}
+.competency-rows{display:grid;gap:9px}
+.competency-row{padding:13px 14px;border:1px solid #e2e9ed;border-radius:13px;background:#fff}
+.competency-row-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.competency-row-heading>div{min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.competency-row h4{font-size:13px;font-weight:850;color:#253c52;margin:0}
+.competency-priority{font-size:10px;color:#63768b;background:#f0f4f7;padding:4px 7px;border-radius:999px;font-weight:750}
+.competency-evidence{font-size:12px;line-height:1.55;color:#53677a;margin:7px 0 0;overflow-wrap:anywhere}
+.competency-evidence b{color:#263d52}
+.competency-row-footer{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-top:9px;padding-top:8px;border-top:1px solid #edf1f4}
+.competency-row-footer small{font-size:10px;color:#718196;line-height:1.45}
+.competency-links{display:flex;gap:8px;flex-wrap:wrap}
+.competency-reference-list{margin-top:16px;border-top:1px solid #e2e9ed;padding-top:14px}
+.competency-reference-list h4{margin:0 0 9px;color:#23394f;font-size:13px}
+.competency-reference{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #edf1f4}
+.competency-reference>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.competency-reference strong{font-size:12px;color:#2c4157;overflow-wrap:anywhere}
+.competency-reference small{font-size:10px;color:#728195;line-height:1.45;overflow-wrap:anywhere}
+@media(max-width:620px){.competency-assessment{padding:15px}.competency-header{align-items:center}.competency-header h3{font-size:18px}.competency-row-heading{flex-direction:column}.competency-reference{grid-template-columns:minmax(0,1fr)}}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand">✳ <b>Get a Job</b> Hobo</div><nav class="nav" id="nav">
 <button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal demo · Ingen AI eller live-research tilkoblet<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
@@ -694,78 +723,70 @@ function buildCompetencyAssessment(jobText,cvText,title,research){
 function buildEvidenceAssessment(job){
  const research=job&&job.liveResearch;
  const metrics=getSourceCoverageMetrics(research);
- const matched=Array.isArray(job&&job.matched)?job.matched:[];
- const gaps=Array.isArray(job&&job.gaps)?job.gaps:[];
+ const competence=job&&job.competencyAssessment?job.competencyAssessment:buildCompetencyAssessment(job&&job.job||'',state.cv||'',job&&job.title||'',research);
  const signals=detectSourceSignals(metrics.relevant);
  const forItems=[],againstItems=[];
+ const documented=competence.rows.filter(row=>row.status==='evidenced');
+ const mentioned=competence.rows.filter(row=>row.status==='mentioned');
+ const missing=competence.rows.filter(row=>row.status==='missing');
+ for(const row of documented.slice(0,5)){
+  forItems.push({text:'Kompetencen “'+row.label+'” er understøttet af konkret handling eller resultat i CV-teksten: “'+row.cvEvidence+'”. Det understøtter et match til kravet (“'+row.jobEvidence+'”), men dokumenterer ikke i sig selv niveauet.',source:row.sourceRefs[0]||null});
+ }
+ for(const row of mentioned.slice(0,3)){
+  forItems.push({text:'Kompetencen “'+row.label+'” er nævnt i CV’et (“'+row.cvEvidence+'”), men CV-teksten viser ikke tydeligt et konkret resultat. Et målrettet eksempel i ansøgningen vil styrke dokumentationen.',source:row.sourceRefs[0]||null});
+ }
+ for(const row of missing.slice(0,7)){
+  againstItems.push({text:'Kompetencekravet “'+row.label+'” ('+row.priority.toLowerCase()+') fremgår af opslaget, men blev ikke fundet i CV-teksten. Det er en dokumentationsmangel — ikke bevis for, at du ikke kan kompetencen. Overvej at tilføje et reelt eksempel, hvis du har erfaringen.',source:row.sourceRefs[0]||null});
+ }
+ if(!competence.rows.length)againstItems.push({text:'Der blev ikke fundet tilstrækkeligt tydelige kompetencekrav i opslaget til en fair vurdering. Tilføj hele jobopslaget med konkrete krav og ansvarsområder.'});
  if(metrics.relevant.length){
-  const roleKinds=metrics.relevant.filter(s=>/original|jobopslag|linkedin.*job|jobindex|jobnet|workindenmark|jobportal/i.test(String(s.kind||'')+' '+String(s.categoryId||'')));
-  const roleDomains=new Set(roleKinds.map(s=>s.domain).filter(Boolean));
+  const roleKinds=metrics.relevant.filter(source=>/original|jobopslag|linkedin.*job|jobindex|jobnet|workindenmark|jobportal/i.test(String(source.kind||'')+' '+String(source.categoryId||'')));
+  const roleDomains=new Set(roleKinds.map(source=>source.domain).filter(Boolean));
   if(roleKinds.length){
    const top=roleKinds.slice().sort((a,b)=>sourceTrustAssessment(b,research).score-sourceTrustAssessment(a,research).score)[0];
-   forItems.push({text:'Der er fundet rolle-/jobrelaterede resultater i webindekset fra '+roleDomains.size+' hoveddomæne(r). Det viser, at der er materiale at kontrollere, men bekræfter ikke at stillingen stadig er åben.',source:top});
+   forItems.push({text:'Der er fundet rolle-/jobrelaterede søgeresultater fra '+roleDomains.size+' hoveddomæne(r). De kan bruges til at kontrollere, om kompetencekravene går igen i sammenlignelige opslag; de bekræfter ikke i sig selv, at stillingen er aktiv.',source:top});
   }
-  const trusted=metrics.ranked.filter(s=>sourceTrustAssessment(s,research).score>=78);
-  if(trusted.length){
-   forItems.push({text:'Mindst én kilde kommer fra en genkendelig platform, jobportal eller officiel registertype. Disse prioriteres højere end generiske søgeresultater, men indhold og dato skal stadig kontrolleres.',source:trusted[0]});
-  }else{
-   forItems.push({text:'Der findes relevante søgeresultater, men ingen af de viste domæner er klassificeret som en højere prioriteret platform/jobportal eller officielt register. Kildegrundlaget er derfor svagere.'});
-  }
- }
- if(matched.length){
-  forItems.push({text:'CV-teksten og jobopslaget indeholder følgende fælles nøgleord: '+matched.slice(0,7).join(', ')+'. Det er et tekstligt overlap — ikke bevis for kompetenceniveau.',source:null});
- }else{
-  againstItems.push({text:'Der blev ikke fundet tydeligt overlap mellem de udvalgte nøgleord fra jobopslaget og CV-teksten. Det kan skyldes formuleringer/forskellige ord og er ikke i sig selv bevis på manglende kompetencer.'});
- }
- if(gaps.length){
-  againstItems.push({text:'Disse nøgleord fra jobopslaget blev ikke fundet i CV-teksten: '+gaps.slice(0,8).join(', ')+'. Kontrollér, om kravene faktisk er vigtige, og om erfaringen blot er beskrevet med andre ord.'});
  }
  if(signals.positives.length)forItems.push(...signals.positives);
  if(signals.risks.length)againstItems.push(...signals.risks);
- if(!metrics.meetsMinimum){
-  againstItems.push({text:'Kildekravet er ikke opfyldt: der er '+metrics.relevant.length+' potentielt relevante kilder fra '+metrics.domains.length+' hoveddomæner; målet er mindst 6 kilder fra 4 domæner.'});
- }
- const inputUrl=safeHttpUrl(research&&research.providedUrl||'');
- const inputHost=(()=>{try{return new URL(inputUrl).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return ''}})();
- const matchingOriginal=metrics.relevant.find(source=>{
-  if(!inputHost)return false;try{const h=new URL(source.url).hostname.toLowerCase().replace(/^www\./,'');return h===inputHost||h.endsWith('.'+inputHost)}catch(e){return false}
- });
- if(!matchingOriginal)againstItems.push({text:'Det originale jobopslag er ikke bekræftet på dets eget domæne. Søgeresultater alene kan ikke fastslå, om annoncen stadig er aktiv, om fristen er ændret, eller om indholdet er aktuelt.'});
- if(metrics.relevant.length===0){
-  againstItems.unshift({text:'Der er ingen relevante webresultater, som appen kunne bruge. Derfor kan den ikke give en kildebaseret anbefaling for eller imod stillingen.'});
- }
- const enough=metrics.meetsMinimum;
+ if(!metrics.meetsMinimum)againstItems.push({text:'Kildedækningen er utilstrækkelig: '+metrics.relevant.length+' potentielt relevante søgeresultater fra '+metrics.domains.length+' domæner; målet er mindst 6 kilder fra 4 domæner. Den eksterne kompetencekontrol er derfor foreløbig.'});
+ const hasOriginal=metrics.relevant.some(source=>source.categoryId==='original'||/originalt jobopslag/i.test(source.kind||''));
+ if(!hasOriginal)againstItems.push({text:'Det originale jobopslag er ikke identificeret sikkert blandt søgeresultaterne. Uden originalen kan konkrete must-have-krav, ansøgningsfrist og aktiv status ikke bekræftes.'});
+ if(metrics.relevant.length===0)againstItems.unshift({text:'Der er ingen relevante webresultater, som appen kunne bruge. Kompetencevurderingen er derfor kun en tekstlig sammenligning af jobopslaget og CV’et, ikke en ekstern kildevalidering.'});
  let conclusion;
- if(enough){
-  conclusion='Kildegrundlaget har bredde nok til en foreløbig vurdering ('+metrics.relevant.length+' potentielt relevante resultater fra '+metrics.domains.length+' domæner). Det er endnu ikke en endelig anbefaling: kildesider og stillingens aktuelle status er ikke direkte verificeret.';
- }else if(metrics.relevant.length>=3&&metrics.domains.length>=2){
-  conclusion='Delvist grundlag: der er nogle relevante søgeresultater, men ikke nok uafhængige kilder til at give en robust samlet vurdering. Brug “for/imod” som kontrolpunkter — ikke som en anbefaling.';
- }else{
-  conclusion='Utilstrækkeligt kildegrundlag: appen kan ikke forsvarligt anbefale eller fraråde stillingen endnu. Flere relevante, uafhængige kilder og kontrol af det originale opslag er nødvendigt.';
- }
- return {metrics,forItems,againstItems,conclusion,signals};
+ if(!competence.rows.length)conclusion='Der er ikke udtrukket nok konkrete kompetencekrav til en fair vurdering. Tilføj et fuldt jobopslag med krav og ansvar.';
+ else if(metrics.meetsMinimum)conclusion='Kompetencevurderingen identificerer '+documented.length+' kompetenceområder med konkret CV-dokumentation, '+mentioned.length+' som blot er nævnt og '+missing.length+' krav uden fundet dokumentation. Kildedækningen har bredde nok til en foreløbig vurdering, men originalsider og stillingens aktuelle status er ikke direkte verificeret.';
+ else conclusion='Foreløbig kompetencevurdering: '+documented.length+' kompetenceområder har konkret CV-dokumentation, '+mentioned.length+' er nævnt og '+missing.length+' krav er ikke fundet i CV-teksten. Kildegrundlaget er ikke tilstrækkeligt bredt til en robust ekstern kontrol, så vurderingen må ikke læses som en endelig anbefaling.';
+ return {metrics,competence,forItems,againstItems,conclusion,signals};
+}
+function renderCompetencyAssessment(assessment){
+ if(!assessment||!Array.isArray(assessment.rows)||!assessment.rows.length)return '<section class="competency-assessment"><h3>Kompetencevurdering</h3><p class="muted">Jeg kunne ikke identificere tydelige kompetencekrav i opslaget med den aktuelle ordliste. Tilføj konkrete krav/ansvarsområder, så vurderingen bliver mere præcis.</p></section>';
+ const rows=assessment.rows;
+ const renderBadge=row=>row.status==='evidenced'?'<span class="competency-badge competency-strong">Konkret dokumenteret</span>':row.status==='mentioned'?'<span class="competency-badge competency-mentioned">Nævnt i CV</span>':'<span class="competency-badge competency-missing">Ikke fundet i CV</span>';
+ const rowsHtml=rows.map(row=>{
+  const cvText=row.cvEvidence?'<p class="competency-evidence"><b>CV-dokumentation:</b> '+escapeHtml(row.cvEvidence)+'</p>':'<p class="competency-evidence muted"><b>CV-dokumentation:</b> Intet direkte eksempel fundet i CV-teksten. Det beviser ikke, at kompetencen mangler.</p>';
+  const refs=row.sourceRefs.length?'<div class="competency-links">'+row.sourceRefs.map(ref=>evidenceLink(ref,ref.title||ref.domain)).join(' ')+'</div>':'';
+  return '<article class="competency-row"><div class="competency-row-heading"><div><h4>'+escapeHtml(row.label)+'</h4><span class="competency-priority">'+escapeHtml(row.priority)+'</span></div>'+renderBadge(row)+'</div><p class="competency-evidence"><b>Hvad opslaget siger:</b> '+escapeHtml(row.jobEvidence)+'</p>'+cvText+'<div class="competency-row-footer"><small>'+escapeHtml(row.statusLabel)+'</small>'+refs+'</div></article>';
+ }).join('');
+ const sourceHtml=assessment.references.length?'<div class="competency-reference-list"><h4>Eksterne kompetencekilder inddraget</h4>'+assessment.references.map(ref=>'<div class="competency-reference"><div><strong>'+escapeHtml(ref.title||ref.domain)+'</strong><small>'+escapeHtml(ref.domain)+' · '+escapeHtml(ref.trust)+'</small>'+(ref.description?'<small>'+escapeHtml(ref.description.slice(0,220))+'</small>':'')+'</div>'+evidenceLink(ref,'Åbn kilde')+'</div>').join('')+'</div>':'<div class="notice warnbox">Ingen relevante ESCO-/jobprofilkilder blev fundet i denne søgning. Kompetencevurderingen bygger derfor primært på jobopslaget og CV-teksten; eksternt kompetencegrundlag mangler.</div>';
+ const score=assessment.coverageScore==null?'—':assessment.coverageScore+'/100';
+ return '<section class="competency-assessment"><div class="competency-header"><div><div class="eyebrow">KOMPETENCER · CV-DOKUMENTATION</div><h3>Kompetencevurdering — for og imod</h3></div><span class="competency-score">'+escapeHtml(score)+'</span></div><p class="competency-summary">'+escapeHtml(assessment.requiredCount+' kompetenceområder udledt af opslaget: '+assessment.documentedCount+' med konkret handlings-/resultattekst i CV’et, '+assessment.mentionedCount+' nævnt uden tydeligt resultat og '+assessment.missingCount+' ikke fundet i CV-teksten.')+'</p><p class="muted competency-method">'+escapeHtml(assessment.method)+'</p><div class="competency-legend"><span class="competency-badge competency-strong">Konkret dokumenteret</span><span class="competency-badge competency-mentioned">Kun nævnt</span><span class="competency-badge competency-missing">Ikke fundet i CV</span></div><div class="competency-rows">'+rowsHtml+'</div>'+sourceHtml+'</section>';
 }
 function renderEvidenceConclusion(job){
- const assessment=buildEvidenceAssessment(job);
- const m=assessment.metrics;
- const status=m.meetsMinimum?'Bredt — stadig foreløbigt':m.relevant.length>=3&&m.domains.length>=2?'Delvist kildegrundlag':'Utilstrækkeligt grundlag';
- const renderItems=(items,type)=>items.length?items.map(item=>'<article class="evidence-point"><span class="evidence-point-icon" aria-hidden="true">'+(type==='for'?'✓':'!')+'</span><div><p>'+escapeHtml(item.text)+'</p>'+(item.source?'<div class="evidence-cite">'+evidenceLink(item.source,item.source.title||item.source.domain)+'</div>':'')+'</div></article>').join(''):'<p class="muted evidence-empty">'+(type==='for'?'Ingen kildeunderbyggede positive forhold er identificeret endnu.':'Ingen specifikke negative kildesignaler er identificeret; manglende kilder er stadig en usikkerhed.')+'</p>';
- const topSources=m.ranked.slice(0,5).map(source=>{
-  const trust=sourceTrustAssessment(source,job.liveResearch);
-  return '<article class="evidence-source-row"><div><strong>'+escapeHtml(source.title||source.domain)+'</strong><small>'+escapeHtml(source.domain||'')+' · '+escapeHtml(trust.label)+'</small><small>'+escapeHtml(trust.why)+'</small></div>'+evidenceLink(source,'Åbn kilde')+'</article>';
- }).join('');
- return '<section class="evidence-conclusion" aria-labelledby="evidenceConclusionTitle"><div class="evidence-conclusion-header"><div><div class="eyebrow">KILDEBASERET VURDERING</div><h3 id="evidenceConclusionTitle">Konklusion — argumenter for og imod</h3></div><span class="evidence-status">'+escapeHtml(status)+'</span></div><p class="evidence-conclusion-summary">'+escapeHtml(assessment.conclusion)+'</p><div class="notice" style="margin:0 0 14px">Denne konklusion bruger ikke personaer. Den bygger på de indsamlede søgeresultater, deres domæne-/kildetype og det tekstlige overlap mellem CV og opslag. Søgningen bruger indekserede uddrag, ikke fuldt verificerede live-sider.</div><div class="evidence-pro-con"><div class="evidence-column evidence-for"><h4><span>✓</span> Taler for</h4>'+renderItems(assessment.forItems,'for')+'</div><div class="evidence-column evidence-against"><h4><span>!</span> Taler imod / risici</h4>'+renderItems(assessment.againstItems,'against')+'</div></div><div class="evidence-sources"><h4>Kilder prioriteret efter troværdighedstype</h4><p class="muted">Rangeringen er en hjælp til gennemgang — ikke en garanti for, at kildens indhold er korrekt eller aktuelt.</p>'+(topSources||'<p class="muted">Ingen relevante kilder at prioritere endnu.</p>')+'</div></section>';
+ const assessment=buildEvidenceAssessment(job),m=assessment.metrics,competence=assessment.competence;
+ const status=m.meetsMinimum?'Kildedækning bred — stadig foreløbig':m.relevant.length>=3&&m.domains.length>=2?'Delvist kildegrundlag':'Utilstrækkeligt kildegrundlag';
+ const renderItems=(items,type)=>items.length?items.map(item=>'<article class="evidence-point"><span class="evidence-point-icon" aria-hidden="true">'+(type==='for'?'✓':'!')+'</span><div><p>'+escapeHtml(item.text)+'</p>'+(item.source?'<div class="evidence-cite">'+evidenceLink(item.source,item.source.title||item.source.domain)+'</div>':'')+'</div></article>').join(''):'<p class="muted evidence-empty">'+(type==='for'?'Ingen kompetencer med dokumenteret handling/resultat er identificeret endnu.':'Ingen særskilte risikoforhold er identificeret; det er ikke bevis for, at der ikke er risici.')+'</p>';
+ const topSources=m.ranked.slice(0,5).map(source=>{const trust=sourceTrustAssessment(source,job.liveResearch);return '<article class="evidence-source-row"><div><strong>'+escapeHtml(source.title||source.domain)+'</strong><small>'+escapeHtml(source.domain||'')+' · '+escapeHtml(trust.label)+'</small><small>'+escapeHtml(trust.why)+'</small></div>'+evidenceLink(source,'Åbn kilde')+'</article>'}).join('');
+ return '<section class="evidence-conclusion" aria-labelledby="evidenceConclusionTitle"><div class="evidence-conclusion-header"><div><div class="eyebrow">KILDE- OG KOMPETENCEBASERET VURDERING</div><h3 id="evidenceConclusionTitle">Konklusion — kompetencer for og imod</h3></div><span class="evidence-status">'+escapeHtml(status)+'</span></div><p class="evidence-conclusion-summary">'+escapeHtml(assessment.conclusion)+'</p><div class="notice" style="margin:0 0 14px">Personaer bruges ikke i jobmatch. Originalopslaget fastlægger de konkrete krav; ESCO og sammenlignelige opslag bruges som eksterne referencekilder; CV’et bruges til at finde dokumentation for dine kompetencer. Et krav uden fund i CV’et er en dokumentationsmangel, ikke bevis for manglende evne.</div>'+renderCompetencyAssessment(competence)+'<div class="evidence-pro-con"><div class="evidence-column evidence-for"><h4><span>✓</span> Taler for</h4>'+renderItems(assessment.forItems,'for')+'</div><div class="evidence-column evidence-against"><h4><span>!</span> Taler imod / skal afklares</h4>'+renderItems(assessment.againstItems,'against')+'</div></div><div class="evidence-sources"><h4>Kilder prioriteret efter anvendelighed</h4><p class="muted">ESCO er en standardiseret kompetencereference; originalopslaget og sammenlignelige stillinger hjælper med at fastslå kravene. Nyheder og virksomhedsoplysninger giver kontekst, men dokumenterer ikke i sig selv kandidatens kompetencer.</p>'+(topSources||'<p class="muted">Ingen relevante kilder at prioritere endnu.</p>')+'</div></section>';
 }
-
 function renderJobResult(){
  const job=state.activeJob;
- if(!job){el('jobresult').innerHTML='<div class="empty">Indsæt et jobopslag og vælg “Analyser job” for at sammenligne CV og søge efter webkilder.</div>';return}
- const manualSources=sourceStats();
- const researchHtml=renderLiveResearch(job.liveResearch||null);
- const assessment=buildEvidenceAssessment(job);
- const cvScore=Math.max(0,Math.min(100,Number(job.contentScore)||0));
- const sourceScore=assessment.metrics.score;
- el('jobresult').innerHTML='<div class="row" style="align-items:start"><div><h2 style="margin-bottom:4px">'+escapeHtml(job.title||'Jobanalyse')+'</h2><div class="muted">'+escapeHtml(job.company||'Virksomhed ikke angivet')+' · '+new Date(job.created).toLocaleString('da-DK')+'</div></div><button class="secondary fit" onclick="go(&quot;application&quot;)">Fortsæt til ansøgning →</button></div><div class="notice warnbox">Jobmatch afgøres ikke af personaer. Den samlede kildebaserede konklusion nedenfor vægter kildetype, domænespredning og tekstlige fund. CV-overlap er en separat, regelbaseret tekstsammenligning. Søgeresultaterne er ikke direkte live-verificeret.</div><div class="scoregrid"><div class="score"><span>CV-overlap (tekstmatch)</span><strong>'+cvScore+'/100</strong><div class="bar"><i style="width:'+cvScore+'%"></i></div><small>Indikator baseret på nøgleord i CV og opslag — ikke kompetencebevis.</small></div><div class="score alt"><span>Kildedækning</span><strong>'+sourceScore+'/100</strong><div class="bar"><i style="width:'+sourceScore+'%"></i></div><small>Beregnet ud fra 6 relevante kilder og 4 hoveddomæner som målsætning. Ikke en sandsynlighed for at få jobbet.</small></div></div>'+renderEvidenceConclusion(job)+'<div class="result"><h3>Live-søgning og webkilder — detaljer</h3>'+researchHtml+'</div><div class="result"><h3>Manuelt registrerede kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
+ if(!job){el('jobresult').innerHTML='<div class="empty">Indsæt et jobopslag og vælg “Analyser job” for at få en kompetencevurdering baseret på jobkrav, CV-dokumentation og relevante referencekilder.</div>';return}
+ const manualSources=sourceStats(),assessment=buildEvidenceAssessment(job),competence=assessment.competence;
+ const cvScore=competence.coverageScore==null?0:competence.coverageScore,sourceScore=assessment.metrics.score;
+ const heading='<div class="row" style="align-items:start"><div><h2 style="margin-bottom:4px">'+escapeHtml(job.title||'Jobanalyse')+'</h2><div class="muted">'+escapeHtml(job.company||'Virksomhed ikke angivet')+' · '+new Date(job.created).toLocaleString('da-DK')+'</div></div><button class="secondary fit" onclick="go(&quot;application&quot;)">Fortsæt til ansøgning →</button></div>';
+ const scorecards='<div class="notice warnbox">Jobmatch afgøres ikke af personaer. Kompetencevurderingen bygger på krav i stillingsopslaget, CV-dokumentation og eksterne kompetencereferencer, hvis de blev fundet. Scores er dokumentations- og dækningsindikatorer — ikke sandsynlighed for at få jobbet.</div><div class="scoregrid"><div class="score"><span>Kompetencedokumentation i CV</span><strong>'+(competence.coverageScore==null?'—':cvScore+'/100')+'</strong><div class="bar"><i style="width:'+cvScore+'%"></i></div><small>'+competence.requiredCount+' kompetenceområder: '+competence.documentedCount+' konkret dokumenteret, '+competence.mentionedCount+' nævnt, '+competence.missingCount+' ikke fundet.</small></div><div class="score alt"><span>Ekstern kildedækning</span><strong>'+sourceScore+'/100</strong><div class="bar"><i style="width:'+sourceScore+'%"></i></div><small>Måler om søgningen når 6 relevante kilder fra mindst 4 hoveddomæner. Ikke en kompetencescore.</small></div></div>';
+ el('jobresult').innerHTML=heading+scorecards+renderEvidenceConclusion(job)+'<div class="result"><h3>Live-søgning og webkilder — detaljer</h3>'+renderLiveResearch(job.liveResearch||null)+'</div><div class="result"><h3>Dine egne supplerende kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
  sourceSummary();
 }
 function saveJobOnly(){const job=el('jobtext').value.trim();if(!job){notify('jobmsg','Indsæt et jobopslag først.');return}state.jobtitle=el('jobtitle').value;state.company=el('company').value;state.jobtext=job;state.history.unshift({id:Date.now(),title:state.jobtitle,company:state.company,created:new Date().toISOString(),job:job,savedOnly:true});state.history=state.history.slice(0,50);persist();renderHistory();updateOverview();notify('jobmsg','Jobopslag gemt i historikken uden score.','goodbox')}

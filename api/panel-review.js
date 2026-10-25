@@ -54,7 +54,7 @@ const applicationDraftInstructions = [
  "- Hvis der er et tydeligt gab mellem CV'et og en central opgave, så lad ikke alle tre forslag hævde et stærkt match. Vær ærlig om overførbare erfaringer og motivation for at lære.",
  "- Genbrug ikke sætninger ordret fra eksemplet ud over signaturen. Efterlign den overordnede stemme og rytme, ikke hele teksten.",
  "- Inkludér ingen analyse, noter eller markdown uden for JSON."
-].join("\\n");
+].join("\n");
 
 function normalizeApplicationDrafts(raw, meta) {
   if (!raw || !Array.isArray(raw.drafts) || raw.drafts.length < 3) {

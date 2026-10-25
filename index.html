@@ -542,15 +542,16 @@ function updateModelIntegrationStatus(){
  const saved=getPanelAiSettings();
  const configured=!!(saved.url&&saved.code);
  let status='Ikke konfigureret',cls='chip',applicationStatus='Ikke konfigureret';
- let lastSuccess='',lastError='';
- try{lastSuccess=sessionStorage.getItem('gajh_ai_last_success')||'';lastError=sessionStorage.getItem('gajh_ai_last_error')||''}catch(e){}
+ let lastSuccess='',lastError='',lastModel='';
+ try{lastSuccess=sessionStorage.getItem('gajh_ai_last_success')||'';lastError=sessionStorage.getItem('gajh_ai_last_error')||'';lastModel=sessionStorage.getItem('gajh_ai_last_model')||''}catch(e){}
  if(configured){
   status='Konfigureret — afventer test';applicationStatus='Klar til test';
   if(lastSuccess){status='Testet og svarer';cls='pill';applicationStatus='Klar — testet'}
   else if(lastError){status='Seneste test fejlede';cls='chip warnbox';applicationStatus='Afventer ny test'}
  }
  const badge=el('modelConnectionStatus');if(badge){badge.textContent=status;badge.className=cls}
- const model=el('modelNameStatus');if(model)model.textContent='OpenAI via Vercel';
+ const summary=el('panelAiSummaryStatus');if(summary){summary.textContent=status;summary.className=configured&&lastSuccess?'pill':'chip'}
+ const model=el('modelNameStatus');if(model)model.textContent=lastModel||'Model valgt i Vercel';
  const app=el('applicationAiStatus');if(app){app.textContent=applicationStatus;app.className=configured&&lastSuccess?'pill':'chip'}
 }
 
@@ -967,9 +968,13 @@ async function makeProposals(){
    state.proposalFocuses=data.drafts.slice(0,3).map(x=>String(x.focus||''));
    if(state.proposalTexts.some(t=>t.length<450||/\[Dit navn\]|Eksempelvirksomhed/i.test(t)))throw new Error('Et forslag var for kort eller indeholdt en pladsholder.');
    state.proposalMode='ai';state.proposalNotice='AI-udkast fra sprogmodellen. Gennemgå altid fakta og formuleringer, før du bruger teksten.';state.generatingProposals=false;
+   try{sessionStorage.setItem('gajh_ai_last_success',new Date().toISOString());sessionStorage.removeItem('gajh_ai_last_error');if(data.model)sessionStorage.setItem('gajh_ai_last_model',String(data.model))}catch(e){}
+   updateModelIntegrationStatus();
    state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'goodbox');return;
   }catch(error){
    state.generatingProposals=false;
+   try{sessionStorage.setItem('gajh_ai_last_error',new Date().toISOString())}catch(e){}
+   updateModelIntegrationStatus();
    const fallback=buildLocalApplicationDrafts(j);
    state.proposalTexts=fallback.drafts.map(d=>d.text);state.proposalTitles=fallback.drafts.map(d=>d.title);state.proposalFocuses=fallback.drafts.map(d=>d.focus);state.proposalMode='local';
    state.proposalNotice='AI kunne ikke nås ('+String(error&&error.message||'ukendt fejl').slice(0,180)+'). Der vises derfor lokale, stiltilpassede udkast i stedet — de er ikke genereret af sprogmodellen.';
@@ -1401,7 +1406,7 @@ function savePanelAiSettings(silent){
  }
  try{sessionStorage.setItem('gajh_ai_endpoint',url);sessionStorage.setItem('gajh_ai_access_code',code)}
  catch(e){if(!silent)notify('panelAiStatus','Browserens sessionslager er utilgængeligt. Prøv en almindelig browserfane.','warnbox');return false}
- try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error')}catch(e){}
+ try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error');sessionStorage.removeItem('gajh_ai_last_model')}catch(e){}
  updateModelIntegrationStatus();
  if(!silent)notify('panelAiStatus','AI-indstillinger gemt for denne browsersession. OpenAI API-nøglen ligger fortsat kun på serveren.','goodbox');
  return true;
@@ -1486,7 +1491,7 @@ async function runPanelWithModel(cv,job,roles,endpoint,code,documentType){
   });
   plan.push('Kontrollér alle oplysninger og indsæt kun erfaringer, resultater og målinger, der er korrekte.');
   state.panelRevision=plan.join('\n');el('panelrevision').value=state.panelRevision;
-  try{sessionStorage.setItem('gajh_ai_last_success',new Date().toISOString());sessionStorage.removeItem('gajh_ai_last_error')}catch(e){}
+  try{sessionStorage.setItem('gajh_ai_last_success',new Date().toISOString());sessionStorage.removeItem('gajh_ai_last_error');if(data.model)sessionStorage.setItem('gajh_ai_last_model',String(data.model))}catch(e){}
   updateModelIntegrationStatus();
   notify('panelNotice','AI-vurderingen er gennemført. Kontrollér forslagene før brug.','goodbox');
   persist();

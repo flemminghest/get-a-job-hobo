@@ -37,3 +37,16 @@ Direkte validering af kildesider, AI-generering, OCR/PDF-udtræk, sikker konto-/
 
 ## Privatliv
 CV, ansøgningstekst og importerede LinkedIn-data forbliver i browserens lokale lager. Live-søgning sender jobtitel, virksomhedsnavn og udvalgte søgeord fra jobopslaget til Purilis offentlige websøge-API. Ingen private CV- eller netværksdata sendes med. Offentlig kildekode indeholder ikke brugerens private data.
+
+## Kildebaseret jobkonklusion (uden personaer)
+Jobanalysen bruger ikke Recruiter, Copywriter, CMO eller CEO til at vurdere, om en stilling passer til brugeren. Personaerne er forbeholdt panelkritik af tekst og ansøgninger.
+
+Jobresultatet viser i stedet:
+- **Konklusion — argumenter for og imod:** kildebaserede signaler fra webindeksresultater, plus CV-tekstoverlap adskilt fra kildesignaler.
+- **Taler for:** rolle-/jobrelaterede fund på tværs af domæner, genkendelige platforme/portaler og mulige positive virksomhedssignaler fra uddrag.
+- **Taler imod / risici:** kravord fra jobopslaget der ikke er fundet i CV-teksten, mulige risikosignaler i indekserede uddrag og manglende kilde- eller domænedækning.
+- **Kilder prioriteret efter troværdighedstype:** officielle registerdomæner, match til et indsat joblink, LinkedIn, kendte jobportaler og sekundære søgeindeksresultater vægtes forskelligt.
+- **CV-overlap:** fortsat en regelbaseret tekstsammenligning. Et manglende nøgleord er ikke bevis for manglende kompetence.
+- **Kildedækning:** måler kun opfyldelsen af målet om 6 relevante resultater/4 domæner; det er ikke en sandsynlighed for at få jobbet.
+
+Konklusionen viser kildehenvisninger, og eksporten indeholder argumenter for/imod og prioriterede kilder. Forskellige kildetyper rangeres forskelligt, men en rangering er ikke garanti for korrekthed. Purilis resultater og uddrag er ikke det samme som direkte kontrol af originalsiden, og appen skal derfor ikke kalde stillingen aktiv eller fremlægge en sikker anbefaling uden verificerede kilder.

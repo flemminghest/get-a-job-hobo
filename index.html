@@ -464,7 +464,7 @@ label{font-size:14px;font-weight:750}
     <button type="button" class="secondary" onclick="applyApplicationPdfColors()">Opdatér forhåndsvisning</button>
     <p id="appPdfColorError" class="app-pdf-color-error" hidden></p>
     <div><label>Ny fil</label><div id="appPdfFilename" class="app-pdf-filename">Virksomhed_YYYY-MM-DD.pdf</div></div>
-    <div class="app-pdf-actions"><button type="button" onclick="downloadApplicationPdf()">Download PDF</button><button type="button" class="secondary" onclick="closeApplicationPdfModal()">Færdig</button></div>
+    <div class="app-pdf-actions"><button id="downloadPdfModalButton" type="button" onclick="downloadApplicationPdf()">Download PDF</button><button type="button" class="secondary" onclick="closeApplicationPdfModal()">Færdig</button></div>
     <small>“Gem ansøgning” gemmer teksten i appen og klargør en ny PDF-fil. Brug “Download PDF” for at gemme filen. Originalen overskrives ikke.</small>
    </aside>
    <div class="app-pdf-viewer">
@@ -1500,10 +1500,13 @@ function updateApplicationPdfSwatches(){
 function markApplicationPdfOutdated(){
  applicationPdfDirty=true;
  if(el('downloadPdfButton'))el('downloadPdfButton').disabled=true;
+ if(el('downloadPdfModalButton'))el('downloadPdfModalButton').disabled=true;
 }
 async function renderApplicationPdfPreview(autoDownload){
  const status=el('appPdfViewerStatus');
  if(status)status.textContent='Genererer PDF-forhåndsvisning…';
+ if(el('downloadPdfButton'))el('downloadPdfButton').disabled=true;
+ if(el('downloadPdfModalButton'))el('downloadPdfModalButton').disabled=true;
  if(el('appPdfColorError'))el('appPdfColorError').hidden=true;
  if(el('appPreviewModal')&&el('appPreviewModal').hidden)openApplicationPdfModal();
  try{
@@ -1515,11 +1518,13 @@ async function renderApplicationPdfPreview(autoDownload){
   if(el('appPdfFilename'))el('appPdfFilename').textContent=applicationPdfFilename;
   if(el('appPdfViewerStatus'))el('appPdfViewerStatus').textContent='PDF klar · A4 · '+applicationPdfFilename;
   if(el('downloadPdfButton'))el('downloadPdfButton').disabled=false;
+  if(el('downloadPdfModalButton'))el('downloadPdfModalButton').disabled=false;
   if(autoDownload)downloadApplicationPdf(true);
   return true;
  }catch(error){
   applicationPdfBlob=null;applicationPdfDirty=true;
   if(el('downloadPdfButton'))el('downloadPdfButton').disabled=true;
+  if(el('downloadPdfModalButton'))el('downloadPdfModalButton').disabled=true;
   if(status)status.textContent='PDF kunne ikke genereres: '+String(error&&error.message||error);
   notify('proposalState','PDF kunne ikke genereres. '+String(error&&error.message||error),'warnbox');
   return false;
@@ -1544,7 +1549,7 @@ async function saveApplication(){
  if(!state.application.trim()){alert('Ansøgningen er blank. Vælg et forslag eller skriv teksten først.');return}
  persist();updateOverview();
  const generated=await renderApplicationPdfPreview(true);
- if(generated)notify('proposalState','Ansøgningen er gemt i appen, og en ny PDF er downloadet: '+applicationPdfFilename+'. Du kan hente den igen fra “Download PDF”.','goodbox');
+ if(generated)notify('proposalState','Ansøgningen er gemt i appen, og PDF-filen er oprettet: '+applicationPdfFilename+'. Browserens download er startet, hvis den tillader automatisk download; ellers klik på “Download PDF” i forhåndsvisningen.','goodbox');
 }
 function clearApplication(){
  if(el('apptext').value.trim()&&!confirm('Vil du rydde ansøgningen?'))return;

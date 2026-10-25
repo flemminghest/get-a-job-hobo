@@ -29,6 +29,7 @@ jobs:
               "site:jobindex.dk marketing manager",
               "site:linkedin.com/company marketing Denmark",
               "CVR Denmark company annual report",
+              "ESCO digital marketing occupation skills competencies European Commission",
           ]
           total_results = 0
           successful = 0

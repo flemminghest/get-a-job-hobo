@@ -95,10 +95,16 @@ function normalizeAssessments(raw, selectedRoles) {
       why: String(x.why || "").slice(0, 500),
       exampleRewrite: String(x.exampleRewrite || "").slice(0, 700)
     })) : [];
+    const fixedScoreLabels = {
+      Recruiter: "Rekrutteringsklarhed",
+      Copywriter: "Tekst og dokumentation",
+      CMO: "Marketingfaglige signaler",
+      CEO: "Forretnings- og ansvarssignaler"
+    };
     return {
       role,
       score: Math.max(0, Math.min(100, Math.round(Number(item.score) || 0))),
-      scoreLabel: String(item.scoreLabel || "CV-kvalitetsindikator").slice(0, 120),
+      scoreLabel: fixedScoreLabels[role] || "CV-kvalitetsindikator",
       overallAssessment: String(item.overallAssessment || "").slice(0, 2000),
       strengths: list(item.strengths, 4),
       weaknesses: list(item.weaknesses, 4),

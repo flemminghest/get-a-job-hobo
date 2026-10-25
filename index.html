@@ -593,6 +593,8 @@ function go(name,bypassLowMatchWarning){
 }
 document.addEventListener('keydown',event=>{
  if(event.key==='Escape'){
+  const pdfModal=el('appPreviewModal');
+  if(pdfModal&&!pdfModal.hidden){closeApplicationPdfModal();return}
   const modal=el('lowMatchModal');
   if(modal&&!modal.hidden)closeLowMatchModal();
  }
@@ -1325,10 +1327,237 @@ function renderProposals(){
  }).join(''):(state.generatingProposals?'<div class="empty">Vent mens de tre forslag bliver skrevet…</div>':'<div class="empty">Tre forslag vises her, når du har analyseret et job.</div>');
  el('apptext').value=state.application||'';
 }
-function chooseProposal(i){if(!state.proposalTexts||!state.proposalTexts[i])return;state.selectedProposal=i;state.application=state.proposalTexts[i];el('apptext').value=state.application;el('appPreview').hidden=true;persist();updateOverview();notify('proposalState','Forslag '+(i+1)+' er valgt. Du kan nu redigere teksten.','goodbox')}
-function saveApplication(){state.application=el('apptext').value;persist();updateOverview();notify('proposalState',state.application.trim()?'Ansøgningen er gemt lokalt.':'Ansøgningen er stadig blank.','goodbox')}
-function clearApplication(){if(el('apptext').value.trim()&&!confirm('Vil du rydde ansøgningen?'))return;state.application='';state.selectedProposal=-1;el('apptext').value='';el('appPreview').hidden=true;persist();updateOverview();notify('proposalState','Ansøgningen er blank. Vælg et forslag for at begynde.')}
-function previewApplication(){state.application=el('apptext').value;if(!state.application.trim()){alert('Ansøgningen er blank. Vælg et forslag eller skriv teksten først.');return}const j=state.activeJob||{};el('appPreview').hidden=false;el('appPreview').innerHTML='<strong>Motiveret ansøgning</strong><br><br>'+escapeHtml(state.application).replace(/\n/g,'<br>')+'<div style="margin-top:18px;font:12px system-ui;color:#64758b">Forhåndsvisning · '+escapeHtml(j.company||'Virksomhed ikke angivet')+'</div>';persist()}
+function chooseProposal(i){if(!state.proposalTexts||!state.proposalTexts[i])return;state.selectedProposal=i;state.application=state.proposalTexts[i];el('apptext').value=state.application;el('appPreview').hidden=true;markApplicationPdfOutdated();persist();updateOverview();notify('proposalState','Forslag '+(i+1)+' er valgt. Du kan nu redigere teksten.','goodbox')}
+let applicationPdfBlob=null;
+let applicationPdfObjectUrl='';
+let applicationPdfFilename='';
+let applicationPdfDirty=true;
+let applicationPdfPreviousOverflow='';
+let applicationHeaderDataUrlPromise=null;
+
+function applicationHexColor(raw,fallback){
+ const value=String(raw||'').trim();
+ if(!/^#?[0-9a-fA-F]{6}$/.test(value))return fallback;
+ return '#'+value.replace(/^#/,'').toUpperCase();
+}
+function hexToRgb(hex){
+ const clean=applicationHexColor(hex,'#183755').replace('#','');
+ return [parseInt(clean.slice(0,2),16),parseInt(clean.slice(2,4),16),parseInt(clean.slice(4,6),16)];
+}
+function sanitizeApplicationFilename(value){
+ const clean=String(value||'Virksomhed')
+  .trim()
+  .replace(/æ/gi,'ae').replace(/ø/gi,'o').replace(/å/gi,'aa')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  .replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'')
+  .slice(0,70);
+ return clean||'Virksomhed';
+}
+function getApplicationPdfFilename(){
+ const job=state.activeJob||{};
+ const company=getApplicationCompany(job)||String(state.company||'').trim()||'Virksomhed';
+ const now=new Date();
+ const date=String(now.getFullYear())+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+ return sanitizeApplicationFilename(company)+'_'+date+'.pdf';
+}
+async function getApplicationHeaderDataUrl(){
+ if(!applicationHeaderDataUrlPromise){
+  applicationHeaderDataUrlPromise=fetch('./letterhead-header.b64',{cache:'force-cache'}).then(response=>{
+   if(!response.ok)throw new Error('Brevpapirets billedfil kunne ikke hentes (HTTP '+response.status+').');
+   return response.text();
+  }).then(value=>{
+   const base64=String(value||'').replace(/\s/g,'');
+   if(base64.length<1000||!base64.startsWith('/9j/'))throw new Error('Brevpapirets billedfil er ugyldig.');
+   return 'data:image/jpeg;base64,'+base64;
+  }).catch(error=>{applicationHeaderDataUrlPromise=null;throw error});
+ }
+ return applicationHeaderDataUrlPromise;
+}
+function parseApplicationForPdf(rawText){
+ let lines=String(rawText||'').replace(/\r/g,'').split('\n');
+ while(lines.length&&!lines[0].trim())lines.shift();
+ while(lines.length&&!lines[lines.length-1].trim())lines.pop();
+ let greeting='';
+ if(lines.length&&/^kære\b/i.test(lines[0].trim())){
+  const first=lines.shift().trim().replace(/^kære\b/i,'').replace(/^[\s,:;—-]+/,'').trim();
+  if(first){greeting=first}
+  else{
+   while(lines.length&&!lines[0].trim())lines.shift();
+   if(lines.length){greeting=lines.shift().trim().replace(/^[,;:—-]+/,'').trim()}
+  }
+ }
+ while(lines.length&&!lines[0].trim())lines.shift();
+ while(lines.length&&!lines[lines.length-1].trim())lines.pop();
+ const closing=/^(?:mange\s+hilsner|venlig(?:e)?\s+hilsner|de\s+bedste\s+hilsner|bedste\s+hilsner|med\s+venlig\s+hilsen|venlig\s+hilsen|vh\.?)\s*,?$/i;
+ while(lines.length&&(closing.test(lines[lines.length-1].trim())||/^\/\/\s*jacob$/i.test(lines[lines.length-1].trim()))){
+  lines.pop();
+  while(lines.length&&!lines[lines.length-1].trim())lines.pop();
+ }
+ const body=lines.join('\n').trim();
+ if(!greeting){
+  const job=state.activeJob||{};
+  const company=getApplicationCompany(job)||String(state.company||'').trim();
+  const contact=getApplicationContact(job);
+  greeting=getApplicationGreeting(job,company,contact).replace(/^KÆRE\s*/i,'').trim();
+ }
+ return {greeting:greeting||'teamet og hvem der ellers læser med',body};
+}
+function drawPdfHeader(doc,headerDataUrl){
+ doc.addImage(headerDataUrl,'JPEG',0,0,210,50,'letterhead-header','FAST');
+}
+function drawPdfGreeting(doc,greeting,color){
+ const [r,g,b]=hexToRgb(color);
+ const x=10.5,y=62,firstHeight=9.2,secondY=71.1,secondHeight=10;
+ doc.setFillColor(r,g,b);
+ doc.rect(x,y,35.5,firstHeight,'F');
+ doc.setFont('times','bold');doc.setFontSize(17.5);doc.setTextColor(255,255,255);
+ doc.text('KÆRE',x+2.2,y+6.55);
+ doc.setFont('times','normal');doc.setFontSize(12);
+ const greetingLines=doc.splitTextToSize(greeting,184);
+ const lineHeight=4.8;
+ const actualHeight=Math.max(secondHeight,Math.min(19,3.1+greetingLines.length*lineHeight));
+ doc.setFillColor(r,g,b);doc.rect(x,secondY,189,actualHeight,'F');
+ greetingLines.forEach((line,index)=>doc.text(line,x+2.2,secondY+6.7+(index*lineHeight)));
+ return secondY+actualHeight+9.5;
+}
+function drawPdfClosing(doc,color,y){
+ const [r,g,b]=hexToRgb(color);
+ const lines=['Mange hilsner','//Jacob'];
+ doc.setFont('times','bold');doc.setFontSize(15.5);doc.setTextColor(255,255,255);
+ lines.forEach((line,index)=>{
+  const textWidth=doc.getTextWidth(line);
+  const top=y+(index*9.2);
+  doc.setFillColor(r,g,b);doc.rect(10.5,top,textWidth+4.2,8.5,'F');
+  doc.text(line,12.5,top+6.05);
+ });
+}
+async function createApplicationPdfBlob(){
+ if(!window.jspdf||!window.jspdf.jsPDF)throw new Error('PDF-biblioteket blev ikke indlæst. Kontrollér netværket, og genindlæs siden.');
+ const {jsPDF}=window.jspdf;
+ const header=await getApplicationHeaderDataUrl();
+ const greetingColor=applicationHexColor(state.applicationGreetingHex,'#3F7897');
+ const signoffColor=applicationHexColor(state.applicationSignoffHex,'#183755');
+ const parsed=parseApplicationForPdf(el('apptext').value);
+ const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+ const pageWidth=210,pageHeight=297,left=10.5,textWidth=pageWidth-left-10.5;
+ drawPdfHeader(doc,header);
+ let y=drawPdfGreeting(doc,parsed.greeting,greetingColor);
+ doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,42,78);
+ const lineHeight=4.9,paragraphGap=4.0;
+ const paragraphs=parsed.body.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+ const newPage=()=>{
+  doc.addPage('a4','portrait');
+  drawPdfHeader(doc,header);
+  y=58;
+  doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,42,78);
+ };
+ for(const paragraph of paragraphs){
+  const paragraphLines=doc.splitTextToSize(paragraph,textWidth);
+  for(const line of paragraphLines){
+   if(y>pageHeight-31)newPage();
+   doc.text(line,left,y);
+   y+=lineHeight;
+  }
+  y+=paragraphGap;
+ }
+ if(y+23>pageHeight-8){newPage()}
+ drawPdfClosing(doc,signoffColor,y);
+ return doc.output('blob');
+}
+function openApplicationPdfModal(){
+ const modal=el('appPreviewModal');
+ if(!modal)return;
+ applicationPdfPreviousOverflow=document.body.style.overflow;
+ modal.hidden=false;document.body.style.overflow='hidden';
+ if(typeof modal.focus==='function')modal.focus({preventScroll:true});
+ if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3F7897';
+ if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#183755';
+ updateApplicationPdfSwatches();
+ if(el('appPdfFilename'))el('appPdfFilename').textContent=applicationPdfFilename||getApplicationPdfFilename();
+}
+function closeApplicationPdfModal(){
+ const modal=el('appPreviewModal');
+ if(modal)modal.hidden=true;
+ document.body.style.overflow=applicationPdfPreviousOverflow;
+}
+function updateApplicationPdfSwatches(){
+ const first=applicationHexColor(el('appGreetingHex')?.value,state.applicationGreetingHex||'#3F7897');
+ const second=applicationHexColor(el('appSignoffHex')?.value,state.applicationSignoffHex||'#183755');
+ if(el('appGreetingSwatch'))el('appGreetingSwatch').style.background=first;
+ if(el('appSignoffSwatch'))el('appSignoffSwatch').style.background=second;
+}
+function markApplicationPdfOutdated(){
+ applicationPdfDirty=true;
+ if(el('downloadPdfButton'))el('downloadPdfButton').disabled=true;
+}
+async function renderApplicationPdfPreview(autoDownload){
+ const status=el('appPdfViewerStatus');
+ if(status)status.textContent='Genererer PDF-forhåndsvisning…';
+ if(el('appPdfColorError'))el('appPdfColorError').hidden=true;
+ if(el('appPreviewModal')&&el('appPreviewModal').hidden)openApplicationPdfModal();
+ try{
+  const blob=await createApplicationPdfBlob();
+  if(applicationPdfObjectUrl)URL.revokeObjectURL(applicationPdfObjectUrl);
+  applicationPdfBlob=blob;applicationPdfObjectUrl=URL.createObjectURL(blob);
+  applicationPdfFilename=getApplicationPdfFilename();applicationPdfDirty=false;
+  if(el('appPdfFrame'))el('appPdfFrame').src=applicationPdfObjectUrl;
+  if(el('appPdfFilename'))el('appPdfFilename').textContent=applicationPdfFilename;
+  if(el('appPdfViewerStatus'))el('appPdfViewerStatus').textContent='PDF klar · A4 · '+applicationPdfFilename;
+  if(el('downloadPdfButton'))el('downloadPdfButton').disabled=false;
+  if(autoDownload)downloadApplicationPdf(true);
+  return true;
+ }catch(error){
+  applicationPdfBlob=null;applicationPdfDirty=true;
+  if(el('downloadPdfButton'))el('downloadPdfButton').disabled=true;
+  if(status)status.textContent='PDF kunne ikke genereres: '+String(error&&error.message||error);
+  notify('proposalState','PDF kunne ikke genereres. '+String(error&&error.message||error),'warnbox');
+  return false;
+ }
+}
+async function applyApplicationPdfColors(){
+ const greeting=String(el('appGreetingHex')?.value||'').trim();
+ const closing=String(el('appSignoffHex')?.value||'').trim();
+ if(!/^#?[0-9a-fA-F]{6}$/.test(greeting)||!/^#?[0-9a-fA-F]{6}$/.test(closing)){
+  if(el('appPdfColorError')){el('appPdfColorError').textContent='Indtast to gyldige HEX-farver, fx #3F7897 og #183755.';el('appPdfColorError').hidden=false}
+  return;
+ }
+ state.applicationGreetingHex=applicationHexColor(greeting,'#3F7897');
+ state.applicationSignoffHex=applicationHexColor(closing,'#183755');
+ if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex;
+ if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex;
+ updateApplicationPdfSwatches();persist();
+ await renderApplicationPdfPreview(false);
+}
+async function saveApplication(){
+ state.application=el('apptext').value;
+ if(!state.application.trim()){alert('Ansøgningen er blank. Vælg et forslag eller skriv teksten først.');return}
+ persist();updateOverview();
+ const generated=await renderApplicationPdfPreview(true);
+ if(generated)notify('proposalState','Ansøgningen er gemt i appen, og en ny PDF er downloadet: '+applicationPdfFilename+'. Du kan hente den igen fra “Download PDF”.','goodbox');
+}
+function clearApplication(){
+ if(el('apptext').value.trim()&&!confirm('Vil du rydde ansøgningen?'))return;
+ state.application='';state.selectedProposal=-1;el('apptext').value='';el('appPreview').hidden=true;
+ markApplicationPdfOutdated();closeApplicationPdfModal();persist();updateOverview();
+ notify('proposalState','Ansøgningen er blank. Vælg et forslag for at begynde.');
+}
+async function previewApplication(){
+ state.application=el('apptext').value;
+ if(!state.application.trim()){alert('Ansøgningen er blank. Vælg et forslag eller skriv teksten først.');return}
+ persist();openApplicationPdfModal();
+ await renderApplicationPdfPreview(false);
+}
+function downloadApplicationPdf(silent){
+ if(!applicationPdfBlob||applicationPdfDirty){
+  if(!silent)notify('proposalState','PDF’en er ikke opdateret endnu. Klik “Vis forhåndsvisning” eller “Gem ansøgning” først.','warnbox');
+  return false;
+ }
+ const url=applicationPdfObjectUrl||URL.createObjectURL(applicationPdfBlob);
+ const a=document.createElement('a');a.href=url;a.download=applicationPdfFilename||getApplicationPdfFilename();
+ document.body.appendChild(a);a.click();a.remove();
+ if(!silent)notify('proposalState','PDF downloadet: '+(applicationPdfFilename||getApplicationPdfFilename()),'goodbox');
+ return true;
+}
 function addSourceFromJob(){const title=el('sourcetitle').value.trim()||'Jobopslag';const url=el('sourceurl').value.trim();if(!url){notify('jobmsg','Tilføj en URL for at registrere kilden.');return}pushSource(title,url);sourceSummary()}
 function addSource(){pushSource(el('srcname').value.trim(),el('srcurl').value.trim());el('srcname').value='';el('srcurl').value='';sourceSummary()}
 function pushSource(title,url){if(!url)return;let u;try{u=new URL(url);if(!['http:','https:'].includes(u.protocol))throw 0}catch(e){alert('Indtast en gyldig http:// eller https:// URL.');return}const canon=u.origin+u.pathname.replace(/\/$/,'');if(state.sources.some(s=>s.canonical===canon)){alert('Denne kilde er allerede registreret.');return}state.sources.push({title:title||u.hostname,url:url,canonical:canon,host:u.hostname,domain:registrableDomain(u.hostname),verified:false});persist();renderSources()}
@@ -1803,9 +2032,11 @@ function renderHistory(){const list=el('historyList');list.innerHTML=state.histo
 function loadHistory(id){const h=state.history.find(x=>x.id===id);if(!h)return;el('jobtitle').value=h.title||'';el('company').value=h.company||'';el('jobtext').value=h.job||'';if(h.contentScore!=null){state.activeJob={...h,matched:Array.isArray(h.matched)?h.matched:[],gaps:Array.isArray(h.gaps)?h.gaps:[],sources:[],competencyAssessment:h.competencyAssessment||buildCompetencyAssessment(h.job||'',state.cv||'',h.title||'',h.liveResearch)};state.proposalTexts=[];state.application='';state.selectedProposal=-1;el('apptext').value='';renderJobResult();renderProposals()}go('job')}
 function exportHistory(){const text=state.history.map(h=>[h.title,h.company,h.created,h.contentScore!=null?'Match '+h.contentScore:'/'].join(' · ')+'\n'+h.job).join('\n\n---\n\n');download('jobhistorik.txt',text||'Ingen historik endnu.')}
 function hydrate(){el('cvtext').value=state.cv||'';el('jobtitle').value=state.jobtitle||'';el('company').value=state.company||'';el('jobtext').value=state.jobtext||'';el('apptext').value=state.application||'';el('panelDocumentType').value=state.panelDocumentType||'cv';el('paneltext').value=state.panelText||'';el('paneljob').value=state.panelJob||'';el('panelrevision').value=state.panelRevision||'';updatePanelDocumentType(false);renderJobResult();renderProposals();renderSources();renderHistory();renderNetwork();updateOverview()}
-el('apptext').addEventListener('input',()=>{state.application=el('apptext').value;persist();updateOverview()});
+el('apptext').addEventListener('input',()=>{state.application=el('apptext').value;markApplicationPdfOutdated();persist();updateOverview()});
 el('jobtitle').addEventListener('input',()=>{state.jobtitle=el('jobtitle').value;persist()});el('company').addEventListener('input',()=>{state.company=el('company').value;persist()});el('jobtext').addEventListener('input',()=>{state.jobtext=el('jobtext').value;persist()});
 hydrate();
 loadPanelAiSettings();
 updateModelIntegrationStatus();
+if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3F7897';
+if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#183755';
 </script></body></html>

@@ -220,6 +220,23 @@ label{font-size:14px;font-weight:750}
 .competency-reference strong{font-size:12px;color:#2c4157;overflow-wrap:anywhere}
 .competency-reference small{font-size:10px;color:#728195;line-height:1.45;overflow-wrap:anywhere}
 @media(max-width:620px){.competency-assessment{padding:15px}.competency-header{align-items:center}.competency-header h3{font-size:18px}.competency-row-heading{flex-direction:column}.competency-reference{grid-template-columns:minmax(0,1fr)}}
+
+/* Persona feedback: more detailed CV evidence and prioritized findings */
+#page-panel .hero p{max-width:920px}
+#page-panel .panel-persona-result{padding:20px 22px;border-radius:16px}
+#page-panel .panel-persona-result .row{align-items:flex-start}
+#page-panel .panel-persona-result .row>div:first-child{min-width:0}
+#page-panel .panel-persona-result .fit{flex:0 0 auto}
+#page-panel .panel-persona-result h3{font-size:20px;margin:0 0 5px}
+#page-panel .panel-persona-result .muted{margin:2px 0 8px;font-size:13px;line-height:1.55}
+#page-panel .panel-persona-result>p{margin:10px 0 16px;color:#374b62;line-height:1.65}
+#page-panel .panel-result-section{padding:13px 0;border-top:1px solid #e7edf2}
+#page-panel .panel-result-section>b{display:block;font-size:14px;margin-bottom:7px;color:#1e3d55}
+#page-panel .panel-result-section ul,#page-panel .panel-result-section ol{margin:0;padding-left:22px}
+#page-panel .panel-result-section li{margin:0 0 7px;line-height:1.6;color:#40546a}
+#page-panel .panel-result-section li:last-child{margin-bottom:0}
+#page-panel .panel-persona-result .chip{white-space:normal;text-align:center;line-height:1.35;max-width:180px;padding:7px 10px}
+@media(max-width:620px){#page-panel .panel-persona-result{padding:16px}#page-panel .panel-persona-result .row{display:block}#page-panel .panel-persona-result .fit{margin-top:8px}}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand">✳ <b>Get a Job</b> Hobo</div><nav class="nav" id="nav">
 <button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal demo · Ingen AI eller live-research tilkoblet<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
@@ -233,12 +250,12 @@ label{font-size:14px;font-weight:750}
 
 <section class="section" id="page-application"><div class="hero rose"><div class="eyebrow">MOTIVERET ANSØGNING</div><h1>Din ansøgning begynder med dit valg.</h1><p>Feltet starter blankt. Analysér først et job, og vælg derefter et af tre forslag, før du redigerer teksten.</p><div class="actions"><button onclick="go('job')">Gå til jobanalyse →</button><button class="secondary" onclick="previewApplication()">Forhåndsvisning</button></div></div><div class="card stack"><div id="proposalState" class="notice">Ingen forslag endnu. Analysér et job under Jobopslag først. Der bliver ikke indsat tekst automatisk.</div><div id="proposals" class="grid"><div class="empty">Tre forslag vises her, når du har analyseret et job.</div></div><div><label for="apptext">Motiveret ansøgning</label><textarea id="apptext" rows="15" placeholder="Ansøgningen er blank, indtil du vælger et forslag."></textarea></div><div class="toolbar"><button onclick="saveApplication()">Gem ansøgning</button><button class="secondary" onclick="previewApplication()">Vis forhåndsvisning</button><button class="secondary" onclick="exportText('apptext','motiveret-ansoegning.txt')">Download tekst</button><button class="warn" onclick="clearApplication()">Ryd ansøgning</button></div><div id="appPreview" class="output" hidden></div></div></section>
 
-<section class="section" id="page-panel"><div class="hero purple"><div class="eyebrow">SPØRG PANELET</div><h1>Få kritik, ikke bare ros.</h1><p>Vælg de rådgivere, du vil bruge. Denne version giver lokal, regelbaseret feedback og foregiver ikke at være AI.</p></div><div class="card stack"><div class="formrow"><div class="wide"><label for="paneltext">Tekst, der skal vurderes</label><textarea id="paneltext" rows="8" placeholder="Indsæt din ansøgning eller tekst…"></textarea></div><div class="wide"><label for="paneljob">Jobopslag (valgfrit)</label><textarea id="paneljob" rows="5" placeholder="Indsæt jobopslaget for at sammenholde teksten med det…"></textarea></div></div><label>Vælg rådgivere</label><div class="checkgrid persona-grid">
+<section class="section" id="page-panel"><div class="hero purple"><div class="eyebrow">SPØRG PANELET</div><h1>Få en grundig vurdering af dit CV.</h1><p>Recruiter, Copywriter, CMO og CEO vurderer CV’et fra hver deres perspektiv. Feedbacken peger på konkrete tekstsignaler, konsekvenser og prioriterede forbedringer. Det er en lokal, regelbaseret vurdering — ikke en tilkoblet AI.</p></div><div class="card stack"><div class="formrow"><div class="wide"><label for="paneltext">CV-tekst, der skal vurderes</label><textarea id="paneltext" rows="10" placeholder="Brug knappen nedenfor til at hente dit gemte CV, eller indsæt CV-teksten her…"></textarea></div><div class="wide"><label for="paneljob">Stillingsopslag (valgfrit — gør vurderingen mere målrettet)</label><textarea id="paneljob" rows="5" placeholder="Indsæt et stillingsopslag, hvis CV’et også skal vurderes op mod et bestemt job…"></textarea></div></div><label>Vælg rådgivere</label><div class="checkgrid persona-grid">
 <label class="checkline persona-option recruiter-option"><input type="checkbox" value="Recruiter" checked><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3.5"/><path d="M2.5 20v-1.8a5.5 5.5 0 0 1 5.5-5.5h2.5"/><circle cx="17" cy="16.5" r="4"/><path d="m15.2 16.5 1.2 1.2 2.4-2.5"/></svg></span><span class="persona-copy"><strong>Recruiter</strong><small>Relevans, krav og samtalepotentiale</small></span></label>
 <label class="checkline persona-option copywriter-option"><input type="checkbox" value="Copywriter" checked><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14 4 6 6"/><path d="M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20Z"/><path d="M12 6 18 12"/><path d="M4 20h16"/></svg></span><span class="persona-copy"><strong>Copywriter</strong><small>Sprog, tone og skarp argumentation</small></span></label>
 <label class="checkline persona-option cmo-option"><input type="checkbox" value="CMO"><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 16v-5"/><path d="M12 16V5"/><path d="M18 16V9"/><path d="m4 7 5-3 4 2 6-4"/></svg></span><span class="persona-copy"><strong>CMO</strong><small>Marketingstrategi og forretningsværdi</small></span></label>
 <label class="checkline persona-option ceo-option"><input type="checkbox" value="CEO"><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M10 21v-5h4v5"/></svg></span><span class="persona-copy"><strong>CEO</strong><small>Strategisk relevans og samlet værdibidrag</small></span></label>
-</div><div class="toolbar"><button onclick="runPanel()">Vurder teksten</button><button class="secondary" onclick="usePanelRevision()">Brug revision i ansøgning</button></div><div id="panelResults" class="list"><div class="empty">Vælg tekst og rådgivere for at begynde.</div></div><div><label for="panelrevision">Samlet revisionskladde</label><textarea id="panelrevision" rows="8" placeholder="Dine forbedringer vises her, når du beder panelet vurdere teksten."></textarea></div></div></section>
+</div><div class="toolbar"><button onclick="loadCVIntoPanel()" class="secondary">Indsæt mit gemte CV</button><button onclick="loadJobIntoPanel()" class="secondary">Hent seneste stillingsopslag</button><button onclick="runPanel()">Vurdér CV med panelet</button></div><div id="panelResults" class="list"><div class="empty">Vælg tekst og rådgivere for at begynde.</div></div><div><label for="panelrevision">Samlet forbedringsplan</label><textarea id="panelrevision" rows="9" placeholder="Panelets konkrete forbedringsplan vises her efter vurderingen."></textarea><p class="footnote">Forbedringsplanen er en prioriteret tjekliste. Den omskriver ikke dit CV automatisk og må ikke opfinde resultater eller erfaring.</p></div></div></section>
 
 <section class="section active" id="page-network">
 <div class="hero">
@@ -903,8 +920,170 @@ function sourceStats(){const domains=new Set(state.sources.map(s=>s.domain));con
 function sourceSummary(){const s=sourceStats();el('sourceStatus').className='notice '+(s.ok?'goodbox':'warnbox');el('sourceStatus').textContent=s.message;renderSources()}
 function renderSources(){const box=el('sources');if(!state.sources.length){box.innerHTML='<div class="empty">Ingen kilder tilføjet.</div>';return}box.innerHTML=state.sources.map((s,i)=>'<div class="item"><div class="row"><div><h3>'+escapeHtml(s.title)+'</h3><p>'+escapeHtml(s.host)+' · '+escapeHtml(s.domain)+' · Ikke verificeret</p><a href="'+escapeHtml(s.url)+'" target="_blank" rel="noopener noreferrer">Åbn kilde ↗</a></div><button class="warn fit" onclick="removeSource('+i+')">Fjern</button></div></div>').join('')}
 function removeSource(i){state.sources.splice(i,1);persist();sourceSummary()}
-function runPanel(){const text=el('paneltext').value.trim(),job=el('paneljob').value.trim();if(!text){alert('Indsæt en tekst, der skal vurderes.');return}state.panelText=text;state.panelJob=job;const selected=[...document.querySelectorAll('#page-panel .checkline input:checked')].map(e=>e.value);if(!selected.length){alert('Vælg mindst én rådgiver.');return}const lower=text.toLowerCase(),results=[];selected.forEach(role=>{let strengths=[],weak=[],advice=[];if(text.length>250)strengths.push('Teksten indeholder nok materiale til en indledende vurdering.');else weak.push('Teksten er kort; det kan være svært at vurdere motivation og dokumentation.');if(/resultat|%|forøg|reducer|konverter|omsætning|vækst/i.test(text))strengths.push('Der ser ud til at være omtale af resultat eller effekt; kontrollér at eksemplerne er konkrete og korrekte.');else weak.push('Få konkrete resultater eller dokumenterede eksempler frem.');if(/jeg er passioneret|dynamisk miljø|brænder for/i.test(text))weak.push('Formuleringer som “passioneret” eller “dynamisk miljø” kan blive generiske uden et konkret eksempel.');if(job&&!terms.some(t=>lower.includes(t)&&job.toLowerCase().includes(t)))weak.push('Der er få tydelige overlap mellem tekstens faglige ord og jobopslaget.');if(role==='Recruiter'){advice.push('Sørg for at motivation, relevant erfaring og grund til at vælge dig fremgår tidligt.');if(!/stilling|rolle|jeres|virksomhed/i.test(text))weak.push('Knyt ansøgningen tydeligere til den konkrete stilling og arbejdsgiver.')}if(role==='Copywriter'){advice.push('Gør hver sætning specifik, fjern floskler, og variér sætningsrytmen.');if(text.split(/\s+/).length<100)weak.push('Overvej om du har nok konkrete oplysninger til at underbygge budskabet.')}if(role==='CMO'){advice.push('Forbind kompetencerne med marketingmål, kanaler, data, læring eller forretningsresultat.')}if(role==='CEO'){advice.push('Vis hvorfor din erfaring kan gøre en forskel for virksomhedens mål — og giv et konkret eksempel.')}if(!advice.length)advice.push('Sæt de vigtigste argumenter i rækkefølge, og underbyg dem med fakta fra din erfaring.');const score=Math.max(25,Math.min(90,70+strengths.length*5-weak.length*9));results.push({role,score,strengths,weak,advice})});el('panelResults').innerHTML=results.map(r=>'<div class="item"><div class="row"><h3>'+r.role+'</h3><div class="fit"><span class="chip">Demo-score '+r.score+'/100</span></div></div><b>Styrker</b><ul>'+r.strengths.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul><b>Svagheder</b><ul>'+r.weak.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul><b>Forslag</b><ul>'+r.advice.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div>').join('')+'<div class="notice warnbox">Regelbaseret demo-feedback. Ikke AI-vurdering.</div>';state.panelRevision='';state.panelRevision=text+'\n\n[Revider efter feedback]\n'+results.flatMap(r=>r.advice).map(x=>'• '+x).join('\n');el('panelrevision').value=state.panelRevision;persist()}
-function usePanelRevision(){const txt=el('panelrevision').value.trim();if(!txt){alert('Kør først panelet eller skriv en revision.');return}state.application=txt;el('apptext').value=txt;persist();updateOverview();go('application');notify('proposalState','Revisionskladden er overført. Gennemgå og redigér før brug.','goodbox')}
+function loadCVIntoPanel(){
+ const cv=String(state.cv||el('cvtext').value||'').trim();
+ if(!cv){alert('Der er ikke gemt et CV endnu. Gå til “Mit CV”, indsæt CV-teksten, og gem den først.');return}
+ el('paneltext').value=cv;state.panelText=cv;
+ if(!el('paneljob').value.trim()&&state.jobtext)el('paneljob').value=state.jobtext;
+ state.panelJob=el('paneljob').value;persist();
+ notify('panelResults','Dit gemte CV er indsat. Kør vurderingen for at få personaernes analyse.','goodbox');
+}
+function loadJobIntoPanel(){
+ const job=String(state.jobtext||el('jobtext').value||'').trim();
+ if(!job){alert('Der er ikke gemt et stillingsopslag endnu. Gå til “Jobopslag”, indsæt opslaget, og gem eller analysér det først.');return}
+ el('paneljob').value=job;state.panelJob=job;persist();
+ notify('panelResults','Seneste stillingsopslag er indsat som sammenligningsgrundlag.','goodbox');
+}
+function panelTextLines(text){
+ return String(text||'').split(/\r?\n|[•●▪]\s*/).map(x=>x.replace(/^\s*[-–—*]\s*/,'').trim()).filter(Boolean);
+}
+function panelContains(text,patterns){
+ return patterns.some(pattern=>pattern.test(text));
+}
+function panelExtractEvidence(text,patterns,limit=3){
+ const lines=panelTextLines(text);
+ const found=[];
+ for(const line of lines){
+  if(patterns.some(pattern=>pattern.test(line))&&!found.includes(line)){
+   found.push(line.length>240?line.slice(0,237).replace(/\s+\S*$/,'')+'…':line);
+   if(found.length>=limit)break;
+  }
+ }
+ return found;
+}
+function panelFacts(text,job){
+ const lower=String(text||'').toLocaleLowerCase('da-DK');
+ const lines=panelTextLines(text);
+ const wordsFound=words(text);
+ const wordCount=wordsFound.length;
+ const headingPatterns=[
+  {label:'Profil eller resumé',re:/^(profil|professionel profil|resumé|summary|professional summary|about me)\s*:?$/i},
+  {label:'Erfaring',re:/^(erfaring|erhvervserfaring|arbejdserfaring|employment|experience|professional experience|career history)\s*:?$/i},
+  {label:'Uddannelse',re:/^(uddannelse|education|academic background|certifikater|certificates|certifications)\s*:?$/i},
+  {label:'Kompetencer',re:/^(kompetencer|færdigheder|skills|core competencies|technical skills|værktøjer)\s*:?$/i},
+  {label:'Resultater',re:/^(resultater|udvalgte resultater|achievements|selected achievements|udvalgte projekter|projects)\s*:?$/i}
+ ];
+ const headings=headingPatterns.filter(h=>lines.some(line=>h.re.test(line))).map(h=>h.label);
+ const actionPatterns=/\b(udviklede|skabte|lancerede|forbedrede|øgede|reducerede|optimerede|ledte|byggede|implementerede|gennemførte|ansvarlig for|drev|leverede|koordinerede|analyserede|producerede|managed|developed|launched|improved|increased|reduced|led|built|implemented|delivered|created|owned|launched|optimized|optimised|drove|generated|achieved)\b/gi;
+ const resultPatterns=/\b(\d+(?:[.,]\d+)?\s?%|\d+\s?(?:kr\.?|mio\.?|millioner|tusind|kunder|medarbejdere|markeder|kampagner|projekter|leads|conversions|downloads|visninger)|(øgede|forbedrede|reducerede|løftede|sparede|voksede|opnåede|skabte|increased|improved|reduced|saved|grew|achieved|generated|raised|converted|resulted in))\b/i;
+ const resultEvidence=panelExtractEvidence(text,[resultPatterns],4);
+ const actionCount=(lower.match(actionPatterns)||[]).length;
+ const genericPatterns=/\b(brænder for|passioneret|dynamisk miljø|resultatorienteret|teamplayer|team player|god til at have mange bolde i luften|passionate about|dynamic environment|results driven|results-driven|hardworking|proactive|dedicated)\b/i;
+ const genericEvidence=panelExtractEvidence(text,[genericPatterns],4);
+ const uniqueTokens=[...new Set(wordsFound.filter(w=>w.length>=4))];
+ const repetition=uniqueTokens.length?1-uniqueTokens.length/Math.max(1,wordsFound.length):0;
+ const jobWords=job? [...new Set(words(job).filter(w=>w.length>=5&&!/stilling|arbejde|erfaring|kompetence|ansvar|relevant|samarbejde|virksomhed|stilling|candidate|experience|responsible|requirements|ability|excellent|strong|candidate|position/.test(w)))]:[];
+ const cvWordSet=new Set(words(text));
+ const overlaps=jobWords.filter(w=>cvWordSet.has(w)).slice(0,12);
+ const overlapRatio=jobWords.length?overlaps.length/Math.min(jobWords.length,25):null;
+ const quantScore=Math.min(3,resultEvidence.length);
+ const hasDates=/\b(19\d{2}|20\d{2})\b/.test(text);
+ const hasContact=/@|linkedin\.com|telefon|phone|e-?mail/i.test(text);
+ const marketingTerms=['marketing','marketingstrategi','kampagne','kampagner','seo','crm','automation','konvertering','performance','leadgenerering','brand','positionering','google analytics','customer journey','kundeoplevelse','omsætning','marketing automation','paid media'];
+ const marketingFound=marketingTerms.filter(term=>lower.includes(term));
+ const leadershipTerms=['ledelse','ledte','leder','personaleansvar','teamansvar','strategi','budget','forretningsansvar','stakeholder','tværfaglig','management','leadership','business case','profit','omsætning','besparelse'];
+ const leadershipFound=leadershipTerms.filter(term=>lower.includes(term));
+ const commercialTerms=['omsætning','revenue','konvertering','konverteringsrate','leads','salg','profit','margin','roi','budget','besparelse','vækst','effektivisering','kundetilgang','retention','churn','forretning'];
+ const commercialFound=commercialTerms.filter(term=>lower.includes(term));
+ const jobTerms=jobWords.filter(w=>w.length>=5);
+ return {text,lower,lines,wordCount,headings,actionCount,resultEvidence,genericEvidence,hasDates,hasContact,overlaps,overlapRatio,jobTerms,marketingFound,leadershipFound,commercialFound,uniqueTokens:uniqueTokens.length,repetition,jobProvided:!!job.trim(),hasExperienceHeading:headings.includes('Erfaring'),hasProfileHeading:headings.includes('Profil eller resumé'),hasSkillsHeading:headings.includes('Kompetencer'),hasEducationHeading:headings.includes('Uddannelse')};
+}
+function runPanel(){
+ const typed=el('paneltext').value.trim();
+ const text=typed||(state.cv||el('cvtext').value||'').trim();
+ const job=el('paneljob').value.trim()||String(state.jobtext||'').trim();
+ if(!text){alert('Indsæt CV-teksten, eller gem dit CV under “Mit CV”, og vælg “Indsæt mit gemte CV”.');return}
+ if(!typed){el('paneltext').value=text}
+ if(job&&!el('paneljob').value.trim())el('paneljob').value=job;
+ state.panelText=text;state.panelJob=job;
+ const selected=[...document.querySelectorAll('#page-panel .checkline input:checked')].map(e=>e.value);
+ if(!selected.length){alert('Vælg mindst én rådgiver.');return}
+ const f=panelFacts(text,job);
+ const results=[];
+ selected.forEach(role=>{
+  const strengths=[],weak=[],advice=[],evidence=[];
+  let score=50,summary='',focus='';
+  const short=f.wordCount<150,veryShort=f.wordCount<70;
+  if(role==='Recruiter'){
+   focus='Læsevenlighed, dokumenteret erfaring, rolle-relevans og sandsynligheden for at blive kaldt til en indledende samtale.';
+   score=45+Math.min(12,Math.floor(f.wordCount/100)*3)+(f.hasExperienceHeading?8:0)+(f.hasProfileHeading?5:0)+(f.hasSkillsHeading?4:0)+Math.min(15,f.resultEvidence.length*5)+(f.overlapRatio==null?0:Math.round(f.overlapRatio*18));
+   if(f.hasExperienceHeading)strengths.push('CV’et har en tydelig erfaringssektion. Det gør det lettere at kontrollere karriereforløbet og finde relevant erfaring.');
+   else weak.push('Der blev ikke genkendt en tydelig overskrift for erhvervserfaring. Sørg for, at arbejdsgivere, stillinger og perioder er lette at finde.');
+   if(f.hasProfileHeading)strengths.push('Der findes en profil-/resumésektion. Brug den til 2–4 linjer om faglig retning og den værdi, du typisk skaber.');
+   else {weak.push('Et tydeligt professionelt resumé blev ikke genkendt. En kort indledning kan hjælpe læseren med at forstå din profil, før vedkommende går ned i detaljer.');advice.push('Tilføj et kort resumé med din faglige retning, de stærkeste relevante kompetencer og den type ansvar, du søger.');}
+   if(f.resultEvidence.length){strengths.push('Jeg fandt '+f.resultEvidence.length+' tekstpassage(r), der kan indeholde resultater eller målbare effekter. Kontrollér, at de viser dit eget bidrag og ikke kun beskriver en opgave.');evidence.push(...f.resultEvidence.map(x=>'Muligt resultat: “'+x+'”'));}
+   else {weak.push('Der blev ikke fundet tydelige målbare resultater eller effekter i CV-teksten. Det gør det sværere at skelne dit bidrag fra en almindelig stillingsbeskrivelse.');advice.push('Tilføj 2–4 dokumenterede resultater med udgangspunkt, din egen handling og effekt. Brug kun tal, du kan stå inde for.');}
+   if(f.jobProvided&&f.overlaps.length){strengths.push('CV’et deler konkrete ord med opslaget: '+f.overlaps.slice(0,6).join(', ')+'. Det er et første tegn på relevans; beslægtede kompetencer, som er beskrevet med andre ord, kan dog være overset.');}
+   if(f.jobProvided&&(!f.overlaps.length||f.overlapRatio<.12)){weak.push('Der er få direkte ordmæssige overlap med det indsatte jobopslag. Det kan skyldes reelle kompetencegab eller forskellige formuleringer — kontrollér kravene manuelt frem for at konkludere alene ud fra ordene.');advice.push('Spejl de vigtigste krav fra opslaget i CV’et, når du faktisk har den tilsvarende erfaring, og giv et konkret eksempel på hvert centralt krav.');}
+   if(f.hasDates)strengths.push('Der findes årstal i CV-teksten, hvilket kan hjælpe med at forstå tidslinjen. Kontrollér, at alle væsentlige ansættelser har tydelige start- og slutdatoer.');
+   if(short)weak.push('Teksten er relativt kort ('+f.wordCount+' ord), så det kan være svært at bedømme ansvar, opgaver og udvikling over tid.');
+   advice.push('Placér den mest relevante erfaring og de stærkeste dokumenterede resultater i den øverste tredjedel af CV’et.');
+   score-=(!f.hasExperienceHeading?9:0)+(!f.resultEvidence.length?12:0)+(f.jobProvided&&f.overlapRatio!=null&&f.overlapRatio<.12?10:0)+(short?8:0);
+   summary=f.jobProvided?'Rekrutteringsvurderingen ser på, om CV’et tydeligt dokumenterer de krav, som det indsatte opslag fremhæver. Direkte ordmatch er kun et signal — ikke bevis for kompetence.':'Rekrutteringsvurderingen ser på, hvor hurtigt en læser kan forstå din profil, efterprøve din erfaring og finde konkrete resultater. Uden et stillingsopslag kan jeg ikke afgøre, om CV’et matcher et bestemt job.';
+  }
+  if(role==='Copywriter'){
+   focus='Klarhed, præcision, struktur, gentagelser og hvor godt teksten omsætter ansvar til konkret dokumentation.';
+   score=65+(f.hasProfileHeading?6:0)+(f.hasSkillsHeading?3:0)+(f.resultEvidence.length?Math.min(15,f.resultEvidence.length*5):0)+(f.actionCount?Math.min(8,f.actionCount):0)-(f.genericEvidence.length*6)-(f.repetition>.72?8:0)-(short?10:0);
+   if(f.actionCount>=4)strengths.push('CV’et indeholder '+f.actionCount+' formuleringer med aktive verber, fx beskrivelser af at udvikle, lede eller forbedre. Det kan gøre dit personlige bidrag tydeligere end passive ansvarsbeskrivelser.');
+   else weak.push('Der er få tydelige aktive handlingsverber i teksten. Mange CV’er beskriver ansvar, men ikke hvad kandidaten selv gjorde eller ændrede.');
+   if(f.resultEvidence.length){strengths.push('Nogle passager kan være resultatorienterede. Gør formuleringerne præcise, og forbind effekten direkte med din egen handling.');evidence.push(...f.resultEvidence.slice(0,3).map(x=>'Passage til redigering: “'+x+'”'));}
+   else {weak.push('Resultatbeskrivelser fremstår ikke tydeligt i de tekstsignaler, jeg kunne genkende. Uden konkrete eksempler bliver CV’et lettere at forveksle med mange andres.');advice.push('Omskriv udvalgte punkter fra “ansvar for …” til “gjorde X ved hjælp af Y, hvilket førte til Z” — kun når alle dele er faktuelt korrekte.');}
+   if(f.genericEvidence.length){weak.push('Jeg fandt formuleringer, der ofte bliver generiske uden belæg: '+f.genericEvidence.map(x=>'“'+x+'”').join(', ')+'. Erstat dem med eksempler, eller fjern dem.');evidence.push(...f.genericEvidence.map(x=>'Generisk formulering: “'+x+'”'));}
+   else strengths.push('Jeg fandt ikke de mest almindelige generiske fraser i den gennemgåede tekst. Det er positivt, men siger ikke i sig selv noget om den samlede sproglige kvalitet.');
+   if(f.headings.length>=3)strengths.push('Teksten ser ud til at have flere genkendelige sektioner ('+f.headings.join(', ')+'). Ensartede overskrifter hjælper læseren med at skimme CV’et.');
+   else weak.push('Få standardsektioner blev genkendt ('+(f.headings.join(', ')||'ingen af de almindelige sektionsoverskrifter')+'). Brug ensartede overskrifter og korte punkter for at gøre CV’et lettere at skimme.');
+   advice.push('Hold hvert erfaringspunkt til én handling og dens effekt; undgå at samle flere uafhængige opgaver i én lang sætning.');
+   advice.push('Læs CV’et med fokus på præcision: fjern gentagelser, upræcise tillægsord og påstande, som ikke understøttes af et eksempel.');
+   summary='Sprogvurderingen handler om CV-tekst, ikke om din faglige værdi. Jeg bruger synlige tekstsignaler som aktive verber, gentagelser, overskrifter og mulige resultatbeskrivelser; en fuld redaktionel vurdering kræver menneskelig gennemlæsning.';
+  }
+  if(role==='CMO'){
+   focus='Marketingfaglig dybde, kanal- og datakompetencer, dokumentation af effekt og koblingen mellem marketingindsats og forretningsmål.';
+   score=42+Math.min(32,f.marketingFound.length*5)+Math.min(18,f.resultEvidence.length*6)+(f.hasExperienceHeading?5:0)-(short?7:0);
+   if(f.marketingFound.length)strengths.push('CV’et nævner '+f.marketingFound.length+' marketingrelaterede signal(er): '+f.marketingFound.slice(0,8).join(', ')+'. Det giver en indikation af faglig bredde, men ikke nødvendigvis dybde eller dokumenteret effekt.');
+   else weak.push('Jeg fandt få direkte marketingfaglige signaler i teksten. Hvis marketing er din kerneprofil, bør værktøjer, kanaler, målgrupper og dit ansvar beskrives tydeligere.');
+   if(f.resultEvidence.length){strengths.push('Der er '+f.resultEvidence.length+' passager, som kan indeholde effekter eller resultater. For en marketingleder er det vigtigt at vise, hvilken indsats der skabte effekten og hvordan den blev målt.');evidence.push(...f.resultEvidence.slice(0,3).map(x=>'Mulig effekt at dokumentere: “'+x+'”'));}
+   else {weak.push('Der blev ikke fundet tydelige kvantificerede resultater, som forbinder marketingindsats med effekt. Dermed er det svært at vurdere forretningsbidraget ud fra CV’et alene.');advice.push('Dokumentér eksempelvis udvikling i leads, konvertering, omsætning, CAC, ROAS eller engagement — men kun med faktiske resultater, du kan forklare.');}
+   if(f.commercialFound.length)strengths.push('Der er tegn på kommerciel kontekst ('+f.commercialFound.slice(0,6).join(', ')+'). Forklar, om du havde ansvar for målet, påvirkede det eller blot arbejdede i samme område.');
+   else weak.push('Koblingen til forretningsmål og kommercielle resultater står ikke tydeligt frem i de fundne tekstsignaler.');
+   if(f.jobProvided&&f.overlaps.length)strengths.push('Sammenholdt med opslaget findes disse direkte ordmæssige overlap: '+f.overlaps.slice(0,6).join(', ')+'. Kontrollér også beslægtede kompetencer, der kan være formuleret anderledes.');
+   advice.push('Vælg 3 cases, der viser problem, din beslutning, udførelse og målbar effekt. Vis din rolle tydeligt, også når resultatet var et teamresultat.');
+   advice.push('Adskil strategisk ansvar fra operationel udførelse: skriv klart, hvilke beslutninger du ejede, og hvad du selv producerede.');
+   summary='CMO-perspektivet vurderer, om CV’et viser marketingkompetencer, effektmåling og kommercielt ansvar. En omtalt kanal eller platform tæller som et fagligt signal, ikke som bevis for stærk performance.';
+  }
+  if(role==='CEO'){
+   focus='Samlet forretningsbidrag, ansvarsniveau, beslutningskraft, lederskab og dokumenteret evne til at skabe eller forbedre resultater.';
+   score=48+Math.min(25,f.leadershipFound.length*4)+Math.min(20,f.commercialFound.length*3)+(f.resultEvidence.length?Math.min(12,f.resultEvidence.length*4):0)-(short?8:0);
+   if(f.leadershipFound.length)strengths.push('CV’et indeholder signaler om ansvar eller ledelse ('+f.leadershipFound.slice(0,7).join(', ')+'). Næste spørgsmål er omfanget: teamstørrelse, budget, beslutningsmandat og hvilken effekt du havde.');
+   else weak.push('Ledelsesansvar, beslutningsmandat eller strategisk ejerskab fremgår ikke tydeligt af de fundne tekstsignaler. Hvis du har haft dette ansvar, skal omfanget dokumenteres.');
+   if(f.commercialFound.length)strengths.push('Der er mulige koblinger til forretningsmål ('+f.commercialFound.slice(0,7).join(', ')+'). Gør det klart, hvad der ændrede sig, og hvor direkte dit bidrag var.');
+   else weak.push('CV’et giver begrænset synlig evidens for økonomisk eller kommerciel effekt — fx omsætning, omkostninger, effektivisering eller fastholdelse.');
+   if(f.resultEvidence.length){strengths.push('Jeg fandt '+f.resultEvidence.length+' passager, som kan bære en konkret resultathistorie. Sørg for at vise udgangspunkt, handling, resultat og din egen rolle.');evidence.push(...f.resultEvidence.slice(0,3).map(x=>'Mulig forretningscase: “'+x+'”'));}
+   else {weak.push('Der blev ikke fundet klare målbare effekter. Det gør det vanskeligere for en beslutningstager at se størrelsen af dit bidrag.');advice.push('Tilføj konkrete eksempler på vækst, besparelse, risikoreduktion, kundeeffekt eller forbedret drift, hvor du har dokumentation.');}
+   advice.push('Gør ansvarsniveauet målbart: team, budget, kunder, geografisk rækkevidde eller kompleksitet, hvor det er relevant og sandt.');
+   advice.push('Skriv 2–3 korte casepunkter, der viser kontekst, beslutning, handling og forretningsresultat — ikke kun jobbeskrivelsen.');
+   summary='CEO-perspektivet spørger, hvilken forskel din erfaring har gjort for en organisation, og hvor stort ansvar du faktisk har haft. Det er en vurdering af CV’ets dokumentation, ikke en vurdering af din person eller dit potentiale.';
+  }
+  if(job&&role!=='Recruiter'&&f.overlaps.length){
+   evidence.push('Ord fra stillingsopslaget, som også findes i CV’et: '+f.overlaps.slice(0,8).join(', ')+'.');
+  }
+  if(!advice.length)advice.push('Vælg en konkret erfaring fra CV’et, og beskriv situationen, dit eget bidrag og hvad der ændrede sig som følge af indsatsen.');
+  if(!strengths.length)strengths.push('Den tilgængelige tekst giver endnu kun få konkrete signaler, som denne persona kan vurdere med sikkerhed.');
+  if(!weak.length)weak.push('Denne regelbaserede gennemgang fandt ikke et klart problem inden for fokusområdet. Det er ikke garanti for, at der ikke findes svagheder.');
+  score=Math.max(25,Math.min(95,Math.round(score)));
+  results.push({role,score,scoreLabel:role==='Recruiter'?'Rekrutteringsklarhed':role==='Copywriter'?'Tekst og dokumentation':role==='CMO'?'Marketingfaglige signaler':'Forretnings- og ansvarssignaler',focus,summary,strengths:[...new Set(strengths)].slice(0,5),weak:[...new Set(weak)].slice(0,5),advice:[...new Set(advice)].slice(0,5),evidence:[...new Set(evidence)].slice(0,6)});
+ });
+ el('panelResults').innerHTML=results.map(r=>'<div class="item panel-persona-result"><div class="row"><div><h3>'+escapeHtml(r.role)+'</h3><p class="muted">'+escapeHtml(r.focus)+'</p></div><div class="fit"><span class="chip">'+escapeHtml(r.scoreLabel)+' '+r.score+'/100</span></div></div><p>'+escapeHtml(r.summary)+'</p><div class="panel-result-section"><b>Styrker — hvad jeg kan se i CV’et</b><ul>'+r.strengths.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div><div class="panel-result-section"><b>Svagheder og usikkerheder</b><ul>'+r.weak.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div>'+(r.evidence.length?'<div class="panel-result-section"><b>Konkrete tekstsignaler</b><ul>'+r.evidence.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul></div>':'')+'<div class="panel-result-section"><b>Prioriterede forbedringer</b><ol>'+r.advice.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ol></div></div>').join('')+'<div class="notice warnbox">Indikatorerne er regelbaserede læsninger af synlige tekstsignaler, ikke en AI-vurdering eller en sandsynlighed for at få et job. Rådene skal kontrolleres mod dit faktiske ansvar og dokumenterede resultater.</div>';
+ const plan=results.flatMap(r=>['['+r.role+'] '+r.scoreLabel+': '+r.score+'/100',...r.advice.map(x=>'• '+x)]);
+ state.panelRevision='FORBEDRINGSPLAN FOR CV\n'+plan.join('\n')+'\n\nVigtigt: Tilføj kun fakta, ansvar, kompetencer og resultater, du kan dokumentere.';
+ el('panelrevision').value=state.panelRevision;persist();
+}
+function usePanelRevision(){
+ const txt=el('panelrevision').value.trim();
+ if(!txt){alert('Kør først panelet for at opbygge en forbedringsplan.');return}
+ if(navigator.clipboard&&navigator.clipboard.writeText){
+  navigator.clipboard.writeText(txt).then(()=>notify('panelResults','Forbedringsplanen er kopieret. Brug den som tjekliste, når du redigerer CV’et.','goodbox')).catch(()=>{el('panelrevision').focus();el('panelrevision').select();notify('panelResults','Markér den valgte tekst og kopiér den manuelt.','warnbox')});
+ }else{el('panelrevision').focus();el('panelrevision').select();notify('panelResults','Markér den valgte tekst og kopiér den manuelt.','warnbox')}
+}
 function parseCSV(text){
  text=String(text||'').replace(/^\uFEFF/,'');
  const firstLines=text.split(/\r?\n/).filter(x=>x.trim()).slice(0,8).join('\n');

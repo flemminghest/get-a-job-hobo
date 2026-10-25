@@ -160,6 +160,37 @@ label{font-size:14px;font-weight:750}
 #page-job #jobmsg{white-space:normal}
 .research-plan{padding:18px}.research-plan>p{font-size:13px;line-height:1.6}.research-plan-list{display:grid;gap:8px;margin-top:12px}.research-plan-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 13px;border:1px solid #e1e8ef;border-radius:13px;background:#fbfcfd}.research-plan-main{min-width:0;display:flex;flex-direction:column;gap:4px}.research-plan-main strong{font-size:13px;color:#22374e}.research-plan-main small{font-size:11px;color:#687b8e;line-height:1.45;overflow-wrap:anywhere}.research-plan-main .research-query{color:#7a8796}.research-plan-main .research-error-text{color:#9d4141}.research-plan-status{display:flex;align-items:flex-end;flex-direction:column;gap:6px;white-space:nowrap}.research-count{font-size:11px;color:#637589;font-weight:750}.research-status{font-size:11px;font-weight:800;padding:5px 8px;border-radius:999px;white-space:normal;text-align:center}.research-found{background:#e2f5e9;color:#1d754d}.research-review{background:#fff2d8;color:#855e17}.research-error{background:#ffe8e6;color:#a2423f}.research-none{background:#edf1f5;color:#637286}.live-source-card{padding:15px 16px;border-color:#dce7ed;background:linear-gradient(120deg,#fff,#fbfcfd)}.live-source-card h3{margin-bottom:4px;line-height:1.35;overflow-wrap:anywhere}.live-source-card .live-source-excerpt{color:#53667a;line-height:1.65;font-size:13px;margin:10px 0 13px;overflow-wrap:anywhere}#page-job details summary{font-weight:750;cursor:pointer}#page-job details p{font-size:12px;line-height:1.55;overflow-wrap:anywhere;border-bottom:1px solid #e5ebf1;padding:8px 0}@media(max-width:600px){.research-plan-row{grid-template-columns:minmax(0,1fr);gap:8px}.research-plan-status{flex-direction:row;align-items:center;justify-content:flex-start}}/* Search progress modal / lightbox */
 .research-modal[hidden]{display:none!important}.research-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px}.research-modal-backdrop{position:absolute;inset:0;background:rgba(12,28,43,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.research-modal-card{position:relative;width:min(760px,100%);max-height:min(88vh,900px);overflow:auto;background:#fff;border:1px solid rgba(220,232,239,.95);border-radius:24px;padding:clamp(20px,4vw,34px);box-shadow:0 30px 100px rgba(5,23,39,.32);animation:researchModalIn .22s ease-out}@keyframes researchModalIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}.research-modal-heading{display:flex;align-items:center;gap:17px}.research-modal-heading .eyebrow{margin-bottom:4px}.research-modal-heading h2{font-size:clamp(22px,3vw,28px);line-height:1.2;margin:0;color:#1c344b}.research-modal-description{font-size:14px;line-height:1.65;color:#64758a;margin:18px 0 20px}.research-spinner{display:inline-block;flex:0 0 auto;width:42px;height:42px;border:4px solid #d8eee5;border-top-color:#16866b;border-right-color:#16866b;border-radius:50%;animation:researchSpin .8s linear infinite}@keyframes researchSpin{to{transform:rotate(360deg)}}.research-spinner-small{width:16px;height:16px;border-width:2px}.research-modal-progress-row{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800;color:#52667b;margin-bottom:8px}.research-modal-progress{height:8px;border-radius:99px;background:#eaf0f3;overflow:hidden}.research-modal-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#16866b,#69c69d);border-radius:99px;transition:width .25s ease}.research-modal-queries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:18px}.research-modal-query{min-width:0;display:flex;flex-direction:column;gap:5px;padding:12px 13px;border:1px solid #e0e8ed;border-radius:13px;background:#fbfcfd}.research-modal-query strong{font-size:12px;line-height:1.4;color:#223951}.research-modal-query small{font-size:11px;color:#718196;line-height:1.4}.research-modal-query-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#728195}.research-modal-query-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#bec9d4;flex:0 0 auto}.research-modal-query[data-done="true"] .research-modal-query-status:before{background:#16966c}.research-modal-query[data-error="true"] .research-modal-query-status:before{background:#c45353}.research-modal-query[data-done="true"] .research-modal-query-status{color:#217553}.research-modal-query[data-error="true"] .research-modal-query-status{color:#a04444}.research-modal-footer{display:flex;align-items:flex-start;gap:10px;border-top:1px solid #e8edf1;margin-top:18px;padding-top:14px;font-size:11px;line-height:1.55;color:#758497}@media(max-width:600px){.research-modal{padding:10px}.research-modal-card{border-radius:18px;padding:20px 15px;max-height:92vh}.research-modal-queries{grid-template-columns:1fr}.research-modal-heading{align-items:flex-start}.research-modal-heading .research-spinner{width:34px;height:34px}}
+/* Source-weighted job assessment; personas are intentionally excluded from job matching */
+.evidence-conclusion{margin:16px 0;padding:22px;border:1px solid #dce8e5;border-radius:20px;background:linear-gradient(145deg,#fff 0%,#fbfdfc 100%);box-shadow:0 8px 24px rgba(24,55,75,.04)}
+.evidence-conclusion-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.evidence-conclusion-header .eyebrow{font-size:10px;letter-spacing:1.3px;color:#178365;font-weight:850;margin-bottom:5px}
+.evidence-conclusion-header h3{font-size:22px;line-height:1.3;margin:0;color:#20374e}
+.evidence-status{display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;padding:7px 11px;border-radius:999px;background:#edf2f6;color:#52667b;font-size:11px;font-weight:850;text-align:center}
+.evidence-conclusion-summary{color:#344a60;font-size:14px;line-height:1.65;margin:10px 0 16px}
+.evidence-pro-con{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.evidence-column{border:1px solid #e0e8ed;border-radius:15px;padding:15px;min-width:0;background:#fff}
+.evidence-column h4{display:flex;align-items:center;gap:8px;font-size:15px;margin:0 0 10px;color:#20374e}
+.evidence-column h4 span{display:inline-grid;place-items:center;width:25px;height:25px;border-radius:8px;font-size:14px}
+.evidence-for h4 span{color:#16714c;background:#def5e7}
+.evidence-against h4 span{color:#835e24;background:#fff0d7}
+.evidence-point{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;padding:10px 0;border-top:1px solid #edf1f4}
+.evidence-point:first-of-type{border-top:0;padding-top:2px}
+.evidence-point-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:7px;background:#f0f4f7;color:#61758a;font-size:12px;font-weight:900}
+.evidence-for .evidence-point-icon{background:#e8f7ed;color:#19724d}
+.evidence-against .evidence-point-icon{background:#fff2dd;color:#94651b}
+.evidence-point p{font-size:12px;line-height:1.6;color:#45596d;margin:0;overflow-wrap:anywhere}
+.evidence-cite{margin-top:6px;font-size:11px}
+.evidence-source-link{display:inline-flex;align-items:center;gap:4px;color:#11766d;font-size:11px;font-weight:800;text-decoration:none;border-bottom:1px solid #c7e6dc}
+.evidence-source-link:hover{color:#0a574e;border-color:#3baf92}
+.evidence-empty{font-size:12px;line-height:1.5;margin:0}
+.evidence-sources{margin-top:16px;padding-top:15px;border-top:1px solid #e5ecef}
+.evidence-sources h4{font-size:14px;margin:0 0 5px;color:#20374e}
+.evidence-sources>p{font-size:11px;line-height:1.5;margin:0 0 10px}
+.evidence-source-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #edf1f4}
+.evidence-source-row>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.evidence-source-row strong{font-size:12px;line-height:1.4;color:#2c4157;overflow-wrap:anywhere}
+.evidence-source-row small{font-size:10px;line-height:1.45;color:#728195;overflow-wrap:anywhere}
+@media(max-width:720px){.evidence-conclusion{padding:16px}.evidence-conclusion-header{flex-direction:column}.evidence-pro-con{grid-template-columns:1fr}.evidence-source-row{grid-template-columns:minmax(0,1fr)}}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand">✳ <b>Get a Job</b> Hobo</div><nav class="nav" id="nav">
 <button class="active" data-page="network">↗ &nbsp; LinkedIn & netværk</button><button data-page="home">⌂ &nbsp; Overblik</button><button data-page="job">◎ &nbsp; Jobopslag</button><button data-page="cv">▤ &nbsp; Mit CV</button><button data-page="application">✎ &nbsp; Motiveret ansøgning</button><button data-page="panel">◌ &nbsp; Spørg panelet</button><button data-page="history">◷ &nbsp; Historik & backup</button></nav><div class="side-foot">Lokal demo · Ingen AI eller live-research tilkoblet<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
@@ -556,12 +587,126 @@ function makeProposals(){const j=state.activeJob;if(!j)return;const match=(j.mat
 'Det, der fangede min interesse ved stillingen hos '+who+', er muligheden for at forbinde marketing, teknologi og forretning. Jeg trives, når gode idéer bliver omsat til løsninger, der både fungerer for brugerne og understøtter virksomhedens mål.\n\nJeg har arbejdet med '+match+' og er vant til at samarbejde på tværs af fagligheder. Jeg vil gerne høre mere om jeres ambitioner og fortælle, hvordan jeg kan bidrage.\n\nMange hilsner\n[Dit navn]',
 'Jeg kan bidrage til rollen som '+t+' med erfaring inden for '+match+'. Mit fokus er at skabe målbare forbedringer gennem en kombination af analyse, tydelig prioritering og praktisk eksekvering.\n\nJeg vil især gerne undersøge, hvordan jeg kan hjælpe '+who+' med at udvikle arbejdet med de vigtigste mål i stillingen. '+(gaps?'Jeg er samtidig opmærksom på, at '+gaps+' kan kræve en nærmere afklaring. ':'')+'Jeg ser frem til at uddybe mit match ved en samtale.\n\nMange hilsner\n[Dit navn]'
 ];persist()}
+function sourceTrustAssessment(source,research){
+ const url=safeHttpUrl(source.url);let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){}
+ const broad=String(source.kind||'').toLowerCase().includes('bredere søgning');
+ const inputUrl=safeHttpUrl(research&&research.providedUrl||'');
+ let inputHost='';try{inputHost=new URL(inputUrl).hostname.toLowerCase().replace(/^www\./,'')}catch(e){}
+ if(!source.searchedLive||source.coverage==='user-provided-url')return {score:0,label:'Brugerlink — ikke verificeret',why:'Linket er indsat manuelt og tæller ikke som en kontrolleret kilde.'};
+ if(host==='virk.dk'||host.endsWith('.virk.dk')||host==='cvr.dk'||host.endsWith('.cvr.dk')||host==='datacvr.virk.dk'||host.endsWith('.gov')||host.endsWith('.gov.uk'))return {score:100,label:'Officiel register-/myndighedsside',why:'Domænet tilhører et officielt register eller en myndighed.'};
+ if(inputHost&&host===inputHost&&!broad)return {score:94,label:'Samme domæne som joblinket',why:'Søgeresultatet matcher domænet på det link, du indsatte; selve siden er ikke direkte verificeret.'};
+ if(host==='linkedin.com'||host.endsWith('.linkedin.com'))return {score:82,label:'LinkedIn-platform',why:'Platformskilde; opslag og profil skal stadig kontrolleres for aktualitet.'};
+ if(['jobindex.dk','jobnet.dk','workindenmark.dk','thehub.io'].some(d=>host===d||host.endsWith('.'+d)))return {score:78,label:'Etableret jobportal',why:'Relevant jobportal, men et søgeresultat dokumenterer ikke i sig selv, at stillingen stadig er aktiv.'};
+ const kind=String(source.kind||'').toLowerCase();
+ if((source.categoryId==='employer'||kind.includes('arbejdsgiverens officielle'))&&!broad)return {score:70,label:'Mulig arbejdsgiverkilde',why:'Søgeforespørgslen var rettet mod arbejdsgiverens hjemmeside, men domæneejerskab er ikke verificeret.'};
+ if(source.categoryId==='annual-report'||/annual report|årsrapport|regnskab/i.test(kind))return {score:64,label:'Mulig rapport-/regnskabskilde',why:'Søgeordene peger på en rapport, men det er ikke bekræftet, at den er udgivet af virksomheden.'};
+ if(source.categoryId==='news'||/nyheder|medier|press/i.test(kind))return {score:58,label:'Nyheds-/medieresultat',why:'Sekundær kilde; kontrollér udgiver, dato og den underliggende artikel.'};
+ if(source.categoryId==='industry'||/fagmedie|specialkilder|branche/i.test(kind))return {score:54,label:'Fag-/specialkilde',why:'Kan give branchekontekst, men dokumenterer ikke alene konkrete forhold hos arbejdsgiveren.'};
+ if(broad)return {score:38,label:'Bredt søgeresultat — kontrollér domæne',why:'Kom fra en bredere søgning efter et tomt målsitesøg, så kildetypen er ikke bekræftet.'};
+ return {score:45,label:'Søgeindeksresultat — ikke verificeret',why:'Søgeuddraget og domænets relevans kræver manuel kontrol.'};
+}
+function getSourceCoverageMetrics(research){
+ const sources=research&&Array.isArray(research.sources)?research.sources:[];
+ const indexed=sources.filter(s=>s.searchedLive);
+ const relevant=indexed.filter(s=>s.relevant);
+ const domains=new Set(relevant.map(s=>s.domain||(()=>{try{return registrableDomain(new URL(s.url).hostname)}catch(e){return ''}})()).filter(Boolean));
+ const ranked=relevant.map(source=>({...source,trust:sourceTrustAssessment(source,research)})).sort((a,b)=>b.trust.score-a.trust.score);
+ const high=ranked.filter(s=>s.trust.score>=78);
+ const score=Math.round(100*(.6*Math.min(1,relevant.length/6)+.4*Math.min(1,domains.size/4)));
+ return {indexed,relevant,domains:[...domains],ranked,high,score,meetsMinimum:relevant.length>=6&&domains.size>=4};
+}
+function evidenceLink(source,label){
+ const url=safeHttpUrl(source&&source.url);
+ if(!url)return '';
+ return '<a class="evidence-source-link" href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(label||source.title||source.domain||'Åbn kilde')+' ↗</a>';
+}
+function detectSourceSignals(sources){
+ const positiveRe=/\b(growth|grew|growing|expansion|expanded|expanding|investment|invested|funding|raised funding|new contract|new product|new market|record revenue|revenue growth|profit growth|hiring|hiring plan|udvider|udvidelse|vækst|investering|nye markeder|ny produkt|vinder kontrakt|omsætningen stiger|rekordomsætning|ansætter|ansættelser)\b/i;
+ const negativeRe=/\b(layoffs?|redundanc(?:y|ies)|downsizing|hiring freeze|bankrupt(?:cy)?|insolven(?:t|cy)|liquidation|closure|closed down|shutting down|position filled|job expired|no longer accepting applications|application closed|afskedig(?:else|elser|et|e)|fyringsrunde|nedskær(?:ing|inger)|ansættelsesstop|konkurs|rekonstruktion|lukker ned|lukning|stillingen er besat|ansøgningsfristen er overskredet)\b/i;
+ const positives=[],risks=[];
+ const candidates=(sources||[]).filter(s=>s.searchedLive&&s.relevant).map(s=>({...s,trust:sourceTrustAssessment(s,{providedUrl:''})})).sort((a,b)=>b.trust.score-a.trust.score);
+ for(const source of candidates){
+  const text=[source.title,source.description].join(' ');
+  if(positiveRe.test(text)&&positives.length<3)positives.push({text:'Søgeresultatet nævner et muligt positivt virksomhedssignal (fx vækst, investering eller ny aktivitet). Det er kun en indikation fra et indeksuddrag.',source});
+  if(negativeRe.test(text)&&risks.length<4)risks.push({text:'Søgeresultatet indeholder et muligt risikosignal (fx nedskæringer, lukning eller at en stilling er besat). Kontrollér originalkilden og datoen før du lægger vægt på det.',source});
+ }
+ return {positives,risks};
+}
+function buildEvidenceAssessment(job){
+ const research=job&&job.liveResearch;
+ const metrics=getSourceCoverageMetrics(research);
+ const matched=Array.isArray(job&&job.matched)?job.matched:[];
+ const gaps=Array.isArray(job&&job.gaps)?job.gaps:[];
+ const signals=detectSourceSignals(metrics.relevant);
+ const forItems=[],againstItems=[];
+ if(metrics.relevant.length){
+  const roleKinds=metrics.relevant.filter(s=>/original|jobopslag|linkedin.*job|jobindex|jobnet|workindenmark|jobportal/i.test(String(s.kind||'')+' '+String(s.categoryId||'')));
+  const roleDomains=new Set(roleKinds.map(s=>s.domain).filter(Boolean));
+  if(roleKinds.length){
+   const top=roleKinds.slice().sort((a,b)=>sourceTrustAssessment(b,research).score-sourceTrustAssessment(a,research).score)[0];
+   forItems.push({text:'Der er fundet rolle-/jobrelaterede resultater i webindekset fra '+roleDomains.size+' hoveddomæne(r). Det viser, at der er materiale at kontrollere, men bekræfter ikke at stillingen stadig er åben.',source:top});
+  }
+  const trusted=metrics.ranked.filter(s=>sourceTrustAssessment(s,research).score>=78);
+  if(trusted.length){
+   forItems.push({text:'Mindst én kilde kommer fra en genkendelig platform, jobportal eller officiel registertype. Disse prioriteres højere end generiske søgeresultater, men indhold og dato skal stadig kontrolleres.',source:trusted[0]});
+  }else{
+   forItems.push({text:'Der findes relevante søgeresultater, men ingen af de viste domæner er klassificeret som en højere prioriteret platform/jobportal eller officielt register. Kildegrundlaget er derfor svagere.'});
+  }
+ }
+ if(matched.length){
+  forItems.push({text:'CV-teksten og jobopslaget indeholder følgende fælles nøgleord: '+matched.slice(0,7).join(', ')+'. Det er et tekstligt overlap — ikke bevis for kompetenceniveau.',source:null});
+ }else{
+  againstItems.push({text:'Der blev ikke fundet tydeligt overlap mellem de udvalgte nøgleord fra jobopslaget og CV-teksten. Det kan skyldes formuleringer/forskellige ord og er ikke i sig selv bevis på manglende kompetencer.'});
+ }
+ if(gaps.length){
+  againstItems.push({text:'Disse nøgleord fra jobopslaget blev ikke fundet i CV-teksten: '+gaps.slice(0,8).join(', ')+'. Kontrollér, om kravene faktisk er vigtige, og om erfaringen blot er beskrevet med andre ord.'});
+ }
+ if(signals.positives.length)forItems.push(...signals.positives);
+ if(signals.risks.length)againstItems.push(...signals.risks);
+ if(!metrics.meetsMinimum){
+  againstItems.push({text:'Kildekravet er ikke opfyldt: der er '+metrics.relevant.length+' potentielt relevante kilder fra '+metrics.domains.length+' hoveddomæner; målet er mindst 6 kilder fra 4 domæner.'});
+ }
+ const inputUrl=safeHttpUrl(research&&research.providedUrl||'');
+ const inputHost=(()=>{try{return new URL(inputUrl).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return ''}})();
+ const matchingOriginal=metrics.relevant.find(source=>{
+  if(!inputHost)return false;try{const h=new URL(source.url).hostname.toLowerCase().replace(/^www\./,'');return h===inputHost||h.endsWith('.'+inputHost)}catch(e){return false}
+ });
+ if(!matchingOriginal)againstItems.push({text:'Det originale jobopslag er ikke bekræftet på dets eget domæne. Søgeresultater alene kan ikke fastslå, om annoncen stadig er aktiv, om fristen er ændret, eller om indholdet er aktuelt.'});
+ if(metrics.relevant.length===0){
+  againstItems.unshift({text:'Der er ingen relevante webresultater, som appen kunne bruge. Derfor kan den ikke give en kildebaseret anbefaling for eller imod stillingen.'});
+ }
+ const enough=metrics.meetsMinimum;
+ let conclusion;
+ if(enough){
+  conclusion='Kildegrundlaget har bredde nok til en foreløbig vurdering ('+metrics.relevant.length+' potentielt relevante resultater fra '+metrics.domains.length+' domæner). Det er endnu ikke en endelig anbefaling: kildesider og stillingens aktuelle status er ikke direkte verificeret.';
+ }else if(metrics.relevant.length>=3&&metrics.domains.length>=2){
+  conclusion='Delvist grundlag: der er nogle relevante søgeresultater, men ikke nok uafhængige kilder til at give en robust samlet vurdering. Brug “for/imod” som kontrolpunkter — ikke som en anbefaling.';
+ }else{
+  conclusion='Utilstrækkeligt kildegrundlag: appen kan ikke forsvarligt anbefale eller fraråde stillingen endnu. Flere relevante, uafhængige kilder og kontrol af det originale opslag er nødvendigt.';
+ }
+ return {metrics,forItems,againstItems,conclusion,signals};
+}
+function renderEvidenceConclusion(job){
+ const assessment=buildEvidenceAssessment(job);
+ const m=assessment.metrics;
+ const status=m.meetsMinimum?'Bredt — stadig foreløbigt':m.relevant.length>=3&&m.domains.length>=2?'Delvist kildegrundlag':'Utilstrækkeligt grundlag';
+ const renderItems=(items,type)=>items.length?items.map(item=>'<article class="evidence-point"><span class="evidence-point-icon" aria-hidden="true">'+(type==='for'?'✓':'!')+'</span><div><p>'+escapeHtml(item.text)+'</p>'+(item.source?'<div class="evidence-cite">'+evidenceLink(item.source,item.source.title||item.source.domain)+'</div>':'')+'</div></article>').join(''):'<p class="muted evidence-empty">'+(type==='for'?'Ingen kildeunderbyggede positive forhold er identificeret endnu.':'Ingen specifikke negative kildesignaler er identificeret; manglende kilder er stadig en usikkerhed.')+'</p>';
+ const topSources=m.ranked.slice(0,5).map(source=>{
+  const trust=sourceTrustAssessment(source,job.liveResearch);
+  return '<article class="evidence-source-row"><div><strong>'+escapeHtml(source.title||source.domain)+'</strong><small>'+escapeHtml(source.domain||'')+' · '+escapeHtml(trust.label)+'</small><small>'+escapeHtml(trust.why)+'</small></div>'+evidenceLink(source,'Åbn kilde')+'</article>';
+ }).join('');
+ return '<section class="evidence-conclusion" aria-labelledby="evidenceConclusionTitle"><div class="evidence-conclusion-header"><div><div class="eyebrow">KILDEBASERET VURDERING</div><h3 id="evidenceConclusionTitle">Konklusion — argumenter for og imod</h3></div><span class="evidence-status">'+escapeHtml(status)+'</span></div><p class="evidence-conclusion-summary">'+escapeHtml(assessment.conclusion)+'</p><div class="notice" style="margin:0 0 14px">Denne konklusion bruger ikke personaer. Den bygger på de indsamlede søgeresultater, deres domæne-/kildetype og det tekstlige overlap mellem CV og opslag. Søgningen bruger indekserede uddrag, ikke fuldt verificerede live-sider.</div><div class="evidence-pro-con"><div class="evidence-column evidence-for"><h4><span>✓</span> Taler for</h4>'+renderItems(assessment.forItems,'for')+'</div><div class="evidence-column evidence-against"><h4><span>!</span> Taler imod / risici</h4>'+renderItems(assessment.againstItems,'against')+'</div></div><div class="evidence-sources"><h4>Kilder prioriteret efter troværdighedstype</h4><p class="muted">Rangeringen er en hjælp til gennemgang — ikke en garanti for, at kildens indhold er korrekt eller aktuelt.</p>'+(topSources||'<p class="muted">Ingen relevante kilder at prioritere endnu.</p>')+'</div></section>';
+}
+
 function renderJobResult(){
  const job=state.activeJob;
  if(!job){el('jobresult').innerHTML='<div class="empty">Indsæt et jobopslag og vælg “Analyser job” for at sammenligne CV og søge efter webkilder.</div>';return}
  const manualSources=sourceStats();
  const researchHtml=renderLiveResearch(job.liveResearch||null);
- el('jobresult').innerHTML='<div class="row" style="align-items:start"><div><h2 style="margin-bottom:4px">'+escapeHtml(job.title||'Jobanalyse')+'</h2><div class="muted">'+escapeHtml(job.company||'Virksomhed ikke angivet')+' · '+new Date(job.created).toLocaleString('da-DK')+'</div></div><button class="secondary fit" onclick="go(&quot;application&quot;)">Fortsæt til ansøgning →</button></div><div class="notice warnbox">Scorerne er lokale, regelbaserede indikatorer — ikke AI og ikke en statistisk sandsynlighed. Websøgningen supplerer virksomhedskonteksten, men bekræfter ikke automatisk, at et jobopslag stadig er aktivt.</div><div class="scoregrid"><div class="score"><span>Foreløbigt indholdsmatch</span><strong>'+job.contentScore+'/100</strong><div class="bar"><i style="width:'+job.contentScore+'%"></i></div></div><div class="score alt"><span>Samtalepotentiale (vejledende)</span><strong>'+job.appScore+'/100</strong><div class="bar"><i style="width:'+job.appScore+'%"></i></div></div></div><div class="grid"><div class="result"><h3>Mulige match</h3>'+(job.matched.length?job.matched.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join(''):'CV mangler eller ingen nøgleord matchede')+'</div><div class="result"><h3>Mulige mangler / ikke dokumenteret</h3>'+(job.gaps.length?job.gaps.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join(''):'Ingen udvalgte nøgleord fremstår som mangler; gennemgå stadig jobkravene.')+'</div></div><div class="result"><h3>Live-søgning og webkilder</h3>'+researchHtml+'</div><div class="result"><h3>Manuelt registrerede kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
+ const assessment=buildEvidenceAssessment(job);
+ const cvScore=Math.max(0,Math.min(100,Number(job.contentScore)||0));
+ const sourceScore=assessment.metrics.score;
+ el('jobresult').innerHTML='<div class="row" style="align-items:start"><div><h2 style="margin-bottom:4px">'+escapeHtml(job.title||'Jobanalyse')+'</h2><div class="muted">'+escapeHtml(job.company||'Virksomhed ikke angivet')+' · '+new Date(job.created).toLocaleString('da-DK')+'</div></div><button class="secondary fit" onclick="go(&quot;application&quot;)">Fortsæt til ansøgning →</button></div><div class="notice warnbox">Jobmatch afgøres ikke af personaer. Den samlede kildebaserede konklusion nedenfor vægter kildetype, domænespredning og tekstlige fund. CV-overlap er en separat, regelbaseret tekstsammenligning. Søgeresultaterne er ikke direkte live-verificeret.</div><div class="scoregrid"><div class="score"><span>CV-overlap (tekstmatch)</span><strong>'+cvScore+'/100</strong><div class="bar"><i style="width:'+cvScore+'%"></i></div><small>Indikator baseret på nøgleord i CV og opslag — ikke kompetencebevis.</small></div><div class="score alt"><span>Kildedækning</span><strong>'+sourceScore+'/100</strong><div class="bar"><i style="width:'+sourceScore+'%"></i></div><small>Beregnet ud fra 6 relevante kilder og 4 hoveddomæner som målsætning. Ikke en sandsynlighed for at få jobbet.</small></div></div>'+renderEvidenceConclusion(job)+'<div class="result"><h3>Live-søgning og webkilder — detaljer</h3>'+researchHtml+'</div><div class="result"><h3>Manuelt registrerede kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
  sourceSummary();
 }
 function saveJobOnly(){const job=el('jobtext').value.trim();if(!job){notify('jobmsg','Indsæt et jobopslag først.');return}state.jobtitle=el('jobtitle').value;state.company=el('company').value;state.jobtext=job;state.history.unshift({id:Date.now(),title:state.jobtitle,company:state.company,created:new Date().toISOString(),job:job,savedOnly:true});state.history=state.history.slice(0,50);persist();renderHistory();updateOverview();notify('jobmsg','Jobopslag gemt i historikken uden score.','goodbox')}

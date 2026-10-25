@@ -1420,9 +1420,13 @@ function savePanelAiSettings(silent){
   if(!silent)notify('panelAiStatus','Brug endpointets fulde HTTPS-URL, som skal slutte med /api/panel-review.','warnbox');
   return false;
  }
+ const previous=getPanelAiSettings();
+ const credentialsChanged=previous.url!==url||previous.code!==code;
  try{sessionStorage.setItem('gajh_ai_endpoint',url);sessionStorage.setItem('gajh_ai_access_code',code)}
  catch(e){if(!silent)notify('panelAiStatus','Browserens sessionslager er utilgængeligt. Prøv en almindelig browserfane.','warnbox');return false}
- try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error');sessionStorage.removeItem('gajh_ai_last_model');sessionStorage.removeItem('gajh_ai_application_success');sessionStorage.removeItem('gajh_ai_application_error')}catch(e){}
+ if(credentialsChanged){
+  try{sessionStorage.removeItem('gajh_ai_last_success');sessionStorage.removeItem('gajh_ai_last_error');sessionStorage.removeItem('gajh_ai_last_model');sessionStorage.removeItem('gajh_ai_application_success');sessionStorage.removeItem('gajh_ai_application_error')}catch(e){}
+ }
  updateModelIntegrationStatus();
  if(!silent)notify('panelAiStatus','AI-indstillinger gemt for denne browsersession. OpenAI API-nøglen ligger fortsat kun på serveren.','goodbox');
  return true;

@@ -130,7 +130,7 @@ function isDanishJobResult(raw,query,profile){
  const url=safeHttpUrl(raw&&raw.url);if(!url)return false;
  let rawHost='';try{rawHost=new URL(url).hostname.toLowerCase()}catch(e){}
  // Query is explicitly site-limited and includes Danish geographic terms.
- if(query.id==='indeed-dk'&&domainMatches(rawHost,'dk.indeed.com'))return true;
+ if(query.id==='indeed-dk'&&domainMatches(rawHost,'indeed.com'))return true;
  if(query.id==='linkedin-jobs'&&domainMatches(rawHost,'linkedin.com')&&/\/jobs\/view\//i.test(url))return true;
  const item={
   url,

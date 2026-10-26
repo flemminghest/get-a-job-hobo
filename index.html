@@ -903,6 +903,15 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 }
 @media(prefers-reduced-motion:reduce){.job-search-progress-track span{transition:none}}
 
+
+/* Automatic company-data status; no manual "Find data" action required */
+.job-company-auto-status{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;max-width:150px;padding:6px 9px;border:1px solid #dce7f1;border-radius:999px;background:#fff;color:#60748d;font-size:10px;font-weight:800;line-height:1.3;text-align:center}
+.job-company-auto-status[data-company-state="loading"],.job-company-auto-status[data-company-state="queued"]{border-color:#cfe0ff;background:#f1f6ff;color:#2872d5}
+.job-company-auto-status[data-company-state="done"]{border-color:#cbead9;background:#effaf4;color:#16815b}
+.job-company-auto-status[data-company-state="error"]{border-color:#f1d6cf;background:#fff6f3;color:#b6533b}
+.job-company-lookup-error{margin-top:8px;padding:9px 11px;border-radius:9px;background:#fff6f3;border:1px solid #f1d6cf;color:#9f4e39;font-size:10px;line-height:1.5}
+@media(max-width:640px){.job-company-auto-status{max-width:120px;font-size:9px;padding:5px 7px}.job-company-insights-head>div{flex:1}}
+
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>

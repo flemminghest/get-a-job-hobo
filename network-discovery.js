@@ -438,12 +438,17 @@ function effectiveCompanyFacts(item){
  return result;
 }
 function companyNameFromOpportunity(item){
- const supplied=String(item&&(item.companyName||item.company||item.employer)||'').trim();if(supplied)return supplied.slice(0,120);
+ const supplied=String(item&&(item.companyName||item.company||item.employer)||'').trim();
+ if(supplied&&!/^(indeed|jobindex|linkedin|stepstone|jobnet|ofir|workindenmark|trabajo|soopage)$/i.test(supplied))return supplied.slice(0,120);
  const title=String(item&&(item.jobTitle||item.title)||'').trim();
- const parts=title.split(/\s*[|–—]\s*/).map(x=>x.trim()).filter(Boolean);
- if(parts.length>1&&parts[parts.length-1].length<65)return parts[parts.length-1];
- const host=String(item&&item.domain||'').replace(/^www\./,'');
- return host?host.split('.')[0].replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'Virksomheden';
+ const byline=title.match(/\b(?:at|hos|ved)\s+([A-ZÆØÅ][A-Za-zÆØÅæøå\d&.' -]{1,70}?)(?:\s*[|–—,]|$)/i);
+ if(byline&&byline[1]&&!/^(denmark|danmark|company|the company|unknown)$/i.test(byline[1].trim()))return byline[1].trim();
+ const pipeParts=title.split(/\s*\|\s*/).map(value=>value.trim()).filter(Boolean);
+ if(pipeParts.length>1){
+  const candidate=pipeParts.slice(1).find(value=>value.length<65&&!/\b(side|page|denmark business|jobopslag|job listings|salary|jobs? in|remote jobs?)\b/i.test(value));
+  if(candidate&&!/\.(com|org|net|dk|co\.uk)$/i.test(candidate))return candidate;
+ }
+ return 'Arbejdsgiver ikke oplyst';
 }
 function normalizeInsightText(value){return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()}
 function companyResultRelevant(result,company,item){
@@ -621,7 +626,7 @@ async function autoLookupJobCompanyFacts(items){
   if(!grouped.has(norm))grouped.set(norm,{name,items:[]});
   grouped.get(norm).items.push(item);
  });
- const queue=[...grouped.values()].filter(group=>!group.items.some(item=>['done','loading','queued'].includes(item.companyFacts&&item.companyFacts.lookupStatus)));
+ const queue=[...grouped.values()].filter(group=>group.name!=='Arbejdsgiver ikke oplyst'&&!group.items.some(item=>['done','loading','queued'].includes(item.companyFacts&&item.companyFacts.lookupStatus)));
  if(!queue.length)return;
  queue.forEach(group=>group.items.forEach(item=>{
   item.companyFacts=item.companyFacts||{};
@@ -699,34 +704,50 @@ function jobDisplayLocation(item,scope){
  if(scope.kind==='query-location')return 'Danmark · kontrollér arbejdssted';
  return 'Danmark · arbejdssted skal bekræftes';
 }
+function jobDisplayTitle(item){
+ const raw=String(item&&(item.jobTitle||item.title)||'').trim();
+ return raw.replace(/\s*[|–—]\s*(?:[^|–—]*\b(?:denmark business|jobs? in denmark|page\s*\d+|side\s*\d+)\b).*$/i,'').trim()||raw;
+}
+function jobDisplayCompany(item){
+ const company=String(item&&(item.companyName||item.employer||item.company)||'').trim();
+ if(company&&!/^(indeed|jobindex|linkedin|stepstone|jobnet|ofir|workindenmark|trabajo|soopage)$/i.test(company))return company;
+ const title=String(item&&(item.jobTitle||item.title)||'').trim();
+ const match=title.match(/\b(?:at|hos|ved)\s+([A-ZÆØÅ][A-Za-zÆØÅæøå\d&.' -]{1,70}?)(?:\s*[|–—,]|$)/i);
+ if(match&&match[1])return match[1].trim();
+ return companyNameFromOpportunity(item);
+}
+function jobDisplayLocation(item,scope){
+ const raw=String(item&&(item.jobLocation||item.location||item.city)||'').trim();
+ if(raw&&!/^(denmark|danmark|dk)$/i.test(raw))return raw;
+ if(scope.kind==='remote-denmark')return 'Remote · Danmark';
+ if(scope.kind==='remote-check')return 'Remote · kontrollér adgang fra Danmark';
+ if(scope.kind==='query-location')return 'Danmark · kontrollér arbejdssted';
+ return 'Danmark · arbejdssted skal bekræftes';
+}
 function renderJobOpportunities(){
- const activeProfile=searchProfile();
- const all=(state.jobOpportunities||[]);
+ const activeProfile=searchProfile(),all=(state.jobOpportunities||[]);
  const results=all.filter(item=>isDanishMappedJob(item,activeProfile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
  if(el('jobOpportunitiesResults'))el('jobOpportunitiesResults').innerHTML=results.length?results.map((item,index)=>{
-  const url=safeHttpUrl(item.url),matched=item.matchedTerms||[],tracked=url&&state.followUps.some(f=>f.url&&canonicalSearchUrl(f.url)===canonicalSearchUrl(url)),source=item.queryLabel||item.sourceLabel||item.domain||'Jobportal';
-  const scope=getDanishJobScope(item,activeProfile),title=jobDisplayTitle(item),company=jobDisplayCompany(item),location=jobDisplayLocation(item,scope);
+  const stateIndex=all.indexOf(item),url=safeHttpUrl(item.url),matched=item.matchedTerms||[];
+  const tracked=url&&state.followUps.some(f=>f.url&&canonicalSearchUrl(f.url)===canonicalSearchUrl(url));
+  const source=item.queryLabel||item.sourceLabel||item.domain||'Jobportal',scope=getDanishJobScope(item,activeProfile);
+  const title=jobDisplayTitle(item),company=jobDisplayCompany(item),location=jobDisplayLocation(item,scope);
   const date=String(item.postedAt||item.datePosted||'').trim(),type=String(item.employmentType||'').trim(),workMode=String(item.workMode||'').trim(),salary=String(item.salary||'').trim();
   let html='<article class="discovery-card job-result-card">';
   html+='<div class="job-result-topline"><span class="discovery-source">'+escapeHtml(item.domain||source)+'</span><span class="chip job-location-match job-location-match-'+escapeHtml(scope.kind)+'">'+escapeHtml(scope.label)+'</span></div>';
   html+='<h3 class="job-result-title">'+escapeHtml(title)+'</h3>';
   html+='<div class="job-result-employer"><span class="job-result-company-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/></svg></span><div><strong>'+escapeHtml(company)+'</strong><span>'+escapeHtml(location)+'</span></div></div>';
-  html+='<div class="job-result-meta">';
-  if(date)html+='<span><b>Opslået</b> '+escapeHtml(date)+'</span>';
-  if(type)html+='<span><b>Ansættelse</b> '+escapeHtml(type)+'</span>';
-  if(workMode)html+='<span><b>Arbejdsform</b> '+escapeHtml(workMode)+'</span>';
-  if(salary)html+='<span><b>Løn</b> '+escapeHtml(salary)+'</span>';
-  html+='</div>';
+  const meta=[];if(date)meta.push('<span><b>Opslået</b> '+escapeHtml(date)+'</span>');if(type)meta.push('<span><b>Ansættelse</b> '+escapeHtml(type)+'</span>');if(workMode)meta.push('<span><b>Arbejdsform</b> '+escapeHtml(workMode)+'</span>');if(salary)meta.push('<span><b>Løn</b> '+escapeHtml(salary)+'</span>');
+  if(meta.length)html+='<div class="job-result-meta">'+meta.join('')+'</div>';
   html+='<section class="job-result-match"><h4>Hvorfor matcher jobbet?</h4>';
   html+=item.description?'<p>'+escapeHtml(item.description)+'</p>':'<p>Åbn originalopslaget for at kontrollere ansvarsområder, kvalifikationer og ansøgningsfrist.</p>';
   html+='<div class="discovery-matched">'+(matched.length?matched.map(term=>'<span class="chip job-keyword-chip">'+escapeHtml(term)+'</span>').join(''):'<span class="chip">Søgt med dine valgte søgeord</span>')+'</div></section>';
-  html+=companyInsightBox(item,index);
-  html+='<div class="job-result-caution">Kontrollér, at opslaget stadig er aktivt, og at arbejdsstedet eller remote-vilkårene passer.</div>';
-  html+='<div class="discovery-actions">';
+  html+=companyInsightBox(item,stateIndex);
+  html+='<div class="job-result-caution">Kontrollér, at opslaget stadig er aktivt, og at arbejdsstedet eller remote-vilkårene passer.</div><div class="discovery-actions">';
   if(url)html+='<a href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">Åbn originalopslag ↗</a>';
-  html+='<button class="secondary" data-discovery-action="follow" data-collection="jobs" data-index="'+index+'">'+(tracked?'Opfølgning oprettet':'Følg op')+'</button><button data-discovery-action="analyze" data-index="'+index+'">Vurdér mod mit CV</button></div></article>';
+  html+='<button class="secondary" data-discovery-action="follow" data-collection="jobs" data-index="'+stateIndex+'">'+(tracked?'Opfølgning oprettet':'Følg op')+'</button><button data-discovery-action="analyze" data-index="'+stateIndex+'">Vurdér mod mit CV</button></div></article>';
   return html;
- }).join(''):'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen konkrete stillingsopslag blev fundet</strong><p>Resultater som jobkataloger, firmaregistre og sider med “Side 3” vises ikke som jobs. Prøv flere søgeord eller en bredere geografi.</p></div>';
+ }).join(''):'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen konkrete stillingsopslag blev fundet</strong><p>Resultater som jobkataloger, firmaregistre, telefonbøger og sider med “Side 3” vises ikke som jobs. Prøv flere søgeord eller en bredere geografi.</p></div>';
  if(el('jobOpportunityCount'))el('jobOpportunityCount').textContent=results.length;
  if(el('jobKeywordCount'))el('jobKeywordCount').textContent=searchProfile().terms.length;
  if(el('jobTrackedCount'))el('jobTrackedCount').textContent=(state.followUps||[]).filter(item=>item.type==='job').length;

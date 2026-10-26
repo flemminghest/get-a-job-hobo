@@ -271,13 +271,13 @@ function isDanishCompanySource(source){
  const raw=typeof source==='string'?source:(source&&source.url)||'';
  const url=safeHttpUrl(raw);if(!url)return false;
  let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return false}
- return ['jobindex.dk','jobrate.dk','proff.dk','estatistik.dk','ownr.dk','virk.dk','datacvr.virk.dk','cvr.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
+ return ['krak.dk','jobindex.dk','jobrate.dk','proff.dk','estatistik.dk','ownr.dk','virk.dk','datacvr.virk.dk','cvr.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
 }
 function isDanishRegistrySource(source){
  const raw=typeof source==='string'?source:(source&&source.url)||'';
  const url=safeHttpUrl(raw);if(!url)return false;
  let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return false}
- return ['proff.dk','estatistik.dk','ownr.dk','virk.dk','datacvr.virk.dk','cvr.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
+ return ['krak.dk','jobindex.dk','jobrate.dk','proff.dk','estatistik.dk','ownr.dk','virk.dk','datacvr.virk.dk','cvr.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
 }
 function curatedCompanyFacts(){return {}}
 function effectiveCompanyFacts(item){
@@ -331,10 +331,14 @@ function applyCompanySourceFacts(sources,prior){
    if(m){f.employeeCount=m[1].replace(/\s+/g,' ').trim();factSources.employeeCount=source}
   }
   if(!f.employeeCount&&(m=text.match(/\b(\d{1,4}\s*[-–]\s*\d{1,4})\s*(?:employees|medarbejdere|ansatte)\b/i))){f.employeeCount=m[1].replace(/\s+/g,' ').trim();factSources.employeeCount=source}
+  if(!f.employeeCount&&(m=text.match(/\b(\d{1,5})\s+(?:ansatte|medarbejdere|employees)\b/i))){f.employeeCount=m[1];factSources.employeeCount=source}
   if(!f.foundedYear&&(m=text.match(/(?:stiftet|etableret|grundlagt|founded)\D{0,32}\b(19\d{2}|20\d{2})\b/i))){f.foundedYear=m[1];factSources.foundedYear=source}
-  if(!f.location&&(m=text.match(/(?:headquarters|headquartered|hovedkontor|location|lokation|adresse|address)\s*[:\-]?\s*(.{3,85})/i))){
-   const location=m[1].split(/\b(?:company size|company type|type|founded|industry|specialties|employees|employee count|about us|visit website|revenue|virksomhedstype|antal ansatte)\b/i)[0].replace(/[|,;\s.]+$/,'').trim();
-   if(location&&location.length<=85){f.location=location;factSources.location=source}
+  if(!f.location&&(m=text.match(/(?:headquarters|headquartered|hovedkontor|location|lokation|adresse|address|besøgsadresse|postadresse)\s*[:\-]?\s*(.{3,100})/i))){
+   const location=m[1].split(/\b(?:company size|company type|type|founded|industry|specialties|employees|employee count|about us|visit website|revenue|virksomhedstype|antal ansatte|telefon|phone|CVR|kontakt)\b/i)[0].replace(/[|,;\s.]+$/,'').trim();
+   if(location&&location.length<=100){f.location=location;factSources.location=source}
+  }
+  if(!f.location&&(m=text.match(/\b(\d{4}\s+[A-ZÆØÅ][A-Za-zÆØÅæøå .'-]{2,50})\b/))){
+   f.location=m[1].trim();factSources.location=source;
   }
   if(!f.industry&&(m=text.match(/(?:branche|industry|sector)\s*[:\-]?\s*(.{3,70})/i))){
    const industry=m[1].split(/\b(?:company size|company type|type|founded|headquarters|employees|specialties|about us|revenue)\b/i)[0].replace(/[|,;\s.]+$/,'').trim();
@@ -354,6 +358,9 @@ async function lookupCompanyInsights(index){
  item.companyFacts.lookupStatus='loading';persist();renderJobOpportunities();
  const q='"'+company.replace(/"/g,' ')+'"';
  const queries=[
+  {id:'krak-dk',label:'Krak · adresse, placering og firmaoplysninger',targetSite:'krak.dk',query:'site:krak.dk/firma '+q+' adresse antal ansatte CVR branche',fallbackQuery:'site:krak.dk '+q+' firma adresse telefon CVR antal ansatte'},
+  {id:'jobindex-dk',label:'Jobindex · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde ansatte adresse',fallbackQuery:'site:jobindex.dk '+q+' virksomhed arbejdsplads medarbejdervurdering anmeldelser'},
+  {id:'jobindex-ads-dk',label:'Jobindex · danske stillingsopslag',targetSite:'jobindex.dk',query:'site:jobindex.dk/jobannonce '+q+' København Danmark medarbejdere adresse',fallbackQuery:'site:jobindex.dk '+q+' København Danmark job virksomhed'},
   {id:'proff-dk',label:'Proff Danmark · CVR, branche og ansatte',targetSite:'proff.dk',query:'site:proff.dk '+q+' CVR antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' virksomhed CVR ansatte adresse'},
   {id:'estatistik-dk',label:'eStatistik · danske virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' CVR ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' CVR dansk virksomhed ansatte adresse'},
   {id:'cvr-virk-dk',label:'CVR/Virk · officielt virksomhedsregister',targetSite:'virk.dk',query:'site:datacvr.virk.dk '+q+' CVR adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},

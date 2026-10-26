@@ -708,16 +708,17 @@ function companyInsightBox(item,index){
 function jobDisplayTitle(item){
  const original=String(item&&(item.jobTitle||item.title)||'').trim();let title=original;
  title=title.replace(/\s*[|–—]\s*(?:linkedin jobs?|indeed(?:\.com)?|jobindex(?:\.dk)?|stepstone(?:\.dk)?|jobnet(?:\.dk)?|ofir(?:\.dk)?|trabajo\.org|denmark business).*$/i,'').trim();
+ title=title.replace(/\s*[|–—-]\s*\d{5,}\s*$/,'').trim();
  title=title.replace(/\s*[-–—]\s*(?:side|page|pagina)\s*\d+\s*$/i,'').trim();
  title=title.replace(/^(?:job opening|job opportunity|vacancy|jobannonce|stillingsopslag)\s*[:|-]\s*/i,'').trim();
  return title||original;
 }
 function jobDisplayCompany(item){
  const supplied=String(item&&(item.companyName||item.employer||item.company)||'').trim();
- if(supplied&&!/^(indeed|jobindex|linkedin|stepstone|jobnet|ofir|workindenmark|trabajo|soopage)$/i.test(supplied))return supplied;
+ if(supplied&&!/^\d{4,}$/.test(supplied)&&!/^(indeed|jobindex|linkedin|stepstone|jobnet|ofir|workindenmark|trabajo|soopage)$/i.test(supplied))return supplied;
  const title=String(item&&(item.jobTitle||item.title)||'').trim();
  const match=title.match(/\b(?:at|hos|ved)\s+([A-ZÆØÅ][A-Za-zÆØÅæøå\d&.' -]{1,70}?)(?:\s*[|–—,]|$)/i);
- if(match&&match[1])return match[1].trim();
+ if(match&&match[1]&&!/^\d{4,}$/.test(match[1].trim()))return match[1].trim();
  return companyNameFromOpportunity(item);
 }
 function jobDisplayLocation(item,scope){

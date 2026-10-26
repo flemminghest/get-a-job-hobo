@@ -356,7 +356,7 @@ async function lookupCompanyInsights(index){
  const queries=[
   {id:'proff-dk',label:'Proff Danmark · CVR, branche og ansatte',targetSite:'proff.dk',query:'site:proff.dk '+q+' CVR antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' virksomhed CVR ansatte adresse'},
   {id:'estatistik-dk',label:'eStatistik · danske virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' CVR ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' CVR dansk virksomhed ansatte adresse'},
-  {id:'cvr-virk-dk',label:'CVR/Virk · officielt virksomhedsregister',targetSite:'datacvr.virk.dk',query:'site:datacvr.virk.dk '+q+' CVR adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},
+  {id:'cvr-virk-dk',label:'CVR/Virk · officielt virksomhedsregister',targetSite:'virk.dk',query:'site:datacvr.virk.dk '+q+' CVR adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},
   {id:'ownr-dk',label:'Ownr · danske virksomhedsoplysninger',targetSite:'ownr.dk',query:'site:ownr.dk '+q+' CVR antal ansatte adresse stiftet branche',fallbackQuery:'site:ownr.dk '+q+' dansk virksomhed CVR'},
   {id:'jobindex-dk',label:'Jobindex Danmark · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde',fallbackQuery:'site:jobindex.dk '+q+' medarbejdere arbejdsplads vurdering'},
   {id:'jobrate-dk',label:'Jobrate Danmark · arbejdspladsvurdering',targetSite:'jobrate.dk',query:'site:jobrate.dk/arbejdsplads '+q+' medarbejdervurdering',fallbackQuery:'site:jobrate.dk '+q+' arbejdsplads medarbejdere'}

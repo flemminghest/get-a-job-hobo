@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="da"><head>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700;800&display=swap" rel="stylesheet"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=1"><meta name="theme-color" content="#1F325E"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><title>Get a Job Hobo</title><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{--ink:#172b46;--muted:#64758b;--line:#e1e8f0;--bg:#f3f6fa;--paper:#fff;--teal:#078c91;--navy:#1F325E;--lav:#6457b7;--rose:#a84d71;--green:#14835f;--amber:#9d650e;--shadow:0 10px 28px #17324c0d}
@@ -953,6 +953,10 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
  .job-result-match{padding:10px}
 }
 
+
+/* Application typography: Roboto for the letter body, Roboto Slab for its highlighted salutation and sign-off */
+#apptext{font-family:Roboto,Arial,sans-serif;line-height:1.7;font-size:15px;letter-spacing:0}
+#appPreview.output{font-family:Roboto,Arial,sans-serif;line-height:1.7;letter-spacing:0}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
@@ -2319,6 +2323,37 @@ function getApplicationAvatarDataUrl(){
  ctx.restore();
  return canvas.toDataURL('image/png');
 }
+let applicationPdfFontDataPromise=null;
+function applicationFontBufferToBase64(buffer){
+ const bytes=new Uint8Array(buffer);let binary='';
+ for(let offset=0;offset<bytes.length;offset+=0x8000)binary+=String.fromCharCode.apply(null,bytes.subarray(offset,offset+0x8000));
+ return btoa(binary);
+}
+async function getApplicationPdfFontData(){
+ if(!applicationPdfFontDataPromise){
+  const specs=[
+   {file:'Roboto-Regular.ttf',family:'Roboto',style:'normal',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/roboto/static/Roboto-Regular.ttf'},
+   {file:'Roboto-Bold.ttf',family:'Roboto',style:'bold',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/roboto/static/Roboto-Bold.ttf'},
+   {file:'RobotoSlab-Regular.ttf',family:'RobotoSlab',style:'normal',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/robotoslab/static/RobotoSlab-Regular.ttf'},
+   {file:'RobotoSlab-Bold.ttf',family:'RobotoSlab',style:'bold',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/robotoslab/static/RobotoSlab-Bold.ttf'}
+  ];
+  applicationPdfFontDataPromise=Promise.all(specs.map(async spec=>{
+   const response=await fetch(spec.url,{mode:'cors',cache:'force-cache'});
+   if(!response.ok)throw new Error('Kunne ikke hente skrifttypen '+spec.family+' ('+response.status+').');
+   return {...spec,base64:applicationFontBufferToBase64(await response.arrayBuffer())};
+  })).catch(error=>{applicationPdfFontDataPromise=null;throw error});
+ }
+ return applicationPdfFontDataPromise;
+}
+async function registerApplicationPdfFonts(doc){
+ const fonts=await getApplicationPdfFontData();
+ fonts.forEach(font=>{
+  doc.addFileToVFS(font.file,font.base64);
+  doc.addFont(font.file,font.family,font.style);
+ });
+ doc.setFont('Roboto','normal');
+}
+
 function drawPdfHeader(doc,portraitDataUrl){
  // Headeren følger det vedhæftede brevpapir: skrå overkant, grå kontaktfelter og stort portræt.
  doc.setFillColor(118,119,121);
@@ -2330,7 +2365,7 @@ function drawPdfHeader(doc,portraitDataUrl){
  // Adresseikon og adresse.
  doc.setFillColor(255,255,255);doc.circle(9,15,5.5,'F');
  doc.setFillColor(118,119,121);doc.circle(9,13.8,1.45,'F');doc.triangle(6.5,15.4,11.5,15.4,9,19,'F');
- doc.setFont('helvetica','normal');doc.setFontSize(8.3);doc.setTextColor(255,255,255);
+ doc.setFont('Roboto','normal');doc.setFontSize(8.3);doc.setTextColor(255,255,255);
  doc.text('Jacob Holm Blæhr',9.5,27.8);
  doc.setFontSize(8.1);doc.text('Rolighedsvej 18, 4. tv.',9.5,35.2);doc.text('1958 Frederiksberg C.',9.5,42.4);
  // Kontaktikon og kontaktoplysninger.
@@ -2354,9 +2389,9 @@ function drawPdfGreeting(doc,greeting,color){
  const x=10.5,y=74.4,firstHeight=8.3,secondY=82.7,secondHeight=9.8;
  doc.setFillColor(r,g,b);
  doc.rect(x,y,29.5,firstHeight,'F');
- doc.setFont('times','bold');doc.setFontSize(17.5);doc.setTextColor(255,255,255);
+ doc.setFont('RobotoSlab','bold');doc.setFontSize(17.5);doc.setTextColor(255,255,255);
  doc.text('KÆRE',x+2.2,y+6.15);
- doc.setFont('times','normal');doc.setFontSize(12);
+ doc.setFont('RobotoSlab','normal');doc.setFontSize(12);
  const greetingLines=doc.splitTextToSize(greeting,184);
  const lineHeight=4.65;
  const actualHeight=Math.max(secondHeight,Math.min(19,3.1+greetingLines.length*lineHeight));
@@ -2367,7 +2402,7 @@ function drawPdfGreeting(doc,greeting,color){
 function drawPdfClosing(doc,color,y){
  const [r,g,b]=hexToRgb(color);
  const lines=['Mange hilsner','//Jacob'];
- doc.setFont('times','bold');doc.setFontSize(15.5);doc.setTextColor(255,255,255);
+ doc.setFont('RobotoSlab','bold');doc.setFontSize(15.5);doc.setTextColor(255,255,255);
  lines.forEach((line,index)=>{
   const textWidth=doc.getTextWidth(line);
   const top=y+(index*9.2);
@@ -2461,10 +2496,11 @@ async function createApplicationPdfBlob(){
  const signoffColor=applicationHexColor(state.applicationSignoffHex,'#1F325E');
  const parsed=parseApplicationForPdf(el('apptext').value);
  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+ await registerApplicationPdfFonts(doc);
  const pageWidth=210,pageHeight=297,left=10.5,textWidth=pageWidth-left-10.5;
  drawPdfHeader(doc,portraitDataUrl);
  let y=drawPdfGreeting(doc,parsed.greeting,greetingColor);
- doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
+ doc.setFont('Roboto','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
  const lineHeight=4.9,paragraphGap=4.0;
  const paragraphs=parsed.body.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
  const newPage=()=>{

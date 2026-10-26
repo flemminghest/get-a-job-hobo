@@ -815,6 +815,15 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 #companyCriteriaSearchButton:disabled{opacity:.7;cursor:wait}
 @media(max-width:640px){.company-criteria-section{margin-top:19px;padding-top:14px}}
 
+
+/* Clear job-location labels: domestic roles, confirmed remote and remote needing country eligibility check */
+.job-location-match{display:inline-flex;align-items:center;margin:3px 4px 3px 0;white-space:normal;line-height:1.35;border:1px solid #d6eadf;background:#e8f7ee;color:#176b49}
+.job-location-match-denmark,.job-location-match-danish-portal{background:#e4f6ec;border-color:#cdebd9;color:#176b49}
+.job-location-match-remote-denmark{background:#e7f0ff;border-color:#d1e2fc;color:#205cb8}
+.job-location-match-remote-check{background:#fff1dc;border-color:#f4dfbc;color:#9a5b12}
+.discovery-card-top{flex-wrap:wrap;gap:6px}
+@media(max-width:640px){.job-location-match{font-size:10px;padding:4px 7px}}
+
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
@@ -983,8 +992,8 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
  <div class="hero"><div class="eyebrow">JOB, DER ER VÆRD AT UNDERSØGE</div><h1>Oplagte jobmuligheder — på tværs af portaler.</h1><p>Find offentligt indekserede opslag på LinkedIn, Jobindex, HK Jobportal, Jobnet, Workindenmark, StepStone og relevante karrieresider. Sortér efter overlap i profilord, gem jobs og send interessante opslag til CV-vurderingen.</p><div class="actions"><button id="jobOpportunitiesSearchButton" onclick="searchJobOpportunities()">Søg efter relevante job</button><button class="secondary" id="companyCriteriaSearchButton" onclick="searchDanishCompaniesByCriteria()">Find danske virksomheder</button><button class="secondary" onclick="go('cv')">Opdatér mit CV</button></div></div>
  <div class="kpis"><div class="kpi"><label>Fundet</label><strong id="jobOpportunityCount">0</strong><span>Offentligt indekserede opslag</span></div><div class="kpi"><label>Profilord</label><strong id="jobKeywordCount">0</strong><span>Ord fra søgeprofilen</span></div><div class="kpi"><label>Gemte til opfølgning</label><strong id="jobTrackedCount">0</strong><span>Lokalt i denne browser</span></div><div class="kpi"><label>Sidste søgning</label><strong id="jobLastSearchLabel">Ikke søgt</strong><span>Kontrollér altid originalopslaget</span></div></div>
  <div class="card stack"><div><h2>Din søgeprofil</h2><p class="muted">De samme profilord som under LinkedIn & netværk. De bruges som søgeord, ikke som en automatisk sandhed om dine kvalifikationer.</p></div>
-  <div class="formrow"><div><label for="jobSearchTerms">Profilord</label><input id="jobSearchTerms" placeholder="CRM, marketing automation, digital marketing…" oninput="syncJobSearchPreferences()"></div><div><label for="jobSearchLocation">Geografi</label><input id="jobSearchLocation" placeholder="København og omegn" oninput="syncJobSearchPreferences()"></div></div>
-  <div id="jobSearchStatus" class="notice">Klar til søgning. Det fulde CV sendes ikke til søge-API'et.</div>
+  <div class="formrow"><div><label for="jobSearchTerms">Profilord</label><input id="jobSearchTerms" placeholder="CRM, marketing automation, digital marketing…" oninput="syncJobSearchPreferences()"></div><div><label for="jobSearchLocation">Geografi</label><input id="jobSearchLocation" placeholder="Danmark, København eller anden geografi" oninput="syncJobSearchPreferences()"></div></div>
+  <div id="jobSearchStatus" class="notice">Søgningen viser stillinger i Danmark og remote-job, hvor Danmark er angivet som muligt arbejdsland. Remote i EU/Europa kan kræve ekstra kontrol.</div>
   <div class="job-source-links"><a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/jobs/">LinkedIn Jobs ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobindex.dk/">Jobindex ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.hk.dk/karriere/jobsoegningen/find-dit-naeste-job/jobportal">HK Jobportal ↗</a><a target="_blank" rel="noopener noreferrer" href="https://job.jobnet.dk/">Jobnet ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.workindenmark.dk/">Workindenmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.stepstone.dk/">StepStone ↗</a></div>
   <div class="discovery-section-head"><div><h2>Job, der matcher dine søgeord</h2><p class="muted">Søgningen tæller profilord, som findes i titel og offentligt uddrag. Det er ikke en sandsynlighed for at få jobbet og ikke en verificering af, at opslaget stadig er aktivt.</p></div><span id="jobOpportunitiesMeta" class="chip">0 forslag</span></div>
   <div id="jobOpportunitiesResults" class="discovery-results"><div class="empty">Klik på “Søg efter relevante job” for at hente aktuelle søgeresultater fra det offentlige webindeks.</div></div>

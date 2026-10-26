@@ -909,6 +909,16 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 .job-company-auto-status[data-company-state="loading"],.job-company-auto-status[data-company-state="queued"]{border-color:#cfe0ff;background:#f1f6ff;color:#2872d5}
 .job-company-auto-status[data-company-state="done"]{border-color:#cbead9;background:#effaf4;color:#16815b}
 .job-company-auto-status[data-company-state="error"]{border-color:#f1d6cf;background:#fff6f3;color:#b6533b}
+.job-company-auto-status[data-company-state="verified"]{border-color:#cbead9;background:#effaf4;color:#16815b}
+.job-company-auto-status[data-company-state="partial"]{border-color:#f0dfb6;background:#fff9e9;color:#8a6717}
+.job-company-auto-status[data-company-state="empty"]{border-color:#e1e7ee;background:#f5f7fa;color:#66788b}
+.job-company-fact-source{display:block;margin-top:4px;font-size:9px;line-height:1.35;font-weight:750;color:var(--insight);text-decoration:none;overflow-wrap:anywhere}
+.job-company-fact-source:hover{text-decoration:underline}
+.job-company-fact-source.is-missing{color:#7d8b9a;font-weight:500}
+.job-company-employee-estimate{display:inline-block;margin-top:3px;padding:2px 5px;border-radius:5px;background:#fff4dd;color:#805b11;font-size:9px;font-weight:750}
+.job-company-quality{display:flex;flex-direction:column;gap:3px;margin-top:9px;padding:9px 10px;border:1px dashed var(--insight-line);border-radius:9px;background:rgba(255,255,255,.72);font-size:10px;line-height:1.45;color:#64758b}
+.job-company-quality strong{color:#334c65;font-size:10px}
+.job-company-quality .is-incomplete{color:#8b671a}
 .job-company-lookup-error{margin-top:8px;padding:9px 11px;border-radius:9px;background:#fff6f3;border:1px solid #f1d6cf;color:#9f4e39;font-size:10px;line-height:1.5}
 @media(max-width:640px){.job-company-auto-status{max-width:120px;font-size:9px;padding:5px 7px}.job-company-insights-head>div{flex:1}}
 
@@ -2333,10 +2343,10 @@ function applicationFontBufferToBase64(buffer){
 async function getApplicationPdfFontData(){
  if(!applicationPdfFontDataPromise){
   const specs=[
-   {file:'Roboto-Regular.ttf',family:'Roboto',style:'normal',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/roboto/static/Roboto-Regular.ttf'},
-   {file:'Roboto-Bold.ttf',family:'Roboto',style:'bold',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/roboto/static/Roboto-Bold.ttf'},
-   {file:'RobotoSlab-Regular.ttf',family:'RobotoSlab',style:'normal',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/robotoslab/static/RobotoSlab-Regular.ttf'},
-   {file:'RobotoSlab-Bold.ttf',family:'RobotoSlab',style:'bold',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/robotoslab/static/RobotoSlab-Bold.ttf'}
+   {file:'Roboto-Regular.ttf',family:'Roboto',style:'normal',url:'https://raw.githubusercontent.com/google/fonts/113bac0943d5b85dcc6c2c01b48fae88d4b5c52a/ofl/roboto/static/Roboto-Regular.ttf'},
+   {file:'Roboto-Bold.ttf',family:'Roboto',style:'bold',url:'https://raw.githubusercontent.com/google/fonts/113bac0943d5b85dcc6c2c01b48fae88d4b5c52a/ofl/roboto/static/Roboto-Bold.ttf'},
+   {file:'RobotoSlab-Regular.ttf',family:'RobotoSlab',style:'normal',url:'https://raw.githubusercontent.com/google/fonts/9ed5d84ef7fe6f83ba80af048f52cccc594b79b2/apache/robotoslab/static/RobotoSlab-Regular.ttf'},
+   {file:'RobotoSlab-Bold.ttf',family:'RobotoSlab',style:'bold',url:'https://raw.githubusercontent.com/google/fonts/9ed5d84ef7fe6f83ba80af048f52cccc594b79b2/apache/robotoslab/static/RobotoSlab-Bold.ttf'}
   ];
   applicationPdfFontDataPromise=Promise.all(specs.map(async spec=>{
    const response=await fetch(spec.url,{mode:'cors',cache:'force-cache'});

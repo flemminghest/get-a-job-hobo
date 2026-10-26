@@ -101,7 +101,18 @@ function mapResult(raw,query,terms,usedFallback){
  const title=String(raw.title||raw.name||parsed.hostname).trim().slice(0,500);
  const description=String(raw.description||raw.snippet||raw.content||'').replace(/\s+/g,' ').trim().slice(0,1200);
  const host=parsed.hostname.toLowerCase().replace(/^www\./,'');
- return {id:String(Date.now())+'-'+Math.random().toString(36).slice(2,8),type:classifyResult(url,title,query.id),title,url,domain:registrableDomain(parsed.hostname),description,sourceLabel:usedFallback?host:(query.targetSite&&domainMatches(host,query.targetSite)?query.label:host),queryLabel:query.label+(usedFallback?' (bredere søgning)':''),matchedTerms:matchedTerms(title,description,terms),createdAt:new Date().toISOString(),saved:false};
+ const pick=(...values)=>{for(const value of values){if(value!==undefined&&value!==null&&String(value).trim()!=='')return String(value).trim()}return ''};
+ const companyFacts={
+  employeeCount:pick(raw.employeeCount,raw.employee_count,raw.employees,raw.companySize,raw.company_size,raw.employeeRange),
+  location:pick(raw.workLocation,raw.work_location,raw.location,raw.city,raw.address),
+  distanceKm:pick(raw.distanceKm,raw.distance_km),
+  employeeRating:pick(raw.employeeSatisfaction,raw.employee_satisfaction,raw.companyRating,raw.company_rating,raw.ratingFromEmployees),
+  ratingCount:pick(raw.reviewCount,raw.review_count,raw.ratingCount,raw.rating_count),
+  industry:pick(raw.industry,raw.sector),
+  foundedYear:pick(raw.foundedYear,raw.founded_year,raw.founded),
+  companyType:pick(raw.companyType,raw.company_type,raw.organizationType,raw.organization_type)
+ };
+ return {id:String(Date.now())+'-'+Math.random().toString(36).slice(2,8),type:classifyResult(url,title,query.id),title,url,domain:registrableDomain(parsed.hostname),description,sourceLabel:usedFallback?host:(query.targetSite&&domainMatches(host,query.targetSite)?query.label:host),queryLabel:query.label+(usedFallback?' (bredere søgning)':''),matchedTerms:matchedTerms(title,description,terms),companyFacts,createdAt:new Date().toISOString(),saved:false};
 }
 async function queryIndex(query,terms){
  async function request(q){
@@ -177,13 +188,48 @@ function renderCommunities(){
  if(el('networkCommunitiesMeta'))el('networkCommunitiesMeta').textContent=list.length+' forslag';
 }
 function renderDiscoveryResults(){renderProspects();renderCommunities()}
+function companyInsightBox(item,index){
+ const f=item.companyFacts||{};
+ const clean=value=>String(value==null?'':value).trim();
+ const rating=clean(f.employeeRating);
+ const ratingNum=Number(rating.replace(',','.'));
+ const ratingDisplay=rating&&Number.isFinite(ratingNum)&&ratingNum>=0&&ratingNum<=5?ratingNum.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
+ const reviews=clean(f.ratingCount);
+ const employees=clean(f.employeeCount)||'Ikke oplyst';
+ const location=clean(f.location)||'Ikke fundet';
+ const distance=clean(f.distanceKm);
+ const distanceLine=distance?distance+' km fra din adresse':(location!=='Ikke fundet'?'Afstand ikke beregnet':'Afstand kræver lokation');
+ const industry=clean(f.industry)||((item.matchedTerms||[]).slice(0,2).join(' · ')||'Ikke fastslået');
+ const founded=clean(f.foundedYear)||'Ikke oplyst';
+ const type=clean(f.companyType)||'Ikke oplyst';
+ const tone=['mint','orange','purple','blue'][index%4];
+ const icon={
+  people:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.8a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.6M18 14.2a4 4 0 0 1 4 4V20"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  smile:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.3 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>',
+  building:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/></svg>'
+ };
+ const dataFound=[f.employeeCount,f.location,f.employeeRating,f.industry,f.foundedYear,f.companyType].some(v=>clean(v));
+ return '<section class="job-company-insights job-company-insights-'+tone+'" aria-label="Virksomhedsinfo">'+
+  '<div class="job-company-insights-head"><span class="job-company-insights-icon">'+icon.building+'</span><div><strong>Virksomhedsinfo</strong><small>Offentlige oplysninger, hvor de findes</small></div><span class="job-company-data-state '+(dataFound?'is-partial':'is-pending')+'">'+(dataFound?'Delvise data':'Afventer data')+'</span></div>'+
+  '<div class="job-company-insight-stats">'+
+   '<div class="job-company-insight-stat"><span class="job-insight-icon">'+icon.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong><span class="job-insight-sub">Ansatte i virksomheden</span></div></div>'+
+   '<div class="job-company-insight-stat"><span class="job-insight-icon">'+icon.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div>'+
+   '<div class="job-company-insight-stat"><span class="job-insight-icon">'+icon.smile+'</span><div><small>Medarbejdertilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(reviews?reviews+' anmeldelser':'Ingen bekræftet rating')+'</span></div></div>'+
+  '</div>'+
+  '<div class="job-company-insights-foot"><span><b>Branche</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>'+
+  '<p class="job-company-insight-note">Oplysninger vises kun, når søgeresultatet indeholder relevante data. Jobtilfredshed og afstand kræver særskilt kilde- eller adressegrundlag.</p>'+
+ '</section>';
+}
 function renderJobOpportunities(){
  const results=state.jobOpportunities||[];
  if(el('jobOpportunitiesResults'))el('jobOpportunitiesResults').innerHTML=results.length?results.map((item,index)=>{
   const url=safeHttpUrl(item.url),matched=item.matchedTerms||[],tracked=url&&state.followUps.some(f=>f.url&&canonicalSearchUrl(f.url)===canonicalSearchUrl(url)),source=item.queryLabel||item.sourceLabel||item.domain||'Jobportal';
   let html='<article class="discovery-card"><div class="discovery-card-top"><span class="discovery-source">'+escapeHtml(item.domain||source)+'</span><span class="chip">'+(matched.length?matched.length+' profilord':'Læs og kontrollér')+'</span></div><h3>'+escapeHtml(item.title||'Jobopslag')+'</h3><p class="lead-company">'+escapeHtml(item.domain||'')+' · søgt via '+escapeHtml(source)+'</p>';
   html+=item.description?'<p class="lead-snippet">'+escapeHtml(item.description)+'</p>':'<p class="lead-snippet">Ingen tekstuddrag. Åbn originalopslaget for at læse krav og opgaver.</p>';
-  html+='<div class="discovery-matched">'+(matched.length?matched.map(term=>'<span class="chip">'+escapeHtml(term)+'</span>').join(''):'<span class="chip">Ingen profilord fundet i uddraget</span>')+'</div><p class="lead-reason">Kontrollér stillingsstatus, deadline, must-have-krav og arbejdsgiver på originalopslaget, før du søger.</p><div class="discovery-actions">';
+  html+='<div class="discovery-matched">'+(matched.length?matched.map(term=>'<span class="chip">'+escapeHtml(term)+'</span>').join(''):'<span class="chip">Ingen profilord fundet i uddraget</span>')+'</div>';
+  html+=companyInsightBox(item,index);
+  html+='<p class="lead-reason">Kontrollér stillingsstatus, deadline, must-have-krav og arbejdsgiver på originalopslaget, før du søger.</p><div class="discovery-actions">';
   if(url)html+='<a href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">Åbn originalopslag ↗</a>';
   html+='<button class="secondary" data-discovery-action="follow" data-collection="jobs" data-index="'+index+'">'+(tracked?'Opfølgning oprettet':'Følg op')+'</button><button data-discovery-action="analyze" data-index="'+index+'">Vurdér mod mit CV</button></div></article>';return html;
  }).join(''):'<div class="empty">Ingen søgeresultater endnu. Klik på “Søg efter relevante job”. Ikke alle portaler indekseres offentligt.</div>';

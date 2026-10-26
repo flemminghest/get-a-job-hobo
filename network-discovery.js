@@ -220,9 +220,11 @@ function isLikelySpecificJobPosting(item,query){
   (host.includes('jobnet.dk')&&/\/(job|stillinger|vacancy|vacancies)\//.test(url));
  if(strongPath)return true;
  const title=String(item.title||'').trim(),description=String(item.description||'');
- const looksLikeRole=title.length>=10&&title.split(/\s+/).length<=18&&!/\b(remote jobs|job portal|job search|jobs in|browse jobs|find jobs|career opportunities)\b/i.test(title);
+ const looksLikeRole=title.length>=10&&title.split(/\s+/).length<=18&&!/\b(remote jobs|job portal|job search|jobs in|browse jobs|find jobs|career opportunities|marketing glossary|definitions|company profile|about us)\b/i.test(title);
  const postingLanguage=/\b(we are looking for|we're looking for|you will|ansøg|søger en|vi søger|stillingen|jobbet|apply now|apply for|your role|responsibilities|requirements|qualifications|arbejdsopgaver|arbejdssted|deadline|job id|jobnummer)\b/i.test(description);
- return looksLikeRole&&postingLanguage;
+ if(looksLikeRole&&postingLanguage)return true;
+ // A job-specific title on a targeted job portal is enough when the snippet omits application language.
+ return !!(looksLikeRole&&query&&query.scope==='danish-jobs'&&query.id!=='career-sites');
 }
 async function queryIndex(query,terms,profile){
  async function request(q){
@@ -692,7 +694,7 @@ async function searchJobOpportunities(ignoreCvWarning=false){
   let succeeded=0,failed=0;const all=[],errors=[];
   settled.forEach((result,index)=>{if(result.status==='fulfilled'){succeeded++;all.push(...result.value.results)}else{failed++;errors.push(queries[index].label+': '+String(result.reason&&result.reason.message||result.reason).slice(0,120))}});
   const unique=new Map();all.forEach(item=>{const key=canonicalSearchUrl(item.url),old=unique.get(key);if(!old||item.matchedTerms.length>old.matchedTerms.length)unique.set(key,item)});
-  state.jobOpportunities=[...unique.values()].filter(item=>isDanishMappedJob(item,profile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs'})).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
+  state.jobOpportunities=[...unique.values()].filter(item=>isDanishMappedJob(item,profile)).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
   state.jobLastSearch=new Date().toISOString();persist();renderJobOpportunities();
   if(el('jobSearchStatus')){
    const remoteCheck=state.jobOpportunities.filter(item=>item.matchScope==='remote-check').length;

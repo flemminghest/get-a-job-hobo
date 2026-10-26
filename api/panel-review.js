@@ -196,8 +196,15 @@ function normalizeAssessments(raw, selectedRoles) {
 }
 
 module.exports = async function handler(req, res) {
-  const configuredOrigin = String(process.env.FRONTEND_ORIGIN || "https://flemminghest.github.io")
+  // Allow the two intentional production frontends. FRONTEND_ORIGIN may add
+  // any other exact origins (comma-separated), but cannot remove these defaults.
+  const knownOrigins = [
+    "https://flemminghest.github.io",
+    "https://get-a-job-hobo.vercel.app"
+  ];
+  const additionalOrigins = String(process.env.FRONTEND_ORIGIN || "")
     .split(",").map((x) => x.trim()).filter(Boolean);
+  const configuredOrigin = [...new Set([...knownOrigins, ...additionalOrigins])];
   const origin = String(req.headers.origin || "");
   const originAllowed = !origin || configuredOrigin.includes(origin);
 

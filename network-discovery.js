@@ -5,13 +5,34 @@
 const COMPANY_CONTEXT_API='https://puri.li/api/context';
 const COMPANY_GEOCODE_API='https://nominatim.openstreetmap.org/search';
 const FREDERIKSBERG_ORIGIN={lat:55.6802,lon:12.5341,label:'Frederiksberg bymidte'};
-const PROFILE_KEYWORDS=['CRM','marketing automation','digital marketing','kampagnestyring','content marketing','dataanalyse','AI','e-mail marketing','SEO','paid media','performance marketing','kunderejser','loyalitet','strategi','copywriting','marketing analytics','GA4','brand marketing'];
+const PROFILE_KEYWORDS=['CRM','marketing automation','digital marketing','marketing','kampagnestyring','campaign management','content marketing','content strategy','dataanalyse','data analysis','AI','artificial intelligence','e-mail marketing','email marketing','SEO','paid media','performance marketing','kunderejser','customer journeys','loyalitet','loyalty','strategi','strategy','copywriting','marketing analytics','GA4','Google Analytics','brand marketing','brand management','segmentering','segmentation','lead generation','customer experience','kundeoplevelser','lifecycle marketing','konvertering','conversion rate optimization','paid social','social media','project management','projektledelse','kommunikation','communication','budget','stakeholder management','B2B','B2C','Salesforce','HubSpot','Klaviyo','SQL','Power BI','Google Ads','Meta Ads','e-commerce','e-commerce marketing','marketing strategy','email automation','customer data','analytics','web analytics'];
 function uniqueTerms(items){const seen=new Set();return items.filter(item=>{const key=normalizeSearchText(item);if(!key||seen.has(key))return false;seen.add(key);return true})}
-function profileTermsFromCV(){
- const text=String(state.cv||'');
- const found=PROFILE_KEYWORDS.filter(term=>normalizeSearchText(text).includes(normalizeSearchText(term)));
- return (found.length>=3?found.slice(0,10):['CRM','marketing automation','digital marketing','kampagner','content','dataanalyse','AI']);
+function extractSearchTermsFromCV(){
+ const text=String(state.cv||'').trim();
+ if(!text)return [];
+ const normalized=normalizeSearchText(text);
+ return uniqueTerms(PROFILE_KEYWORDS.filter(term=>normalized.includes(normalizeSearchText(term)))).slice(0,12);
 }
+function profileTermsFromCV(){
+ const found=extractSearchTermsFromCV();
+ return found.length?found:['CRM','marketing automation','digital marketing','content marketing','dataanalyse','SEO'];
+}
+function restoreSearchTermsFromCV(){
+ const cv=String(state.cv||'').trim();
+ const status=el('jobSearchStatus');
+ if(!cv){if(status){status.className='notice warnbox';status.textContent='Dit CV er ikke gemt endnu. Gå til “Mit CV”, gem CV-teksten, og klik derefter her igen.'}return}
+ const terms=extractSearchTermsFromCV();
+ if(!terms.length){if(status){status.className='notice warnbox';status.textContent='Jeg kunne ikke genkende fagord i dit gemte CV. Skriv søgeord manuelt, eller tilføj jobtitler, kompetencer og værktøjer til CV-teksten.'}return}
+ state.networkSearchTerms=terms.join(', ');
+ if(el('jobSearchTerms'))el('jobSearchTerms').value=state.networkSearchTerms;
+ if(el('networkSearchTerms'))el('networkSearchTerms').value=state.networkSearchTerms;
+ if(el('jobKeywordCount'))el('jobKeywordCount').textContent=terms.length;
+ persist();
+ if(status){status.className='notice goodbox';status.textContent='Søgeord gendannet fra dit CV: '+terms.join(', ')+'. Du kan tilpasse dem, før du søger.'}
+ if(el('jobSearchTerms'))el('jobSearchTerms').focus();
+}
+function focusJobSearch(){const input=el('jobSearchTerms');if(input){input.scrollIntoView({behavior:'smooth',block:'center'});input.focus()}}
+
 function saveNetworkSearchPreferences(){
  state.networkSearchTerms=String(el('networkSearchTerms')?.value||'').trim().slice(0,600);
  state.networkSearchLocation=(String(el('networkSearchLocation')?.value||'').trim()||'Danmark').slice(0,300);
@@ -21,9 +42,10 @@ function saveNetworkSearchPreferences(){
 }
 function syncJobSearchPreferences(){
  state.networkSearchTerms=String(el('jobSearchTerms')?.value||'').trim().slice(0,600);
- state.networkSearchLocation=(String(el('jobSearchLocation')?.value||'').trim()||'København og omegn').slice(0,300);
+ state.networkSearchLocation=(String(el('jobSearchLocation')?.value||'').trim()||'Frederiksberg, København og omegn, Danmark').slice(0,300);
  if(el('networkSearchTerms'))el('networkSearchTerms').value=state.networkSearchTerms;
  if(el('networkSearchLocation'))el('networkSearchLocation').value=state.networkSearchLocation;
+ if(el('jobKeywordCount'))el('jobKeywordCount').textContent=parseTerms(state.networkSearchTerms).length;
  persist();
 }
 function syncNetworkSearchPreferencesFromCV(){
@@ -34,14 +56,14 @@ function syncNetworkSearchPreferencesFromCV(){
 }
 function parseTerms(raw){return uniqueTerms(String(raw||'').split(/[,;|\n]/).map(term=>term.trim()).filter(term=>term.length>1)).slice(0,12)}
 function searchProfile(){
- const raw=String(el('networkSearchTerms')?.value||el('jobSearchTerms')?.value||state.networkSearchTerms||'');
+ const raw=String((el('jobSearchTerms')?.value??el('networkSearchTerms')?.value??state.networkSearchTerms)||'');
  const terms=parseTerms(raw);
- const loc=String(el('networkSearchLocation')?.value||el('jobSearchLocation')?.value||state.networkSearchLocation||'Danmark').trim();
+ const loc=String((el('jobSearchLocation')?.value??el('networkSearchLocation')?.value??state.networkSearchLocation)||'Frederiksberg, København og omegn, Danmark').trim();
  return {terms:terms.length?terms:profileTermsFromCV(),location:loc.slice(0,300)||'København og omegn'};
 }
 function syncOpportunityInputs(){
  if(el('jobSearchTerms'))el('jobSearchTerms').value=state.networkSearchTerms||profileTermsFromCV().join(', ');
- if(el('jobSearchLocation'))el('jobSearchLocation').value=state.networkSearchLocation||'København og omegn';
+ if(el('jobSearchLocation'))el('jobSearchLocation').value=state.networkSearchLocation||'Frederiksberg, København og omegn, Danmark';
  if(el('jobKeywordCount'))el('jobKeywordCount').textContent=parseTerms(state.networkSearchTerms).length;
  if(el('jobOpportunityCount'))el('jobOpportunityCount').textContent=(state.jobOpportunities||[]).length;
  if(el('jobTrackedCount'))el('jobTrackedCount').textContent=(state.followUps||[]).filter(item=>item.type==='job').length;
@@ -182,6 +204,26 @@ function mapResult(raw,query,terms,usedFallback){
  if(query.scope==='danish-jobs'){const scope=getDanishJobScope(item,null);item.matchScope=scope.kind;item.matchScopeLabel=scope.label}
  return item;
 }
+async function isGenericJobLandingPage(item){
+ const title=normalizeSearchText(item&&item.title||'');
+ const url=String(item&&item.url||'').toLowerCase();
+ const genericTitle=/(^| )(remote jobs?( in)? denmark|jobs? in denmark|find jobs?|job search|search jobs?|browse jobs?|all (current )?jobs?|career opportunities|job portal|job board|job categories|vacancies in denmark|work in denmark|job opportunities in|ledige stillinger|jobmuligheder|jobsogning|jobsoegning|find et job|joboversigt)( |$)/i.test(title);
+ const genericPath=/\/(jobs?|careers?|search|job-search|job-portal|job-listings|jobs-in-denmark|remote-jobs|vacancies)\/?(?:\?.*)?$/.test(url);
+ return genericTitle||(genericPath&&!/\/jobs?\/(?:view|details|[0-9]{4,})/i.test(url));
+}
+function isLikelySpecificJobPosting(item,query){
+ if(!item||!safeHttpUrl(item.url)||isGenericJobLandingPage(item))return false;
+ const url=String(item.url).toLowerCase(),host=String(item.domain||'').toLowerCase();
+ const strongPath=(host.includes('linkedin.com')&&/\/jobs\/view\//.test(url))||
+  (host.includes('jobindex.dk')&&/\/(jobannonce|job|stillinger)\//.test(url))||
+  (host.includes('stepstone.dk')&&/\/(job|jobad|stellenangebote|stilling)\//.test(url))||
+  (host.includes('jobnet.dk')&&/\/(job|stillinger|vacancy|vacancies)\//.test(url));
+ if(strongPath)return true;
+ const title=String(item.title||'').trim(),description=String(item.description||'');
+ const looksLikeRole=title.length>=10&&title.split(/\s+/).length<=18&&!/\b(remote jobs|job portal|job search|jobs in|browse jobs|find jobs|career opportunities)\b/i.test(title);
+ const postingLanguage=/\b(we are looking for|we're looking for|you will|ansøg|søger en|vi søger|stillingen|jobbet|apply now|apply for|your role|responsibilities|requirements|qualifications|arbejdsopgaver|arbejdssted|deadline|job id|jobnummer)\b/i.test(description);
+ return looksLikeRole&&postingLanguage;
+}
 async function queryIndex(query,terms,profile){
  async function request(q){
   const endpoint=LIVE_SEARCH_API+'?'+new URLSearchParams({q,page:'1',exact:'0'}).toString();
@@ -195,6 +237,7 @@ async function queryIndex(query,terms,profile){
    if(!isDanishJobResult(row,query,profile))return null;
    const item=mapResult(row,query,terms,usedFallback);if(!item)return null;
    if(query.targetSite&&!domainMatches(new URL(item.url).hostname,query.targetSite))return null;
+   if(query.scope==='danish-jobs'&&!isLikelySpecificJobPosting(item,query))return null;
    if(query.scope==='danish-jobs'){
     const scope=getDanishJobScope(item,profile);
     if(!scope.eligible)return null;
@@ -528,22 +571,141 @@ function renderJobOpportunities(){
  if(el('jobLastSearchLabel'))el('jobLastSearchLabel').textContent=state.jobLastSearch?new Date(state.jobLastSearch).toLocaleDateString('da-DK'):'Ikke søgt';
  if(el('jobOpportunitiesMeta'))el('jobOpportunitiesMeta').textContent=results.length+' forslag';
 }
-async function searchJobOpportunities(){
+let jobSearchProgressOriginalOverflow='';
+let jobSearchProgressQueries=[];
+let jobSearchProgressCompleted=new Set();
+function searchPortalIcon(index){
+ const icons=[
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>',
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h6"/></svg>',
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg>',
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>',
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>',
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="m8 12 2.5 2.5L16 9"/></svg>',
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18M3 12h18M3 19h18"/><circle cx="8" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="11" cy="19" r="2"/></svg>'
+ ];
+ return icons[index%icons.length];
+}
+function showJobSearchProgress(queries,profile){
+ const modal=el('jobSearchProgressModal');if(!modal)return;
+ jobSearchProgressOriginalOverflow=document.body.style.overflow;
+ jobSearchProgressQueries=queries.slice();jobSearchProgressCompleted=new Set();
+ const list=el('jobSearchPortalList'),colors=['#287BF5','#7957DD','#16866B','#E87536','#0E9DA8','#D34C76','#6B7A90','#25946B'];
+ if(list)list.innerHTML=queries.map((query,index)=>'<div class="job-search-portal-row" data-search-portal="'+escapeHtml(query.id)+'" data-state="waiting"><span class="job-search-portal-icon" style="--portal-color:'+colors[index%colors.length]+'">'+searchPortalIcon(index)+'</span><span class="job-search-portal-copy"><strong>'+escapeHtml(query.label)+'</strong><small>'+escapeHtml(query.id==='career-sites'?'Offentlige karrieresider':query.targetSite||'Jobportal')+'</small></span><span class="job-search-portal-state">Afventer</span></div>').join('');
+ if(el('jobSearchProgressTitle'))el('jobSearchProgressTitle').textContent='Søger efter relevante stillinger';
+ if(el('jobSearchProgressDescription'))el('jobSearchProgressDescription').textContent='Søger på tværs af danske jobportaler med dine søgeord og geografien '+profile.location+'.';
+ if(el('jobSearchProgressStatus'))el('jobSearchProgressStatus').textContent='Forbereder søgeforespørgsler…';
+ if(el('jobSearchProgressPercent'))el('jobSearchProgressPercent').textContent='0%';
+ if(el('jobSearchProgressRing')){el('jobSearchProgressRing').style.setProperty('--job-progress','0%');el('jobSearchProgressRing').setAttribute('aria-valuenow','0')}
+ if(el('jobSearchProgressFill'))el('jobSearchProgressFill').style.width='0%';
+ if(el('jobSearchProgressCount'))el('jobSearchProgressCount').textContent='0 af '+queries.length+' portaler færdige';
+ if(el('jobSearchProgressClose'))el('jobSearchProgressClose').hidden=true;
+ if(el('jobSearchProgressFooter'))el('jobSearchProgressFooter').textContent='Procenten viser hvor mange portaler der har svaret — ikke en beregning af intern fremdrift.';
+ modal.hidden=false;delete modal.dataset.complete;document.body.style.overflow='hidden';
+}
+function updateJobSearchPortal(queryId,status,detail){
+ const row=Array.from(document.querySelectorAll('[data-search-portal]')).find(node=>node.dataset.searchPortal===queryId);
+ if(row){
+  row.dataset.state=status;
+  const stateNode=row.querySelector('.job-search-portal-state');
+  if(stateNode)stateNode.textContent=status==='searching'?'Søger…':status==='done'?'Færdig · '+detail:status==='empty'?'Ingen match':status==='error'?'Fejl':status==='waiting'?'Afventer':detail||status;
+ }
+ if(status==='done'||status==='empty'||status==='error')jobSearchProgressCompleted.add(queryId);
+ const total=jobSearchProgressQueries.length||1,completed=jobSearchProgressCompleted.size,percent=Math.round(completed/total*100);
+ if(el('jobSearchProgressPercent'))el('jobSearchProgressPercent').textContent=percent+'%';
+ if(el('jobSearchProgressRing')){el('jobSearchProgressRing').style.setProperty('--job-progress',percent+'%');el('jobSearchProgressRing').setAttribute('aria-valuenow',String(percent))}
+ if(el('jobSearchProgressFill'))el('jobSearchProgressFill').style.width=percent+'%';
+ if(el('jobSearchProgressCount'))el('jobSearchProgressCount').textContent=completed+' af '+total+' portaler færdige';
+ if(el('jobSearchProgressStatus')){
+  if(completed===total)el('jobSearchProgressStatus').textContent='Alle portaler har svaret. Samler og sorterer konkrete stillingsopslag…';
+  else if(status==='searching')el('jobSearchProgressStatus').textContent='Søger hos '+(jobSearchProgressQueries.find(query=>query.id===queryId)?.label||'jobportalen')+'…';
+  else el('jobSearchProgressStatus').textContent='Søgningen er i gang. Venter på de resterende portaler…';
+ }
+}
+function finishJobSearchProgress(){
+ const modal=el('jobSearchProgressModal');
+ if(el('jobSearchProgressTitle'))el('jobSearchProgressTitle').textContent='Søgningen er afsluttet';
+ if(el('jobSearchProgressStatus'))el('jobSearchProgressStatus').textContent='Resultaterne er samlet. Luk denne oversigt for at se stillingerne.';
+ if(el('jobSearchProgressClose'))el('jobSearchProgressClose').hidden=false;
+ if(el('jobSearchProgressFooter'))el('jobSearchProgressFooter').textContent='Åbn originalopslaget for at kontrollere, at stillingen stadig er aktiv, og at arbejdsstedet passer.';
+ if(modal)modal.dataset.complete='true';
+}
+function closeJobSearchProgress(){
+ const modal=el('jobSearchProgressModal');if(modal)modal.hidden=true;
+ document.body.style.overflow=jobSearchProgressOriginalOverflow||'';
+ const results=el('jobOpportunitiesResults');if(results)results.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function compareSearchTermsWithCV(profile){
+ const cv=String(state.cv||'').trim();
+ if(cv.length<80)return {hasCv:false,matched:[],unmatched:profile.terms.slice(),ratio:1};
+ const normalizedCv=normalizeSearchText(cv),cvSkills=extractSearchTermsFromCV().map(normalizeSearchText);
+ const stop=new Set(['the','and','for','with','fra','til','med','of','in','on','at','og','eller','job','jobs','stilling','stillinger','arbejde','arbejder','i','en','et']);
+ const tokens=value=>normalizeSearchText(value).split(/\s+/).filter(token=>token.length>2&&!stop.has(token));
+ const cvWordSet=new Set(tokens(cv).slice(0,1200)),matched=[],unmatched=[];
+ for(const term of profile.terms){
+  const norm=normalizeSearchText(term),termTokens=tokens(term);
+  const direct=norm&&normalizedCv.includes(norm);
+  const keywordMatch=cvSkills.some(skill=>skill===norm||skill.includes(norm)||norm.includes(skill));
+  const overlap=termTokens.filter(token=>cvWordSet.has(token)).length;
+  const looseMatch=termTokens.length>0&&overlap>=Math.max(1,Math.ceil(termTokens.length*0.6));
+  if(direct||keywordMatch||looseMatch)matched.push(term);else unmatched.push(term);
+ }
+ return {hasCv:true,matched,unmatched,ratio:profile.terms.length?matched.length/profile.terms.length:1};
+}
+function showCvSearchWarning(profile,comparison){
+ const modal=el('jobCvRelevanceModal');if(!modal)return false;
+ if(el('jobCvWarningSummary'))el('jobCvWarningSummary').textContent='Du har valgt '+profile.terms.join(', ')+', men kun '+comparison.matched.length+' af '+profile.terms.length+' søgeord ser ud til at hænge sammen med kompetencerne i dit gemte CV.';
+ if(el('jobCvWarningMatched'))el('jobCvWarningMatched').innerHTML=comparison.matched.length?comparison.matched.map(term=>'<span class="chip cv-match-good">'+escapeHtml(term)+'</span>').join(''):'<span class="chip cv-match-none">Ingen tydelige overlap fundet</span>';
+ if(el('jobCvWarningUnmatched'))el('jobCvWarningUnmatched').innerHTML=comparison.unmatched.slice(0,8).map(term=>'<span class="chip cv-match-warning">'+escapeHtml(term)+'</span>').join('');
+ modal.hidden=false;document.body.style.overflow='hidden';return true;
+}
+function closeCvSearchWarning(){const modal=el('jobCvRelevanceModal');if(modal)modal.hidden=true;document.body.style.overflow=''}
+function confirmJobSearchDespiteCv(){closeCvSearchWarning();searchJobOpportunities(true)}
+function cancelJobSearchForCv(){closeCvSearchWarning();const input=el('jobSearchTerms');if(input){input.focus();input.scrollIntoView({behavior:'smooth',block:'center'})}}
+
+async function searchJobOpportunities(ignoreCvWarning=false){
  syncJobSearchPreferences();const profile=searchProfile();
- toggleBusy('jobOpportunitiesSearchButton',true,'Søger i Danmark og efter relevant remote…');
- if(el('jobSearchStatus')){el('jobSearchStatus').className='notice goodbox';el('jobSearchStatus').textContent='Søger efter '+profile.terms.join(', ')+' efter kriterierne '+profile.location+' samt remote-job, hvor Danmark er angivet som mulig arbejdsplacering. Internationale opslag uden dansk eller relevant remote-angivelse filtreres fra.'}
+ if(!profile.terms.length){if(el('jobSearchStatus')){el('jobSearchStatus').className='notice warnbox';el('jobSearchStatus').textContent='Skriv mindst ét søgeord, fx marketing, CRM eller marketing automation.'}return}
+ if(!ignoreCvWarning){
+  const comparison=compareSearchTermsWithCV(profile);
+  if(comparison.hasCv&&(comparison.matched.length===0||comparison.ratio<0.25)){
+   if(showCvSearchWarning(profile,comparison))return;
+  }
+ }
+ const queries=jobQueries(profile);
+ toggleBusy('jobOpportunitiesSearchButton',true,'Søger…');
+ if(el('jobSearchStatus')){el('jobSearchStatus').className='notice goodbox';el('jobSearchStatus').textContent='Søger efter '+profile.terms.join(', ')+' på tværs af jobportaler. Resultater filtreres efter Danmark eller relevant remote-arbejde.'}
+ showJobSearchProgress(queries,profile);
  try{
-  const queries=jobQueries(profile),settled=await Promise.allSettled(queries.map(query=>queryIndex(query,profile.terms)));
+  const settled=await Promise.all(queries.map(async query=>{
+   updateJobSearchPortal(query.id,'searching','');
+   try{
+    const value=await queryIndex(query,profile.terms,profile),count=(value.results||[]).length;
+    updateJobSearchPortal(query.id,count?'done':'empty',count+' opslag');
+    return {status:'fulfilled',value};
+   }catch(error){
+    updateJobSearchPortal(query.id,'error',String(error&&error.message||error).slice(0,100));
+    return {status:'rejected',reason:error};
+   }
+  }));
   let succeeded=0,failed=0;const all=[],errors=[];
   settled.forEach((result,index)=>{if(result.status==='fulfilled'){succeeded++;all.push(...result.value.results)}else{failed++;errors.push(queries[index].label+': '+String(result.reason&&result.reason.message||result.reason).slice(0,120))}});
   const unique=new Map();all.forEach(item=>{const key=canonicalSearchUrl(item.url),old=unique.get(key);if(!old||item.matchedTerms.length>old.matchedTerms.length)unique.set(key,item)});
-  state.jobOpportunities=[...unique.values()].filter(item=>isDanishMappedJob(item,profile)).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
+  state.jobOpportunities=[...unique.values()].filter(item=>isDanishMappedJob(item,profile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs'})).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
   state.jobLastSearch=new Date().toISOString();persist();renderJobOpportunities();
-  if(el('jobSearchStatus')){const remoteCheck=state.jobOpportunities.filter(item=>item.matchScope==='remote-check').length;el('jobSearchStatus').className='notice '+(succeeded?'goodbox':'warnbox');el('jobSearchStatus').textContent=(succeeded?'Søgningen er afsluttet. ':'Søgningen mislykkedes. ')+state.jobOpportunities.length+' relevante resultater fra '+succeeded+'/'+queries.length+' kildeområder; '+failed+' fejlede. '+remoteCheck+' remote-opslag kræver bekræftelse af, at Danmark er tilladt. Udenlandske stillinger uden dokumenteret dansk/remote-match vises ikke.'+(errors.length?' Fejl: '+errors.join(' | '):'')}
- }catch(error){if(el('jobSearchStatus')){el('jobSearchStatus').className='notice warnbox';el('jobSearchStatus').textContent='Job-søgningen fejlede: '+String(error&&error.message||error)}}
- finally{toggleBusy('jobOpportunitiesSearchButton',false)}
+  if(el('jobSearchStatus')){
+   const remoteCheck=state.jobOpportunities.filter(item=>item.matchScope==='remote-check').length;
+   let message=state.jobOpportunities.length?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete stillingsopslag fra '+succeeded+' af '+queries.length+' kildeområder. '+remoteCheck+' remote-opslag kræver kontrol af, om Danmark er tilladt.':'Ingen konkrete stillingsopslag matchede alle kriterier denne gang. Generelle jobportalsider og udenlandske opslag uden relevant dansk/remote-match er filtreret fra. Prøv færre eller bredere søgeord.';
+   el('jobSearchStatus').className='notice '+(state.jobOpportunities.length?'goodbox':'warnbox');
+   el('jobSearchStatus').textContent=message+(errors.length?' Kildeproblemer: '+errors.join(' | '):'');
+  }
+  finishJobSearchProgress();
+ }catch(error){
+  if(el('jobSearchStatus')){el('jobSearchStatus').className='notice warnbox';el('jobSearchStatus').textContent='Job-søgningen fejlede: '+String(error&&error.message||error)}
+  finishJobSearchProgress();
+ }finally{toggleBusy('jobOpportunitiesSearchButton',false)}
 }
-
 function renderCompanyCriteriaResults(){
  const node=el('companyCriteriaResults'),meta=el('companyCriteriaMeta');
  const results=state.companyCriteriaResults||[];
@@ -701,6 +863,11 @@ window.syncJobSearchPreferences=syncJobSearchPreferences;
 window.searchNetworkProspects=searchNetworkProspects;
 window.searchNetworkCommunities=searchNetworkCommunities;
 window.searchJobOpportunities=searchJobOpportunities;
+window.restoreSearchTermsFromCV=restoreSearchTermsFromCV;
+window.focusJobSearch=focusJobSearch;
+window.closeJobSearchProgress=closeJobSearchProgress;
+window.confirmJobSearchDespiteCv=confirmJobSearchDespiteCv;
+window.cancelJobSearchForCv=cancelJobSearchForCv;
 window.searchDanishCompaniesByCriteria=searchDanishCompaniesByCriteria;
 window.addFollowUpFromResult=addFollowUpFromResult;
 window.copyNetworkOutreach=copyNetworkOutreach;

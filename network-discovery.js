@@ -130,6 +130,7 @@ function isDanishJobResult(raw,query,profile){
  const url=safeHttpUrl(raw&&raw.url);if(!url)return false;
  let rawHost='';try{rawHost=new URL(url).hostname.toLowerCase()}catch(e){}
  // Query is explicitly site-limited and includes Danish geographic terms.
+ if(query.id==='web-jobs')return true;
  if(query.id==='indeed-dk'&&domainMatches(rawHost,'indeed.com'))return true;
  if(query.id==='linkedin-jobs'&&domainMatches(rawHost,'linkedin.com')&&/\/jobs\/view\//i.test(url))return true;
  const item={
@@ -167,6 +168,7 @@ function jobQueries(profile){
  const loc=jobLocationQuery(profile.location||'Frederiksberg, København og omegn, Danmark');
  const q=(domain,term,geo)=>'site:'+domain+' '+term+' '+geo;
  return [
+  {id:'web-jobs',label:'Bred søgning på tværs af jobportaler',targetSite:'',scope:'danish-jobs',query:first+' job stilling '+loc+' Denmark Danmark',fallbackQuery:second+' jobs Denmark Danmark',alternativeQueries:[third+' jobs Denmark Danmark',first+' remote work from Denmark']},
   {id:'linkedin-jobs',label:'LinkedIn Jobs · Danmark og remote',targetSite:'linkedin.com',scope:'danish-jobs',query:q('linkedin.com/jobs/view',first,loc),fallbackQuery:q('linkedin.com/jobs/view',second,'Denmark Danmark'),alternativeQueries:[q('linkedin.com/jobs/view',third,'Denmark Danmark')]},
   {id:'jobindex',label:'Jobindex Danmark',targetSite:'jobindex.dk',scope:'danish-jobs',query:q('jobindex.dk/jobannonce',first,loc),fallbackQuery:q('jobindex.dk',second,'Danmark Denmark'),alternativeQueries:[q('jobindex.dk',third,'Danmark Denmark')]},
   {id:'indeed-dk',label:'Indeed Danmark',targetSite:'indeed.com',scope:'danish-jobs',query:q('dk.indeed.com/viewjob',first,loc),fallbackQuery:q('dk.indeed.com',second,'Denmark Danmark'),alternativeQueries:[q('indeed.com',third,'Denmark Denmark')]},
@@ -268,9 +270,12 @@ async function queryIndex(query,terms,profile){
    if(query.scope==='danish-jobs'&&!isLikelySpecificJobPosting(item,query))return null;
    if(query.scope==='danish-jobs'){
     let scope=getDanishJobScope(item,profile);
-    if(!scope.eligible&&(query.id==='indeed-dk'||query.id==='linkedin-jobs')){
+    if(!scope.eligible&&(query.id==='indeed-dk'||query.id==='linkedin-jobs'||query.id==='web-jobs')){
      const text=jobEvidenceText(item);
-     if(!explicitNonDanishLocation(text))scope={eligible:true,kind:'query-location',label:(query.id==='indeed-dk'?'Indeed Danmark':'LinkedIn Jobs')+' · kontrollér arbejdssted'};
+     if(!explicitNonDanishLocation(text)){
+      const label=query.id==='indeed-dk'?'Indeed Danmark':query.id==='linkedin-jobs'?'LinkedIn Jobs':'Bred webindekssøgning';
+      scope={eligible:true,kind:'query-location',label:label+' · kontrollér arbejdssted'};
+     }
     }
     if(!scope.eligible)return null;
     item.matchScope=scope.kind;item.matchScopeLabel=scope.label;
@@ -789,8 +794,12 @@ async function searchJobOpportunities(ignoreCvWarning=false){
   // Enrich job cards in the background. The cards already render; company facts fill in automatically as sources return.
   autoLookupJobCompanyFacts(state.jobOpportunities.slice());
   if(el('jobSearchStatus')){
-   const remoteCheck=state.jobOpportunities.filter(item=>item.matchScope==='remote-check').length;
-   let message=state.jobOpportunities.length?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete stillingsopslag fra '+succeeded+' af '+queries.length+' kildeområder. '+remoteCheck+' remote-opslag kræver kontrol af, om Danmark er tilladt.':'Søgeindekset returnerede ingen opslag, der overlevede filtreringen. Der blev forsøgt flere søgevarianter pr. portal; se portalstatus i søgemodalen for antal rå fund og fejl.';
+   const remoteCheck=state.jobOpportunities.filter(item=>item.matchScope==='remote-check'||item.matchScope==='query-location').length;
+   const rawTotal=settled.reduce((total,result)=>total+(result.status==='fulfilled'&&result.value.diagnostics?Number(result.value.diagnostics.raw||0):0),0);
+   const portalSummary=settled.map((result,index)=>({label:queries[index].label,raw:result.status==='fulfilled'&&result.value.diagnostics?Number(result.value.diagnostics.raw||0):0,shown:result.status==='fulfilled'?result.value.results.length:0})).filter(x=>x.raw||x.shown).slice(0,5).map(x=>x.label+': '+x.raw+' rå / '+x.shown+' vist').join(' · ');
+   let message=state.jobOpportunities.length
+    ?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete stillingsopslag vist. '+remoteCheck+' opslag har placering/remote-forbehold.'
+    :'Søgeindekset returnerede '+rawTotal+' rå resultater, men ingen blev vist efter filtrering. '+(portalSummary?'Kilder: '+portalSummary+'. ':'')+'Prøv at gøre søgningen bredere, eller kontrollér portalstatus.';
    el('jobSearchStatus').className='notice '+(state.jobOpportunities.length?'goodbox':'warnbox');
    el('jobSearchStatus').textContent=message+(errors.length?' Kildeproblemer: '+errors.join(' | '):'');
   }

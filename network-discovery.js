@@ -2,6 +2,9 @@
    Uses the existing public web-index endpoint. Does not log into LinkedIn or auto-send messages. */
 (function(){
 'use strict';
+const COMPANY_CONTEXT_API='https://puri.li/api/context';
+const COMPANY_GEOCODE_API='https://nominatim.openstreetmap.org/search';
+const FREDERIKSBERG_ORIGIN={lat:55.6802,lon:12.5341,label:'Frederiksberg bymidte'};
 const PROFILE_KEYWORDS=['CRM','marketing automation','digital marketing','kampagnestyring','content marketing','dataanalyse','AI','e-mail marketing','SEO','paid media','performance marketing','kunderejser','loyalitet','strategi','copywriting','marketing analytics','GA4','brand marketing'];
 function uniqueTerms(items){const seen=new Set();return items.filter(item=>{const key=normalizeSearchText(item);if(!key||seen.has(key))return false;seen.add(key);return true})}
 function profileTermsFromCV(){
@@ -318,11 +321,48 @@ function companyResultRelevant(result,company,item){
  if(tokens.length===1)return matches===1;
  return tokens.length>1&&matches>=Math.min(2,tokens.length);
 }
+function companySourceHost(source){
+ const url=safeHttpUrl(source&&source.url);
+ try{return new URL(url||'').hostname.toLowerCase().replace(/^www\./,'')}catch(e){return ''}
+}
+async function enrichCompanyPageContext(source){
+ const host=companySourceHost(source),url=safeHttpUrl(source&&source.url);
+ const isJobindex=host==='jobindex.dk'||host.endsWith('.jobindex.dk');
+ const isKrak=host==='krak.dk'||host.endsWith('.krak.dk');
+ if(!url||(!isJobindex&&!isKrak))return source;
+ if(isJobindex&&!/\/virksomhed\//i.test(url))return source;
+ if(isKrak&&!/firma|virksomhed/i.test(url))return source;
+ try{
+  const endpoint=COMPANY_CONTEXT_API+'?'+new URLSearchParams({url}).toString();
+  const ctx=await fetchJsonTimeout(endpoint,10000);
+  const pageContent=String(ctx&&(ctx.content||ctx.summary||ctx.description)||'').replace(/\s+/g,' ').trim();
+  if(pageContent.length<60)return {...source,contextFetchStatus:'empty'};
+  return {...source,pageContent:pageContent.slice(0,16000),contextTitle:String(ctx.title||source.title||''),contextCoverage:String(ctx.coverage||'unknown'),contextFetchStatus:'ok'};
+ }catch(error){return {...source,contextFetchStatus:'failed',contextFetchError:String(error&&error.message||error).slice(0,180)}}
+}
+function haversineDistanceKm(lat1,lon1,lat2,lon2){
+ const rad=value=>value*Math.PI/180,dLat=rad(lat2-lat1),dLon=rad(lon2-lon1);
+ const a=Math.sin(dLat/2)**2+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)**2;
+ return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a)));
+}
+async function geocodeDanishCompanyLocation(location){
+ const query=String(location||'').trim();if(!query)return null;
+ const key='gajh_company_geocode_'+normalizeInsightText(query);
+ try{const cached=localStorage.getItem(key);if(cached){const parsed=JSON.parse(cached);if(Number.isFinite(parsed.lat)&&Number.isFinite(parsed.lon))return parsed}}catch(e){}
+ const endpoint=COMPANY_GEOCODE_API+'?'+new URLSearchParams({format:'jsonv2',countrycodes:'dk',limit:'1',q:query}).toString();
+ const rows=await fetchJsonTimeout(endpoint,9000);
+ if(!Array.isArray(rows)||!rows.length)return null;
+ const value={lat:Number(rows[0].lat),lon:Number(rows[0].lon),displayName:String(rows[0].display_name||query),sourceUrl:'https://www.openstreetmap.org/'};
+ if(!Number.isFinite(value.lat)||!Number.isFinite(value.lon))return null;
+ try{localStorage.setItem(key,JSON.stringify(value))}catch(e){}
+ return value;
+}
 function applyCompanySourceFacts(sources,prior){
  const f={...(prior||{})},factSources={...(f.factSources||{})};
- const bodyOf=source=>String((source.title||'')+' '+(source.description||'')).replace(/\s+/g,' ');
+ const bodyOf=source=>String((source.title||'')+' '+(source.description||'')+' '+(source.pageContent||'')).replace(/\s+/g,' ');
  const fill=(field,value,source)=>{if(!String(f[field]||'').trim()&&value!==undefined&&value!==null&&String(value).trim()!==''){f[field]=String(value).trim();factSources[field]=source}};
- for(const source of sources){
+ const prioritised=[...sources].sort((a,b)=>{const rank=source=>companySourceHost(source).includes('jobindex.dk')?0:companySourceHost(source).includes('krak.dk')?1:2;return rank(a)-rank(b)});
+ for(const source of prioritised){
   if(!isDanishCompanySource(source))continue;
   const text=bodyOf(source),domain=String(source.domain||'').toLowerCase().replace(/^www\./,'');
   const structured=source.companyFacts||{};
@@ -343,6 +383,7 @@ function applyCompanySourceFacts(sources,prior){
   }
   if(!f.employeeCount&&(m=text.match(/\b(\d{1,4}\s*[-–]\s*\d{1,4})\s*(?:employees|medarbejdere|ansatte)\b/i)))fill('employeeCount',m[1].replace(/\s+/g,' ').trim(),source);
   if(!f.employeeCount&&(m=text.match(/\b(\d{1,5})\s+(?:ansatte|medarbejdere|employees)\b/i)))fill('employeeCount',m[1],source);
+  if(!f.employeeCount&&(m=text.match(/(?:medarbejderantal|antal medarbejdere|antal ansatte|virksomhedsstørrelse|company size|employees)\D{0,25}(\d{1,4}\s*[-–]\s*\d{1,4}|\d{1,5})/i)))fill('employeeCount',m[1].replace(/\s+/g,' ').trim(),source);
   if(!f.foundedYear&&(m=text.match(/(?:stiftet|etableret|grundlagt|founded|registreringsdato)\D{0,32}\b(19\d{2}|20\d{2})\b/i)))fill('foundedYear',m[1],source);
   if(!f.location&&(m=text.match(/(?:headquarters|headquartered|hovedkontor|location|lokation|adresse|address|besøgsadresse|postadresse)\s*[:\-]?\s*(.{3,100})/i))){
    const location=m[1].split(/\b(?:company size|company type|type|founded|industry|specialties|employees|employee count|about us|visit website|revenue|virksomhedstype|antal ansatte|telefon|phone|CVR|kontakt|åbningstider)\b/i)[0].replace(/[|,;\s.]+$/,'').trim();
@@ -354,7 +395,15 @@ function applyCompanySourceFacts(sources,prior){
    if(industry&&industry.length<=70)fill('industry',industry,source);
   }
   if(!f.companyType&&(m=text.match(/(?:company type|type|virksomhedsform|selskabsform|organization type)\s*[:\-]?\s*(privately held|public company|privately owned|private company|offentlig institution|aktieselskab|anpartsselskab|ApS|A\/S|I\/S|P\/S|limited|gmbh|llc|inc\.?)/i)))fill('companyType',m[1],source);
-  if(workplace&&!f.employeeRating&&(m=text.match(/(?:medarbejdertilfredshed|arbejdspladsrating|employee rating|workplace rating|jobglæde|job satisfaction|rating)\D{0,30}([1-5][,.]\d)|\b([1-5][,.]\d)\s*(?:\/\s*5|out of 5|ud af 5|stjerner af 5|stars? out of 5)\b/i)))fill('employeeRating',(m[1]||m[2]).replace(',','.'),source);
+  if(workplace&&!f.employeeRating){
+   m=text.match(/(?:medarbejdertilfredshed|arbejdspladsrating|employee rating|workplace rating|jobglæde|job satisfaction|samlet vurdering|rating value|ratingvalue|rating)\D{0,35}([1-5](?:[,.]\d)?)(?:\s*(?:\/\s*5|ud af 5|af 5|stjerner?|stars?))?/i)
+    ||text.match(/\b([1-5][,.]\d)\s*(?:\/\s*5|out of 5|ud af 5|stjerner af 5|stars? out of 5)\b/i);
+   if(m)fill('employeeRating',(m[1]||m[2]).replace(',','.'),source);
+   if(!f.employeeRating){
+    const stars=text.match(/[★⭐☆]{4,5}/);
+    if(stars){const filled=(stars[0].match(/[★⭐]/g)||[]).length;const total=stars[0].length;if(total===5&&filled>=1)fill('employeeRating',filled.toFixed(1),source)}
+   }
+  }
   if(workplace&&!f.ratingCount&&(m=text.match(/\b(\d{1,6})\s+(?:total\s+)?(?:(?:company|employee)\s+)?(?:anmeldelser|vurderinger|evalueringer|reviews|ratings)\b/i)))fill('ratingCount',m[1],source);
  }
  f.factSources=factSources;return f;
@@ -368,7 +417,7 @@ async function lookupCompanyInsights(index){
  const q='"'+company.replace(/"/g,' ')+'"';
  const queries=[
   {id:'krak-dk',label:'Krak · adresse, placering, telefon og firmadata',targetSite:'krak.dk',query:'site:krak.dk/firma '+q+' adresse postnummer ansatte CVR branche',fallbackQuery:'site:krak.dk '+q+' firmaprofil adresse telefon CVR antal ansatte'},
-  {id:'jobindex-dk',label:'Jobindex · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' jobglæde medarbejdervurdering anmeldelser',fallbackQuery:'site:jobindex.dk '+q+' virksomhed arbejdsplads medarbejdervurdering anmeldelser ansatte'},
+  {id:'jobindex-dk',label:'Jobindex · virksomhedsprofil, antal medarbejdere og evalueringer',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' evalueringer stjerner jobglæde antal medarbejdere om virksomheden',fallbackQuery:'site:jobindex.dk/virksomhed '+q+' evalueringer anmeldelser antal medarbejdere virksomhedsprofil'},
   {id:'jobindex-ads-dk',label:'Jobindex · arbejdsgiver og arbejdssted',targetSite:'jobindex.dk',query:'site:jobindex.dk/jobannonce '+q+' arbejdssted virksomhed Danmark',fallbackQuery:'site:jobindex.dk '+q+' virksomhed adresse Danmark stilling'},
   {id:'proff-dk',label:'Proff Danmark · CVR, branche og ansatte',targetSite:'proff.dk',query:'site:proff.dk '+q+' CVR antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' virksomhed CVR ansatte adresse'},
   {id:'estatistik-dk',label:'eStatistik · danske virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' CVR ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' CVR dansk virksomhed ansatte adresse'},
@@ -386,6 +435,17 @@ async function lookupCompanyInsights(index){
     if(!found.some(old=>canonicalSearchUrl(old.url)===canonicalSearchUrl(result.url)))found.push({...result,sourceType:queries[i].id,sourceLabel:queries[i].label});
    });
   });
+  const contextCandidates=found.filter(source=>{
+   const host=companySourceHost(source),url=String(source.url||'');
+   return ((host==='jobindex.dk'||host.endsWith('.jobindex.dk'))&&/\/virksomhed\//i.test(url))
+    ||((host==='krak.dk'||host.endsWith('.krak.dk'))&&/firma|virksomhed/i.test(url));
+  }).slice(0,4);
+  const contextResults=await Promise.allSettled(contextCandidates.map(enrichCompanyPageContext));
+  contextResults.forEach((result,i)=>{
+   if(result.status!=='fulfilled')return;
+   const enhanced=result.value,target=found.findIndex(source=>canonicalSearchUrl(source.url)===canonicalSearchUrl(enhanced.url));
+   if(target>=0)found[target]=enhanced;
+  });
   const registrySources=found.filter(source=>isDanishRegistrySource(source));
   const confirmedDanish=registrySources.length>0;
   const eligibleSources=confirmedDanish?found:[];
@@ -394,6 +454,16 @@ async function lookupCompanyInsights(index){
   nextFacts.lookupStatus=(sourceErrors===queries.length&&!found.length)?'error':'done';
   nextFacts.lookupAt=new Date().toISOString();
   nextFacts.danishCompanyConfirmed=confirmedDanish;
+  if(nextFacts.location){
+   try{
+    const coords=await geocodeDanishCompanyLocation(nextFacts.location);
+    if(coords){
+     nextFacts.distanceKm=haversineDistanceKm(FREDERIKSBERG_ORIGIN.lat,FREDERIKSBERG_ORIGIN.lon,coords.lat,coords.lon).toLocaleString('da-DK',{maximumFractionDigits:1});
+     nextFacts.distanceMethod='Luftlinje fra Frederiksberg bymidte';
+     nextFacts.factSources={...(nextFacts.factSources||{}),distanceKm:{url:coords.sourceUrl,title:'OpenStreetMap geokodning',domain:'openstreetmap.org'}};
+    }
+   }catch(e){}
+  }
   item.companyFacts=nextFacts;
   persist();renderJobOpportunities();
   const status=el('jobSearchStatus');
@@ -416,7 +486,7 @@ async function lookupCompanyInsights(index){
  const rating=clean(f.employeeRating),n=Number(rating.replace(',','.'));
  const ratingDisplay=rating&&Number.isFinite(n)&&n>=0&&n<=5?n.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
  const employees=clean(f.employeeCount)||'Ikke oplyst',location=clean(f.location)||'Ikke fundet';
- const distance=clean(f.distanceKm),distanceLine=distance?distance+' km fra din adresse':(location!=='Ikke fundet'?'Afstand ikke beregnet':'Afstand kræver lokation');
+ const distance=clean(f.distanceKm),distanceLine=distance?'ca. '+distance+' km i luftlinje fra Frederiksberg':(location!=='Ikke fundet'?'Afstand ikke beregnet':'Afstand kræver dansk adresse');
  const industry=clean(f.industry)||((item.matchedTerms||[]).slice(0,2).join(' · ')||'Ikke fastslået'),founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
  const tone=['mint','orange','purple','blue'][index%4],sources=Array.isArray(f.sources)?f.sources:[],loading=f.lookupStatus==='loading',completed=f.lookupStatus==='done';
  const svg={
@@ -426,8 +496,8 @@ async function lookupCompanyInsights(index){
   building:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/></svg>'
  };
  let out='<section class="job-company-insights job-company-insights-'+tone+'" aria-label="Virksomhedsinfo">';
- out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Virksomhedsinfo fra offentlige kilder</small></div><button type="button" class="job-company-lookup-button" data-discovery-action="company-info" data-collection="jobs" data-index="'+index+'" '+(loading?'disabled':'')+'>'+(loading?'Søger…':completed?'Opdatér data':'Find data')+' ↗</button></div>';
- out+='<div class="job-company-insight-stats"><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' anmeldelser':'Ingen bekræftet medarbejderrating')+'</span></div></div></div>';
+ out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Jobindex og danske virksomhedsdata · afstand fra Frederiksberg</small></div><button type="button" class="job-company-lookup-button" data-discovery-action="company-info" data-collection="jobs" data-index="'+index+'" '+(loading?'disabled':'')+'>'+(loading?'Søger…':completed?'Opdatér data':'Find data')+' ↗</button></div>';
+ out+='<div class="job-company-insight-stats"><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' anmeldelser':'Ingen bekræftet Jobindex-evaluering')+'</span></div></div></div>';
  out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>'; if(clean(f.companyHighlight))out+='<div class="job-company-highlight"><strong>Tal fra virksomhedens egen hjemmeside</strong><span>'+escapeHtml(f.companyHighlight)+'</span></div>';
  if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>Søger på Krak efter adresse og ansatte, på Jobindex efter virksomhedsprofil/jobglæde og i danske virksomhedsregistre…</div>';
  if(completed){
@@ -435,7 +505,7 @@ async function lookupCompanyInsights(index){
   out+=sources.length?'<div class="job-company-evidence-list">'+sources.slice(0,4).map(source=>'<a class="job-company-evidence-item" href="'+escapeHtml(safeHttpUrl(source.url))+'" target="_blank" rel="noopener noreferrer"><span class="job-company-evidence-copy"><strong>'+escapeHtml(source.domain||source.sourceLabel||'Offentlig kilde')+'</strong><small>'+escapeHtml(source.title||'Virksomhedsoplysninger')+'</small><em>'+escapeHtml(String(source.description||'').slice(0,220))+'</em></span><span class="job-company-evidence-arrow">↗</span></a>').join('')+'</div>':'<p class="job-company-evidence-empty">Ingen relevante profiler blev fundet i de offentlige søgeresultater.</p>';
   out+='</div>';
  }
- out+='<p class="job-company-insight-note">Medarbejderrating hentes kun fra arbejdsplads-/medarbejdervurderinger — ikke almindelige kundevurderinger. Afstand kræver en valgt adresse og beregning.</p></section>';
+ out+='<p class="job-company-insight-note">Jobindex-evalueringer vises kun fra virksomhedens arbejdspladsprofil. Medarbejderantal og adresse kan suppleres fra danske registre. Afstand er omtrentlige kilometer i luftlinje fra Frederiksberg bymidte.</p></section>';
  return out;
 }
 function renderJobOpportunities(){

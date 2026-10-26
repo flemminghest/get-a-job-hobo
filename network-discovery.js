@@ -473,8 +473,9 @@ function applyCompanySourceFacts(sources,prior){
  }
  f.factSources=factSources;return f;
 }
-async function lookupCompanyInsights(index){
- const item=(state.jobOpportunities||[])[index];if(!item)return;
+async function lookupCompanyInsights(indexOrItem){
+ const item=typeof indexOrItem==='number'?(state.jobOpportunities||[])[indexOrItem]:indexOrItem;
+ if(!item||!(state.jobOpportunities||[]).includes(item))return;
  const company=companyNameFromOpportunity(item);if(!company||company==='Virksomheden')return;
  item.companyFacts=item.companyFacts||{};
  if(item.companyFacts.lookupStatus==='loading')return;
@@ -546,14 +547,56 @@ async function lookupCompanyInsights(index){
   persist();renderJobOpportunities();
   const status=el('jobSearchStatus');if(status){status.className='notice warnbox';status.textContent='Den danske virksomhedssøgning fejlede for '+company+': '+item.companyFacts.lookupError}
  }
-}function companyInsightBox(item,index){
+}
+async function autoLookupJobCompanyFacts(items){
+ const current=(items||[]).filter(item=>item&&state.jobOpportunities.includes(item));
+ const grouped=new Map();
+ current.forEach(item=>{
+  const name=companyNameFromOpportunity(item);
+  if(!name||name==='Virksomheden')return;
+  const norm=normalizeInsightText(name);
+  if(!norm||['linkedin','jobindex','indeed','jobnet','stepstone','ofir','workindenmark','hk jobportal'].includes(norm))return;
+  if(!grouped.has(norm))grouped.set(norm,{name,items:[]});
+  grouped.get(norm).items.push(item);
+ });
+ const queue=[...grouped.values()].filter(group=>!group.items.some(item=>['done','loading','queued'].includes(item.companyFacts&&item.companyFacts.lookupStatus)));
+ if(!queue.length)return;
+ queue.forEach(group=>group.items.forEach(item=>{
+  item.companyFacts=item.companyFacts||{};
+  item.companyFacts.lookupStatus='queued';
+ }));
+ persist();renderJobOpportunities();
+ let cursor=0;
+ const worker=async()=>{
+  while(cursor<queue.length){
+   const group=queue[cursor++];
+   const seed=group.items.find(item=>state.jobOpportunities.includes(item));
+   if(!seed)continue;
+   try{
+    seed.companyFacts=seed.companyFacts||{};
+    if(seed.companyFacts.lookupStatus==='done')continue;
+    await lookupCompanyInsights(seed);
+    const facts=seed.companyFacts||{lookupStatus:'done',sources:[],factSources:{}};
+    group.items.forEach(item=>{
+     if(item!==seed)item.companyFacts={...facts,sources:Array.isArray(facts.sources)?facts.sources.slice():[],factSources:{...(facts.factSources||{})}};
+    });
+    persist();renderJobOpportunities();
+   }catch(error){
+    group.items.forEach(item=>{item.companyFacts={...(item.companyFacts||{}),lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,180)}});
+    persist();renderJobOpportunities();
+   }
+  }
+ };
+ await Promise.all(Array.from({length:Math.min(3,queue.length)},()=>worker()));
+}
+function companyInsightBox(item,index){
  const f=effectiveCompanyFacts(item),clean=value=>String(value==null?'':value).trim(),company=companyNameFromOpportunity(item);
  const rating=clean(f.employeeRating),n=Number(rating.replace(',','.'));
  const ratingDisplay=rating&&Number.isFinite(n)&&n>=0&&n<=5?n.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
  const employees=clean(f.employeeCount)||'Ikke oplyst',location=clean(f.location)||'Ikke fundet';
  const distance=clean(f.distanceKm),distanceLine=distance?'ca. '+distance+' km i luftlinje fra Frederiksberg':(location!=='Ikke fundet'?'Afstand ikke beregnet':'Afstand kræver dansk adresse');
  const industry=clean(f.industry)||((item.matchedTerms||[]).slice(0,2).join(' · ')||'Ikke fastslået'),founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
- const tone=['mint','orange','purple','blue'][index%4],sources=Array.isArray(f.sources)?f.sources:[],loading=f.lookupStatus==='loading',completed=f.lookupStatus==='done';
+ const tone=['mint','orange','purple','blue'][index%4],sources=Array.isArray(f.sources)?f.sources:[],loading=f.lookupStatus==='loading'||f.lookupStatus==='queued',completed=f.lookupStatus==='done';
  const svg={
   people:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.8a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.6M18 14.2a4 4 0 0 1 4 4V20"/></svg>',
   pin:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
@@ -561,10 +604,10 @@ async function lookupCompanyInsights(index){
   building:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/></svg>'
  };
  let out='<section class="job-company-insights job-company-insights-'+tone+'" aria-label="Virksomhedsinfo">';
- out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Jobindex og danske virksomhedsdata · afstand fra Frederiksberg</small></div><button type="button" class="job-company-lookup-button" data-discovery-action="company-info" data-collection="jobs" data-index="'+index+'" '+(loading?'disabled':'')+'>'+(loading?'Søger…':completed?'Opdatér data':'Find data')+' ↗</button></div>';
+ out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Jobindex og danske virksomhedsdata · afstand fra Frederiksberg</small></div><span class="job-company-auto-status" data-company-state="'+escapeHtml(f.lookupStatus||'waiting')+'">'+(f.lookupStatus==='loading'?'Henter data…':f.lookupStatus==='queued'?'På vej i køen…':completed?'Data kontrolleret':f.lookupStatus==='error'?'Kunne ikke hente data':'Henter automatisk')+'</span></div>';
  out+='<div class="job-company-insight-stats"><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' evalueringer / anmeldelser':'Ingen bekræftet medarbejdervurdering')+'</span></div></div></div>';
  out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>'; if(clean(f.companyHighlight))out+='<div class="job-company-highlight"><strong>Tal fra virksomhedens egen hjemmeside</strong><span>'+escapeHtml(f.companyHighlight)+'</span></div>';
- if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>Søger på Krak efter adresse og ansatte, på Jobindex efter virksomhedsprofil/jobglæde og i danske virksomhedsregistre…</div>';
+ if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>'+(f.lookupStatus==='queued'?'Virksomhedsoplysninger hentes automatisk, så snart det bliver denne virksomheds tur…':'Søger på Krak efter adresse og ansatte, på Jobindex efter virksomhedsprofil og evalueringer samt i danske virksomhedsregistre…')+'</div>';
  if(completed){
   out+='<div class="job-company-evidence"><div class="job-company-evidence-heading"><strong>Fundne kilder</strong><span>'+sources.length+' resultater</span></div>';
   out+=sources.length?'<div class="job-company-evidence-list">'+sources.slice(0,4).map(source=>'<a class="job-company-evidence-item" href="'+escapeHtml(safeHttpUrl(source.url))+'" target="_blank" rel="noopener noreferrer"><span class="job-company-evidence-copy"><strong>'+escapeHtml(source.domain||source.sourceLabel||'Offentlig kilde')+'</strong><small>'+escapeHtml(source.title||'Virksomhedsoplysninger')+'</small><em>'+escapeHtml(String(source.description||'').slice(0,220))+'</em></span><span class="job-company-evidence-arrow">↗</span></a>').join('')+'</div>':'<p class="job-company-evidence-empty">Ingen relevante profiler blev fundet i de offentlige søgeresultater.</p>';
@@ -648,10 +691,20 @@ function updateJobSearchPortal(queryId,status,detail){
 function finishJobSearchProgress(){
  const modal=el('jobSearchProgressModal');
  if(el('jobSearchProgressTitle'))el('jobSearchProgressTitle').textContent='Søgningen er afsluttet';
- if(el('jobSearchProgressStatus'))el('jobSearchProgressStatus').textContent='Resultaterne er samlet. Luk denne oversigt for at se stillingerne.';
- if(el('jobSearchProgressClose'))el('jobSearchProgressClose').hidden=false;
- if(el('jobSearchProgressFooter'))el('jobSearchProgressFooter').textContent='Åbn originalopslaget for at kontrollere, at stillingen stadig er aktiv, og at arbejdsstedet passer.';
- if(modal)modal.dataset.complete='true';
+ if(el('jobSearchProgressStatus'))el('jobSearchProgressStatus').textContent='Resultaterne er samlet og vises automatisk nedenfor.';
+ if(el('jobSearchProgressClose'))el('jobSearchProgressClose').hidden=true;
+ if(el('jobSearchProgressFooter'))el('jobSearchProgressFooter').textContent='Resultaterne er nu klar — oversigten lukker automatisk.';
+ if(modal){
+  modal.dataset.complete='true';
+  setTimeout(()=>{
+   if(modal.dataset.complete==='true'){
+    modal.hidden=true;
+    document.body.style.overflow=jobSearchProgressOriginalOverflow||'';
+    const results=el('jobOpportunitiesResults');
+    if(results)results.scrollIntoView({behavior:'smooth',block:'start'});
+   }
+  },650);
+ }
 }
 function closeJobSearchProgress(){
  const modal=el('jobSearchProgressModal');if(modal)modal.hidden=true;
@@ -716,6 +769,8 @@ async function searchJobOpportunities(ignoreCvWarning=false){
   const unique=new Map();all.forEach(item=>{const key=canonicalSearchUrl(item.url),old=unique.get(key);if(!old||item.matchedTerms.length>old.matchedTerms.length)unique.set(key,item)});
   state.jobOpportunities=[...unique.values()].filter(item=>isDanishMappedJob(item,profile)).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
   state.jobLastSearch=new Date().toISOString();persist();renderJobOpportunities();
+  // Enrich job cards in the background. The cards already render; company facts fill in automatically as sources return.
+  autoLookupJobCompanyFacts(state.jobOpportunities.slice());
   if(el('jobSearchStatus')){
    const remoteCheck=state.jobOpportunities.filter(item=>item.matchScope==='remote-check').length;
    let message=state.jobOpportunities.length?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete stillingsopslag fra '+succeeded+' af '+queries.length+' kildeområder. '+remoteCheck+' remote-opslag kræver kontrol af, om Danmark er tilladt.':'Ingen konkrete stillingsopslag matchede alle kriterier denne gang. Generelle jobportalsider og udenlandske opslag uden relevant dansk/remote-match er filtreret fra. Prøv færre eller bredere søgeord.';
@@ -864,7 +919,6 @@ function bindDiscoveryEvents(){
   if(button.dataset.discoveryAction==='follow')addFollowUpFromResult(collection,index);
   if(button.dataset.discoveryAction==='copy')copyNetworkOutreach(collection,index);
   if(button.dataset.discoveryAction==='analyze')loadJobOpportunityInAnalyzer(index);
-  if(button.dataset.discoveryAction==='company-info')lookupCompanyInsights(index);
  };
  ['networkProspectsResults','networkCommunitiesResults','jobOpportunitiesResults'].forEach(id=>{
   const node=el(id);if(node&&!node.dataset.discoveryBound){node.addEventListener('click',clickHandler);node.dataset.discoveryBound='1'}
@@ -879,6 +933,7 @@ function bindDiscoveryEvents(){
 }
 function initializeDiscovery(){
  syncNetworkSearchPreferencesFromCV();syncOpportunityInputs();renderDiscoveryResults();renderJobOpportunities();renderCompanyCriteriaResults();renderFollowUps();bindDiscoveryEvents();
+ if(Array.isArray(state.jobOpportunities)&&state.jobOpportunities.length)autoLookupJobCompanyFacts(state.jobOpportunities.slice());
 }
 window.saveNetworkSearchPreferences=saveNetworkSearchPreferences;
 window.syncJobSearchPreferences=syncJobSearchPreferences;

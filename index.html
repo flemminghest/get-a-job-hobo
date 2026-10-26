@@ -800,6 +800,21 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 .job-company-highlight strong{font-size:10px;line-height:1.35;letter-spacing:.2px;color:#4b6490}
 .job-company-highlight span{font-size:11px;line-height:1.5;color:#294362;font-weight:750}
 
+
+/* Search Danish businesses from the user's existing keywords and geographic criteria */
+.company-criteria-section{margin-top:24px;padding-top:19px;border-top:1px solid #e5edf5}
+.company-criteria-section .discovery-section-head{margin-top:0}
+.company-criteria-section .discovery-results{margin-top:12px}
+.company-criteria-card{border-top:3px solid #16866b;background:linear-gradient(180deg,#f4fcf8 0%,#fff 40%)}
+.company-criteria-card .discovery-source{background:#e3f6ec;color:#15744b}
+.company-criteria-card .lead-company{color:#177b60}
+.company-criteria-card .discovery-actions{margin-top:auto}
+.company-criteria-card .discovery-actions a{color:#087e78;font-weight:800}
+#companyCriteriaSearchButton{border-color:#ccebdc;color:#167b5b;background:#f4fcf8}
+#companyCriteriaSearchButton:hover:not(:disabled){background:#e4f7ec;border-color:#a7dfc1}
+#companyCriteriaSearchButton:disabled{opacity:.7;cursor:wait}
+@media(max-width:640px){.company-criteria-section{margin-top:19px;padding-top:14px}}
+
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
@@ -965,7 +980,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 
 
 <section class="section" id="page-opportunities">
- <div class="hero"><div class="eyebrow">JOB, DER ER VÆRD AT UNDERSØGE</div><h1>Oplagte jobmuligheder — på tværs af portaler.</h1><p>Find offentligt indekserede opslag på LinkedIn, Jobindex, HK Jobportal, Jobnet, Workindenmark, StepStone og relevante karrieresider. Sortér efter overlap i profilord, gem jobs og send interessante opslag til CV-vurderingen.</p><div class="actions"><button id="jobOpportunitiesSearchButton" onclick="searchJobOpportunities()">Søg efter relevante job</button><button class="secondary" onclick="go('cv')">Opdatér mit CV</button></div></div>
+ <div class="hero"><div class="eyebrow">JOB, DER ER VÆRD AT UNDERSØGE</div><h1>Oplagte jobmuligheder — på tværs af portaler.</h1><p>Find offentligt indekserede opslag på LinkedIn, Jobindex, HK Jobportal, Jobnet, Workindenmark, StepStone og relevante karrieresider. Sortér efter overlap i profilord, gem jobs og send interessante opslag til CV-vurderingen.</p><div class="actions"><button id="jobOpportunitiesSearchButton" onclick="searchJobOpportunities()">Søg efter relevante job</button><button class="secondary" id="companyCriteriaSearchButton" onclick="searchDanishCompaniesByCriteria()">Find danske virksomheder</button><button class="secondary" onclick="go('cv')">Opdatér mit CV</button></div></div>
  <div class="kpis"><div class="kpi"><label>Fundet</label><strong id="jobOpportunityCount">0</strong><span>Offentligt indekserede opslag</span></div><div class="kpi"><label>Profilord</label><strong id="jobKeywordCount">0</strong><span>Ord fra søgeprofilen</span></div><div class="kpi"><label>Gemte til opfølgning</label><strong id="jobTrackedCount">0</strong><span>Lokalt i denne browser</span></div><div class="kpi"><label>Sidste søgning</label><strong id="jobLastSearchLabel">Ikke søgt</strong><span>Kontrollér altid originalopslaget</span></div></div>
  <div class="card stack"><div><h2>Din søgeprofil</h2><p class="muted">De samme profilord som under LinkedIn & netværk. De bruges som søgeord, ikke som en automatisk sandhed om dine kvalifikationer.</p></div>
   <div class="formrow"><div><label for="jobSearchTerms">Profilord</label><input id="jobSearchTerms" placeholder="CRM, marketing automation, digital marketing…" oninput="syncJobSearchPreferences()"></div><div><label for="jobSearchLocation">Geografi</label><input id="jobSearchLocation" placeholder="København og omegn" oninput="syncJobSearchPreferences()"></div></div>
@@ -973,6 +988,11 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
   <div class="job-source-links"><a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/jobs/">LinkedIn Jobs ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobindex.dk/">Jobindex ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.hk.dk/karriere/jobsoegningen/find-dit-naeste-job/jobportal">HK Jobportal ↗</a><a target="_blank" rel="noopener noreferrer" href="https://job.jobnet.dk/">Jobnet ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.workindenmark.dk/">Workindenmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.stepstone.dk/">StepStone ↗</a></div>
   <div class="discovery-section-head"><div><h2>Job, der matcher dine søgeord</h2><p class="muted">Søgningen tæller profilord, som findes i titel og offentligt uddrag. Det er ikke en sandsynlighed for at få jobbet og ikke en verificering af, at opslaget stadig er aktivt.</p></div><span id="jobOpportunitiesMeta" class="chip">0 forslag</span></div>
   <div id="jobOpportunitiesResults" class="discovery-results"><div class="empty">Klik på “Søg efter relevante job” for at hente aktuelle søgeresultater fra det offentlige webindeks.</div></div>
+  <div class="company-criteria-section">
+   <div class="discovery-section-head"><div><h2>Danske virksomheder ud fra dine kriterier</h2><p class="muted">Bruger profilord og geografi fra søgeprofilen ovenfor. Søger kun i danske virksomhedsregistre og danske virksomhedskilder.</p></div><span id="companyCriteriaMeta" class="chip">0 danske profiler</span></div>
+   <div id="companyCriteriaStatus" class="notice">Vælg profilord og geografi ovenfor, og klik på “Find danske virksomheder”. Uden dansk virksomhedsregistrering vises virksomheden ikke som et dansk match.</div>
+   <div id="companyCriteriaResults" class="discovery-results"><div class="empty">Her vises danske virksomhedsprofiler, der matcher dine kriterier.</div></div>
+  </div>
  </div>
 </section>
 <section class="section" id="page-followups">

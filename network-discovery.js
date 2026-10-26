@@ -444,21 +444,33 @@ function isDanishRegistrySource(source){
  return ['krak.dk','jobindex.dk','jobrate.dk','proff.dk','estatistik.dk','ownr.dk','virk.dk','datacvr.virk.dk','cvr.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
 }
 function curatedCompanyFacts(){return {}}
+function isOfficialDanishCompanySource(source){
+ const raw=typeof source==='string'?source:(source&&source.url)||'';
+ const url=safeHttpUrl(raw);if(!url)return false;
+ let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return false}
+ return ['virk.dk','datacvr.virk.dk','cvr.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
+}
 function effectiveCompanyFacts(item){
  const stored=item&&item.companyFacts||{};
  const allSources=(Array.isArray(stored.sources)?stored.sources:[]).filter(source=>isDanishCompanySource(source));
- const hasDanishRegistry=allSources.some(source=>isDanishRegistrySource(source));
- const result={lookupStatus:stored.lookupStatus,lookupAt:stored.lookupAt,lookupError:stored.lookupError,sources:hasDanishRegistry?allSources:[]};
+ const result={
+  lookupStatus:stored.lookupStatus,lookupAt:stored.lookupAt,lookupError:stored.lookupError,
+  sources:allSources,danishCompanyConfirmed:!!stored.danishCompanyConfirmed
+ };
  const facts=['employeeCount','location','industry','foundedYear','companyType','employeeRating','ratingCount'];
  const factSources={};
- if(hasDanishRegistry){
-  for(const field of facts){
-   const source=stored.factSources&&stored.factSources[field];
-   if(source&&isDanishCompanySource(source)&&String(stored[field]||'').trim()){
-    result[field]=stored[field];factSources[field]=source;
-   }
+ for(const field of facts){
+  const source=stored.factSources&&stored.factSources[field];
+  if(source&&isDanishCompanySource(source)&&String(stored[field]||'').trim()){
+   result[field]=stored[field];factSources[field]=source;
   }
  }
+ const distanceSource=stored.factSources&&stored.factSources.distanceKm;
+ if(distanceSource&&/^(?:www\.)?(?:openstreetmap\.org|nominatim\.openstreetmap\.org)$/i.test(companySourceHost(distanceSource))&&String(stored.distanceKm||'').trim()){
+  result.distanceKm=stored.distanceKm;factSources.distanceKm=distanceSource;
+ }
+ if(stored.distanceMethod)result.distanceMethod=stored.distanceMethod;
+ if(stored.companyHighlight)result.companyHighlight=stored.companyHighlight;
  result.factSources=factSources;
  return result;
 }
@@ -613,11 +625,10 @@ async function lookupCompanyInsights(indexOrItem){
    const enhanced=result.value,target=found.findIndex(source=>canonicalSearchUrl(source.url)===canonicalSearchUrl(enhanced.url));
    if(target>=0)found[target]=enhanced;
   });
-  const registrySources=found.filter(source=>isDanishRegistrySource(source));
+  const registrySources=found.filter(source=>isOfficialDanishCompanySource(source));
   const confirmedDanish=registrySources.length>0;
-  const eligibleSources=confirmedDanish?found:[];
-  const nextFacts=confirmedDanish?applyCompanySourceFacts(eligibleSources,{}):{};
-  nextFacts.sources=eligibleSources.slice(0,12);
+  const nextFacts=applyCompanySourceFacts(found,{});
+  nextFacts.sources=found.slice(0,12);
   nextFacts.lookupStatus=(sourceErrors===queries.length&&!found.length)?'error':'done';
   nextFacts.lookupAt=new Date().toISOString();
   nextFacts.danishCompanyConfirmed=confirmedDanish;
@@ -683,12 +694,34 @@ async function autoLookupJobCompanyFacts(items){
 }
 function companyInsightBox(item,index){
  const f=effectiveCompanyFacts(item),clean=value=>String(value==null?'':value).trim(),company=companyNameFromOpportunity(item);
- const rating=clean(f.employeeRating),n=Number(rating.replace(',','.'));
- const ratingDisplay=rating&&Number.isFinite(n)&&n>=0&&n<=5?n.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
+ const sources=Array.isArray(f.sources)?f.sources:[],factSources=f.factSources||{};
+ const rating=clean(f.employeeRating),ratingNumber=Number(rating.replace(',','.'));
+ const ratingDisplay=rating&&Number.isFinite(ratingNumber)&&ratingNumber>=0&&ratingNumber<=5?ratingNumber.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
  const employees=clean(f.employeeCount)||'Ikke oplyst',location=clean(f.location)||'Ikke fundet';
- const distance=clean(f.distanceKm),distanceLine=distance?'ca. '+distance+' km i luftlinje fra Frederiksberg':(location!=='Ikke fundet'?'Afstand ikke beregnet':'Afstand kræver dansk adresse');
- const industry=clean(f.industry)||((item.matchedTerms||[]).slice(0,2).join(' · ')||'Ikke fastslået'),founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
- const tone=['mint','orange','purple','blue'][index%4],sources=Array.isArray(f.sources)?f.sources:[],loading=f.lookupStatus==='loading'||f.lookupStatus==='queued',completed=f.lookupStatus==='done';
+ const distance=clean(f.distanceKm),distanceLine=distance?'ca. '+distance+' km i luftlinje fra Frederiksberg bymidte':'Ikke beregnet · kræver en brugbar dansk adresse';
+ const industry=clean(f.industry)||'Ikke fundet',founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
+ const tone=['mint','orange','purple','blue'][index%4],loading=f.lookupStatus==='loading'||f.lookupStatus==='queued',completed=f.lookupStatus==='done';
+ const employeeIsRange=/\d\s*[-–]\s*\d/.test(employees)||/(?:ca\.?|cirka|estimat|omkring|~)/i.test(employees);
+ const qualityFields=[
+  {key:'employeeCount',label:'medarbejderantal'},
+  {key:'location',label:'adresse/placering'},
+  {key:'employeeRating',label:'jobtilfredshed'},
+  {key:'industry',label:'branche/fokus'},
+  {key:'foundedYear',label:'etableringsår'},
+  {key:'companyType',label:'selskabstype'}
+ ];
+ const sourcedFields=qualityFields.filter(field=>clean(f[field.key])&&factSources[field.key]&&safeHttpUrl(factSources[field.key].url));
+ const qualityCount=sourcedFields.length;
+ const missingFields=qualityFields.filter(field=>!clean(f[field.key])||!factSources[field.key]||!safeHttpUrl(factSources[field.key].url)).map(field=>field.label);
+ const official=f.danishCompanyConfirmed===true;
+ const statusLabel=loading?(f.lookupStatus==='queued'?'På vej i køen…':'Henter data…'):completed?(sources.length?(official?'CVR/Virk-kilde fundet':'Kilder fundet'):'Ingen kilder fundet'):f.lookupStatus==='error'?'Søgning fejlede':'Afventer opslag';
+ const statusState=loading?f.lookupStatus:completed?(sources.length?(official?'verified':'partial'):'empty'):f.lookupStatus||'waiting';
+ const factSourceLink=field=>{
+  const source=factSources[field],href=safeHttpUrl(source&&source.url);
+  if(!source||!href)return '<span class="job-company-fact-source is-missing">Kilde ikke fundet</span>';
+  const label=companySourceHost(source)||clean(source.domain)||'offentlig kilde';
+  return '<a class="job-company-fact-source" href="'+escapeHtml(href)+'" target="_blank" rel="noopener noreferrer">Kilde: '+escapeHtml(label)+' ↗</a>';
+ };
  const svg={
   people:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.8a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.6M18 14.2a4 4 0 0 1 4 4V20"/></svg>',
   pin:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
@@ -696,17 +729,30 @@ function companyInsightBox(item,index){
   building:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/></svg>'
  };
  let out='<section class="job-company-insights job-company-insights-'+tone+'" aria-label="Virksomhedsinfo">';
- out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Jobindex og danske virksomhedsdata · afstand fra Frederiksberg</small></div><span class="job-company-auto-status" data-company-state="'+escapeHtml(f.lookupStatus||'waiting')+'">'+(f.lookupStatus==='loading'?'Henter data…':f.lookupStatus==='queued'?'På vej i køen…':completed?'Data kontrolleret':f.lookupStatus==='error'?'Kunne ikke hente data':'Henter automatisk')+'</span></div>';
- out+='<div class="job-company-insight-stats"><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' evalueringer / anmeldelser':'Ingen bekræftet medarbejdervurdering')+'</span></div></div></div>';
- out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>'; if(clean(f.companyHighlight))out+='<div class="job-company-highlight"><strong>Tal fra virksomhedens egen hjemmeside</strong><span>'+escapeHtml(f.companyHighlight)+'</span></div>';
- if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>'+(f.lookupStatus==='queued'?'Virksomhedsoplysninger hentes automatisk, så snart det bliver denne virksomheds tur…':'Søger på Krak efter adresse og ansatte, på Jobindex efter virksomhedsprofil og evalueringer samt i danske virksomhedsregistre…')+'</div>';
+ out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Offentlige virksomheds- og arbejdspladskilder · afstand fra Frederiksberg</small></div><span class="job-company-auto-status" data-company-state="'+escapeHtml(statusState)+'">'+escapeHtml(statusLabel)+'</span></div>';
+ out+='<div class="job-company-insight-stats">';
+ out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong>'+(employeeIsRange?'<span class="job-company-employee-estimate">Interval / estimat</span>':'')+factSourceLink('employeeCount')+'</div></div>';
+ out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Adresse/placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span>'+factSourceLink('location')+(distance?factSourceLink('distanceKm'):'')+'</div></div>';
+ out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' medarbejderevalueringer/anmeldelser':'Ingen bekræftet medarbejdervurdering')+'</span>'+factSourceLink('employeeRating')+'</div></div>';
+ out+='</div>';
+ out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+factSourceLink('industry')+'</span><span><b>Etableret</b> '+escapeHtml(founded)+factSourceLink('foundedYear')+'</span><span><b>Type</b> '+escapeHtml(type)+factSourceLink('companyType')+'</span></div>';
+ if(completed){
+  out+='<div class="job-company-quality"><strong>Datakvalitet</strong><span>'+qualityCount+' af '+qualityFields.length+' virksomhedsoplysninger har en tilknyttet kilde.</span>';
+  if(official)out+='<span>En officiel CVR/Virk-kilde blev fundet. Kontrollér stadig, at den matcher den konkrete arbejdsgiver.</span>';
+  else if(sources.length)out+='<span>Der er fundet offentlige kilder, men ingen officiel CVR/Virk-kilde blev bekræftet.</span>';
+  else out+='<span>Ingen relevante kilder blev fundet. Virksomhedsoplysningerne er derfor ikke verificeret.</span>';
+  if(missingFields.length)out+='<span class="is-incomplete">Mangler dokumentation for: '+escapeHtml(missingFields.join(', '))+'.</span>';
+  out+='</div>';
+ }
+ if(clean(f.companyHighlight))out+='<div class="job-company-highlight"><strong>Tal fra virksomhedens egen hjemmeside</strong><span>'+escapeHtml(f.companyHighlight)+'</span></div>';
+ if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>'+(f.lookupStatus==='queued'?'Virksomhedsoplysninger hentes automatisk, så snart det bliver denne virksomheds tur…':'Søger efter virksomhedsdata, CVR/Virk-oplysninger, adresse og medarbejdervurderinger…')+'</div>';
  if(f.lookupStatus==='error')out+='<div class="job-company-lookup-error">Virksomhedsdata kunne ikke hentes denne gang. Jobopslaget vises stadig, og søgningen efter stillinger er ikke påvirket.</div>';
  if(completed){
   out+='<div class="job-company-evidence"><div class="job-company-evidence-heading"><strong>Fundne kilder</strong><span>'+sources.length+' resultater</span></div>';
-  out+=sources.length?'<div class="job-company-evidence-list">'+sources.slice(0,4).map(source=>'<a class="job-company-evidence-item" href="'+escapeHtml(safeHttpUrl(source.url))+'" target="_blank" rel="noopener noreferrer"><span class="job-company-evidence-copy"><strong>'+escapeHtml(source.domain||source.sourceLabel||'Offentlig kilde')+'</strong><small>'+escapeHtml(source.title||'Virksomhedsoplysninger')+'</small><em>'+escapeHtml(String(source.description||'').slice(0,220))+'</em></span><span class="job-company-evidence-arrow">↗</span></a>').join('')+'</div>':'<p class="job-company-evidence-empty">Ingen relevante profiler blev fundet i de offentlige søgeresultater.</p>';
+  out+=sources.length?'<div class="job-company-evidence-list">'+sources.slice(0,6).map(source=>'<a class="job-company-evidence-item" href="'+escapeHtml(safeHttpUrl(source.url))+'" target="_blank" rel="noopener noreferrer"><span class="job-company-evidence-copy"><strong>'+escapeHtml(source.domain||source.sourceLabel||companySourceHost(source)||'Offentlig kilde')+'</strong><small>'+escapeHtml(source.title||'Virksomhedsoplysninger')+'</small><em>'+escapeHtml(String(source.description||source.pageContent||'').slice(0,220))+'</em></span><span class="job-company-evidence-arrow">↗</span></a>').join('')+'</div>':'<p class="job-company-evidence-empty">Ingen relevante profiler blev fundet i de offentlige søgeresultater.</p>';
   out+='</div>';
  }
- out+='<p class="job-company-insight-note">Jobindex- og arbejdspladsevalueringer vises med kilde. Medarbejderantal og adresse kan suppleres fra danske virksomhedsdata. Afstand er omtrentlige kilometer i luftlinje fra Frederiksberg bymidte — ikke fra en præcis hjemmeadresse. Geokodning: OpenStreetMap.</p></section>';
+ out+='<p class="job-company-insight-note">Medarbejdertilfredshed vises kun, når en kilde specifikt understøtter medarbejdervurderingen — kundetilfredshed bruges ikke som erstatning. Manglende data vises eksplicit. Afstand er omtrentlige kilometer i luftlinje fra Frederiksberg bymidte, ikke fra en hjemmeadresse. Geokodning: OpenStreetMap.</p></section>';
  return out;
 }
 function jobDisplayTitle(item){

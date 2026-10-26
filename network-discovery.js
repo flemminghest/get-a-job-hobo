@@ -335,7 +335,7 @@ function applyCompanySourceFacts(sources,prior){
   fill('companyType',structured.companyType||structured.company_type||structured.organizationType||structured.organization_type,source);
   if(workplace){
    fill('employeeRating',structured.employeeSatisfaction||structured.employee_satisfaction||structured.employeeRating||structured.employee_rating||structured.ratingFromEmployees,source);
-   fill('ratingCount',structured.employeeReviewCount||structured.employee_review_count||structured.workplaceReviewCount||structured.workplace_review_count,source);
+   fill('ratingCount',structured.employeeReviewCount||structured.employee_review_count||structured.workplaceReviewCount||structured.workplace_review_count||structured.ratingCount,source);
   }
   if(!f.employeeCount){
    m=text.match(/(?:company size|antal ansatte|antal medarbejdere|employees|employee count|staff size)\s*[:\-]?\s*(\d{1,4}\s*[-–]\s*\d{1,4}|\d{1,3}(?:[.,\s]\d{3})*|\d{1,5})(?:\s*(?:employees|medarbejdere|ansatte))?/i);
@@ -370,7 +370,6 @@ async function lookupCompanyInsights(index){
   {id:'krak-dk',label:'Krak · adresse, placering, telefon og firmadata',targetSite:'krak.dk',query:'site:krak.dk/firma '+q+' adresse postnummer ansatte CVR branche',fallbackQuery:'site:krak.dk '+q+' firmaprofil adresse telefon CVR antal ansatte'},
   {id:'jobindex-dk',label:'Jobindex · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' jobglæde medarbejdervurdering anmeldelser',fallbackQuery:'site:jobindex.dk '+q+' virksomhed arbejdsplads medarbejdervurdering anmeldelser ansatte'},
   {id:'jobindex-ads-dk',label:'Jobindex · arbejdsgiver og arbejdssted',targetSite:'jobindex.dk',query:'site:jobindex.dk/jobannonce '+q+' arbejdssted virksomhed Danmark',fallbackQuery:'site:jobindex.dk '+q+' virksomhed adresse Danmark stilling'},
-  {id:'jobindex-ads-dk',label:'Jobindex · danske stillingsopslag',targetSite:'jobindex.dk',query:'site:jobindex.dk/jobannonce '+q+' København Danmark medarbejdere adresse',fallbackQuery:'site:jobindex.dk '+q+' København Danmark job virksomhed'},
   {id:'proff-dk',label:'Proff Danmark · CVR, branche og ansatte',targetSite:'proff.dk',query:'site:proff.dk '+q+' CVR antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' virksomhed CVR ansatte adresse'},
   {id:'estatistik-dk',label:'eStatistik · danske virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' CVR ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' CVR dansk virksomhed ansatte adresse'},
   {id:'cvr-virk-dk',label:'CVR/Virk · officielt virksomhedsregister',targetSite:'virk.dk',query:'site:datacvr.virk.dk '+q+' CVR adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},

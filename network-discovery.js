@@ -188,38 +188,105 @@ function renderCommunities(){
  if(el('networkCommunitiesMeta'))el('networkCommunitiesMeta').textContent=list.length+' forslag';
 }
 function renderDiscoveryResults(){renderProspects();renderCommunities()}
+
+function companyNameFromOpportunity(item){
+ const supplied=String(item&&(item.companyName||item.company||item.employer)||'').trim();if(supplied)return supplied.slice(0,120);
+ const title=String(item&&item.title||'').trim();
+ const parts=title.split(/\s*[|–—]\s*/).map(x=>x.trim()).filter(Boolean);
+ if(parts.length>1&&parts[parts.length-1].length<65)return parts[parts.length-1];
+ const host=String(item&&item.domain||'').replace(/^www\./,'');
+ return host?host.split('.')[0].replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'Virksomheden';
+}
+function normalizeInsightText(value){return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()}
+function companyResultRelevant(result,company,item){
+ const content=normalizeInsightText([result.title,result.description,result.url].join(' '));
+ const target=normalizeInsightText(company);
+ const tokens=target.split(/\s+/).filter(x=>x.length>=3);
+ const matches=tokens.filter(t=>content.split(/\s+/).includes(t)).length;
+ const domain=normalizeInsightText(item.domain||'');
+ const hostMatches=domain.split(/\s+/).filter(x=>x.length>=3).some(t=>content.split(/\s+/).includes(t));
+ return !!(target&&content.includes(target)||hostMatches||(tokens.length===1&&matches===1)||(tokens.length>1&&matches>=Math.min(2,tokens.length)));
+}
+function applyCompanySourceFacts(sources,prior){
+ const f={...(prior||{})};
+ const factSources={...(f.factSources||{})};
+ const bodyOf=s=>String((s.title||'')+' '+(s.description||'')).replace(/\s+/g,' ');
+ for(const source of sources){
+  const text=bodyOf(source);
+  const domain=String(source.domain||'').toLowerCase().replace(/^www\./,'');
+  const workplace=domain==='jobindex.dk'||domain.endsWith('.jobindex.dk')||domain==='jobrate.dk'||domain.endsWith('.jobrate.dk');
+  let m;
+  if(!f.employeeCount&&(m=text.match(/(?:antal ansatte|antal medarbejdere|employees|employee count)\s*[:\-]?\s*(\d{1,3}(?:[.,\s]\d{3})*|\d{1,4}\s*[-–]\s*\d{1,4})/i))){f.employeeCount=m[1].trim();factSources.employeeCount=source}
+  if(!f.employeeCount&&(m=text.match(/\b(\d{1,4}\s*[-–]\s*\d{1,4})\s*(?:employees|medarbejdere)\b/i))){f.employeeCount=m[1].trim();factSources.employeeCount=source}
+  if(!f.foundedYear&&(m=text.match(/(?:stiftet|etableret|grundlagt|founded)\D{0,32}\b(19\d{2}|20\d{2})\b/i))){f.foundedYear=m[1];factSources.foundedYear=source}
+  if(!f.location&&(m=text.match(/(?:hovedkontor|headquarters|lokation|adresse|address|beliggenhed)\s*[:\-]?\s*([^.;\n]{3,65})/i))){f.location=m[1].trim();factSources.location=source}
+  if(!f.industry&&(m=text.match(/(?:branche|industry|sector)\s*[:\-]?\s*([^.;\n]{3,65})/i))){f.industry=m[1].trim();factSources.industry=source}
+  if(workplace&&!f.employeeRating&&(m=text.match(/\b([1-5][,.]\d)\s*(?:\/\s*5|ud af 5|out of 5|stjerner af 5)\b/i))){f.employeeRating=m[1].replace(',','.');factSources.employeeRating=source}
+  if(workplace&&!f.ratingCount&&(m=text.match(/\b(\d{1,6})\s+(?:anmeldelser|vurderinger|evalueringer|reviews|ratings)\b/i))){f.ratingCount=m[1];factSources.ratingCount=source}
+ }
+ f.factSources=factSources;return f;
+}
+async function lookupCompanyInsights(index){
+ const item=(state.jobOpportunities||[])[index];if(!item)return;
+ const company=companyNameFromOpportunity(item);
+ if(!company||company==='Virksomheden')return;
+ item.companyFacts=item.companyFacts||{};
+ if(item.companyFacts.lookupStatus==='loading')return;
+ item.companyFacts.lookupStatus='loading';persist();renderJobOpportunities();
+ const q='"'+company.replace(/"/g,' ')+'"';
+ const queries=[
+  {id:'jobindex',label:'Jobindex · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde løn',fallbackQuery:'site:jobindex.dk '+q+' virksomhed medarbejdere jobglæde løn'},
+  {id:'jobrate',label:'Jobrate · arbejdspladsdata',targetSite:'jobrate.dk',query:'site:jobrate.dk/arbejdsplads '+q+' medarbejdere vurdering',fallbackQuery:'site:jobrate.dk '+q+' arbejdsplads'},
+  {id:'register',label:'Offentlige virksomhedsregistre',targetSite:'ownr.dk',query:'site:ownr.dk/companies/public-profile '+q+' antal ansatte adresse stiftet branche',fallbackQuery:'site:estatistik.dk/virksomhed '+q+' antal ansatte adresse branche etableret'}
+ ];
+ try{
+  const outcomes=await Promise.allSettled(queries.map(query=>queryIndex(query,[])));
+  const gathered=[];
+  outcomes.forEach((outcome,i)=>{
+   if(outcome.status!=='fulfilled')return;
+   (outcome.value.results||[]).forEach(result=>{
+    if(!result||!safeHttpUrl(result.url)||!companyResultRelevant(result,company,item))return;
+    if(!gathered.some(old=>canonicalSearchUrl(old.url)===canonicalSearchUrl(result.url)))gathered.push({...result,sourceType:queries[i].id,sourceLabel:queries[i].label});
+   });
+  });
+  item.companyFacts=applyCompanySourceFacts(gathered,item.companyFacts);
+  item.companyFacts.sources=gathered.slice(0,8);
+  item.companyFacts.lookupStatus='done';item.companyFacts.lookupAt=new Date().toISOString();
+  persist();renderJobOpportunities();
+  const status=el('jobSearchStatus');
+  if(status){status.className='notice '+(gathered.length?'goodbox':'warnbox');status.textContent=gathered.length?'Virksomhedsoplysninger søgt for '+company+'. '+gathered.length+' relevante offentlige kilder vises i infoboksen. Kontrollér kildens dato og indhold.':'Ingen relevante offentlige virksomhedsprofiler blev fundet for '+company+'. Der udfyldes ikke gættede værdier.'}
+ }catch(error){
+  item.companyFacts.lookupStatus='error';item.companyFacts.lookupError=String(error&&error.message||error).slice(0,220);
+  persist();renderJobOpportunities();
+  const status=el('jobSearchStatus');if(status){status.className='notice warnbox';status.textContent='Søgningen efter virksomhedsdata fejlede for '+company+': '+item.companyFacts.lookupError}
+ }
+}
 function companyInsightBox(item,index){
- const f=item.companyFacts||{};
- const clean=value=>String(value==null?'':value).trim();
- const rating=clean(f.employeeRating);
- const ratingNum=Number(rating.replace(',','.'));
- const ratingDisplay=rating&&Number.isFinite(ratingNum)&&ratingNum>=0&&ratingNum<=5?ratingNum.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
- const reviews=clean(f.ratingCount);
- const employees=clean(f.employeeCount)||'Ikke oplyst';
- const location=clean(f.location)||'Ikke fundet';
- const distance=clean(f.distanceKm);
- const distanceLine=distance?distance+' km fra din adresse':(location!=='Ikke fundet'?'Afstand ikke beregnet':'Afstand kræver lokation');
- const industry=clean(f.industry)||((item.matchedTerms||[]).slice(0,2).join(' · ')||'Ikke fastslået');
- const founded=clean(f.foundedYear)||'Ikke oplyst';
- const type=clean(f.companyType)||'Ikke oplyst';
- const tone=['mint','orange','purple','blue'][index%4];
- const icon={
+ const f=item.companyFacts||{},clean=value=>String(value==null?'':value).trim(),company=companyNameFromOpportunity(item);
+ const rating=clean(f.employeeRating),n=Number(rating.replace(',','.'));
+ const ratingDisplay=rating&&Number.isFinite(n)&&n>=0&&n<=5?n.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
+ const employees=clean(f.employeeCount)||'Ikke oplyst',location=clean(f.location)||'Ikke fundet';
+ const distance=clean(f.distanceKm),distanceLine=distance?distance+' km fra din adresse':(location!=='Ikke fundet'?'Afstand ikke beregnet':'Afstand kræver lokation');
+ const industry=clean(f.industry)||((item.matchedTerms||[]).slice(0,2).join(' · ')||'Ikke fastslået'),founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
+ const tone=['mint','orange','purple','blue'][index%4],sources=Array.isArray(f.sources)?f.sources:[],loading=f.lookupStatus==='loading',completed=f.lookupStatus==='done';
+ const svg={
   people:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.8a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.6M18 14.2a4 4 0 0 1 4 4V20"/></svg>',
   pin:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
   smile:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.3 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>',
   building:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/></svg>'
  };
- const dataFound=[f.employeeCount,f.location,f.employeeRating,f.industry,f.foundedYear,f.companyType].some(v=>clean(v));
- return '<section class="job-company-insights job-company-insights-'+tone+'" aria-label="Virksomhedsinfo">'+
-  '<div class="job-company-insights-head"><span class="job-company-insights-icon">'+icon.building+'</span><div><strong>Virksomhedsinfo</strong><small>Offentlige oplysninger, hvor de findes</small></div><span class="job-company-data-state '+(dataFound?'is-partial':'is-pending')+'">'+(dataFound?'Delvise data':'Afventer data')+'</span></div>'+
-  '<div class="job-company-insight-stats">'+
-   '<div class="job-company-insight-stat"><span class="job-insight-icon">'+icon.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong><span class="job-insight-sub">Ansatte i virksomheden</span></div></div>'+
-   '<div class="job-company-insight-stat"><span class="job-insight-icon">'+icon.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div>'+
-   '<div class="job-company-insight-stat"><span class="job-insight-icon">'+icon.smile+'</span><div><small>Medarbejdertilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(reviews?reviews+' anmeldelser':'Ingen bekræftet rating')+'</span></div></div>'+
-  '</div>'+
-  '<div class="job-company-insights-foot"><span><b>Branche</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>'+
-  '<p class="job-company-insight-note">Oplysninger vises kun, når søgeresultatet indeholder relevante data. Jobtilfredshed og afstand kræver særskilt kilde- eller adressegrundlag.</p>'+
- '</section>';
+ let out='<section class="job-company-insights job-company-insights-'+tone+'" aria-label="Virksomhedsinfo">';
+ out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Virksomhedsinfo fra offentlige kilder</small></div><button type="button" class="job-company-lookup-button" data-discovery-action="company-info" data-collection="jobs" data-index="'+index+'" '+(loading?'disabled':'')+'>'+(loading?'Søger…':completed?'Opdatér data':'Find data')+' ↗</button></div>';
+ out+='<div class="job-company-insight-stats"><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' anmeldelser':'Ingen bekræftet medarbejderrating')+'</span></div></div></div>';
+ out+='<div class="job-company-insights-foot"><span><b>Branche</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>';
+ if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>Søger efter Jobindex-profiler, arbejdspladsvurderinger og offentlige virksomhedsdata…</div>';
+ if(completed){
+  out+='<div class="job-company-evidence"><div class="job-company-evidence-heading"><strong>Fundne kilder</strong><span>'+sources.length+' resultater</span></div>';
+  out+=sources.length?'<div class="job-company-evidence-list">'+sources.slice(0,4).map(source=>'<a class="job-company-evidence-item" href="'+escapeHtml(safeHttpUrl(source.url))+'" target="_blank" rel="noopener noreferrer"><span class="job-company-evidence-copy"><strong>'+escapeHtml(source.domain||source.sourceLabel||'Offentlig kilde')+'</strong><small>'+escapeHtml(source.title||'Virksomhedsoplysninger')+'</small><em>'+escapeHtml(String(source.description||'').slice(0,220))+'</em></span><span class="job-company-evidence-arrow">↗</span></a>').join('')+'</div>':'<p class="job-company-evidence-empty">Ingen relevante profiler blev fundet i de offentlige søgeresultater.</p>';
+  out+='</div>';
+ }
+ out+='<p class="job-company-insight-note">Medarbejderrating hentes kun fra arbejdsplads-/medarbejdervurderinger — ikke almindelige kundevurderinger. Afstand kræver en valgt adresse og beregning.</p></section>';
+ return out;
 }
 function renderJobOpportunities(){
  const results=state.jobOpportunities||[];
@@ -334,6 +401,7 @@ function bindDiscoveryEvents(){
   if(button.dataset.discoveryAction==='follow')addFollowUpFromResult(collection,index);
   if(button.dataset.discoveryAction==='copy')copyNetworkOutreach(collection,index);
   if(button.dataset.discoveryAction==='analyze')loadJobOpportunityInAnalyzer(index);
+  if(button.dataset.discoveryAction==='company-info')lookupCompanyInsights(index);
  };
  ['networkProspectsResults','networkCommunitiesResults','jobOpportunitiesResults'].forEach(id=>{
   const node=el(id);if(node&&!node.dataset.discoveryBound){node.addEventListener('click',clickHandler);node.dataset.discoveryBound='1'}
@@ -360,6 +428,7 @@ window.loadJobOpportunityInAnalyzer=loadJobOpportunityInAnalyzer;
 window.exportFollowUps=exportFollowUps;
 window.renderDiscoveryResults=renderDiscoveryResults;
 window.renderJobOpportunities=renderJobOpportunities;
+window.lookupCompanyInsights=lookupCompanyInsights;
 window.renderFollowUps=renderFollowUps;
 window.syncOpportunityInputs=syncOpportunityInputs;
 window.fillSearchPreferences=initializeDiscovery;

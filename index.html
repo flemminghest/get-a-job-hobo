@@ -728,7 +728,7 @@ button.quick-card:hover:not(:disabled){background:#fff;border-color:#cddcf0;box-
 <label class="checkline persona-option copywriter-option"><input type="checkbox" value="Copywriter" checked><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14 4 6 6"/><path d="M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20Z"/><path d="M12 6 18 12"/><path d="M4 20h16"/></svg></span><span class="persona-copy"><strong>Copywriter</strong><small>Sprog, tone og skarp argumentation</small></span></label>
 <label class="checkline persona-option cmo-option"><input type="checkbox" value="CMO"><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 16v-5"/><path d="M12 16V5"/><path d="M18 16V9"/><path d="m4 7 5-3 4 2 6-4"/></svg></span><span class="persona-copy"><strong>CMO</strong><small>Marketingstrategi og forretningsværdi</small></span></label>
 <label class="checkline persona-option ceo-option"><input type="checkbox" value="CEO"><span class="persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M10 21v-5h4v5"/></svg></span><span class="persona-copy"><strong>CEO</strong><small>Strategisk relevans og samlet værdibidrag</small></span></label>
-</div><div class="toolbar"><button id="loadPanelSourceButton" onclick="loadPanelSource()" class="secondary">Indsæt mit gemte CV</button><button id="loadPanelContextButton" onclick="loadJobIntoPanel()" class="secondary">Hent seneste jobopslag</button><button onclick="runPanel()">Vurdér materialet med panelet</button><button onclick="usePanelRevision()" class="secondary">Kopiér forbedringsplan</button></div><div id="panelNotice" class="notice" hidden></div><div id="panelResults" class="list"><div class="empty">Vælg tekst og rådgivere for at begynde.</div></div><div><label for="panelrevision">Samlet forbedringsplan</label><textarea id="panelrevision" rows="9" placeholder="Panelets konkrete forbedringsplan vises her efter vurderingen."></textarea><p class="footnote">Forbedringsplanen er en prioriteret tjekliste. Den omskriver ikke dit CV automatisk og må ikke opfinde resultater eller erfaring.</p></div></div><details class="card stack ai-settings-collapsible" id="panelAiSettings"><summary class="ai-settings-summary"><span>AI-indstillinger</span><span id="panelAiSummaryStatus" class="chip">Kontrollerer…</span></summary><div class="ai-settings-body"><div><div class="eyebrow" style="color:#087f86">AI-INDSTILLINGER</div><h2 style="margin-bottom:6px">Tilslut sprogmodellen</h2><p class="muted" style="margin:0">AI-vurderingen kører via en beskyttet Vercel-funktion. API-nøglen ligger på serveren — ikke i denne side. Se <a href="https://github.com/flemminghest/get-a-job-hobo/blob/main/AI_SETUP.md" target="_blank" rel="noopener noreferrer">opsætningsvejledningen</a>.</p></div><div class="formrow"><div class="wide"><label for="panelAiUrl">AI-endpoint (Vercel URL)</label><input id="panelAiUrl" type="url" placeholder="https://dit-projekt.vercel.app/api/panel-review" autocomplete="url"></div><div class="wide"><label for="panelAiCode">Adgangskode til AI-endpoint</label><input id="panelAiCode" type="password" placeholder="Den APP_ACCESS_CODE, du har sat i Vercel" autocomplete="off"></div></div><div class="toolbar"><button onclick="savePanelAiSettings()" class="secondary">Gem indstillinger i denne session</button><button onclick="clearPanelAiSettings()" class="secondary">Ryd AI-indstillinger</button></div><div id="panelAiStatus" class="notice">AI er ikke konfigureret. Uden endpoint og adgangskode bruges den lokale regelbaserede vurdering.</div><p class="footnote">Privatliv: Når AI er aktiv, sendes det valgte materiale og eventuel kontekst til din Vercel-backend og videre til OpenAI API for at lave vurderingen. Brug ikke oplysninger, du ikke ønsker at dele. OpenAI API-forbrug faktureres separat fra ChatGPT-abonnementet.</p></div></details></section>
+</div><div class="toolbar"><button id="loadPanelSourceButton" onclick="loadPanelSource()" class="secondary">Indsæt mit gemte CV</button><button id="loadPanelContextButton" onclick="loadJobIntoPanel()" class="secondary">Hent seneste jobopslag</button><button onclick="runPanel()">Vurdér materialet med panelet</button><button onclick="usePanelRevision()" class="secondary">Kopiér forbedringsplan</button></div><div id="panelNotice" class="notice" hidden></div><div id="panelResults" class="list"><div class="empty">Vælg tekst og rådgivere for at begynde.</div></div><div><label for="panelrevision">Samlet forbedringsplan</label><textarea id="panelrevision" rows="9" placeholder="Panelets konkrete forbedringsplan vises her efter vurderingen."></textarea><p class="footnote">Forbedringsplanen er en prioriteret tjekliste. Den omskriver ikke dit CV automatisk og må ikke opfinde resultater eller erfaring.</p></div></div><details class="card stack ai-settings-collapsible" id="panelAiSettings"><summary class="ai-settings-summary"><span>AI-indstillinger</span><span id="panelAiSummaryStatus" class="chip">Kontrollerer…</span></summary><div class="ai-settings-body"><div><div class="eyebrow" style="color:#087f86">AI-INDSTILLINGER</div><h2 style="margin-bottom:6px">Tilslut sprogmodellen</h2><p class="muted" style="margin:0">AI-vurderingen kører via en beskyttet Vercel-funktion. API-nøglen ligger på serveren — ikke i denne side. Se <a href="https://github.com/flemminghest/get-a-job-hobo/blob/main/AI_SETUP.md" target="_blank" rel="noopener noreferrer">opsætningsvejledningen</a>.</p></div><div class="formrow"><div class="wide"><label for="panelAiUrl">AI-endpoint (Vercel URL)</label><input id="panelAiUrl" type="url" placeholder="https://dit-projekt.vercel.app/api/panel-review" autocomplete="url"></div><div class="wide"><label for="panelAiCode">Adgangskode til AI-endpoint</label><input id="panelAiCode" type="password" placeholder="Den APP_ACCESS_CODE, du har sat i Vercel" autocomplete="off"></div></div><div class="toolbar"><button onclick="savePanelAiSettings()" class="secondary">Gem indstillinger</button><button onclick="testPanelAiConnection()" class="secondary">Test forbindelsen</button><button onclick="clearPanelAiSettings()" class="secondary">Ryd AI-indstillinger</button></div><div id="panelAiStatus" class="notice">AI er ikke konfigureret. Uden endpoint og adgangskode bruges den lokale regelbaserede vurdering.</div><p class="footnote">Privatliv: Når AI er aktiv, sendes det valgte materiale og eventuel kontekst til din Vercel-backend og videre til OpenAI API for at lave vurderingen. Brug ikke oplysninger, du ikke ønsker at dele. OpenAI API-forbrug faktureres separat fra ChatGPT-abonnementet.</p></div></details></section>
 
 <section class="section" id="page-network">
 <div class="hero">
@@ -2292,6 +2292,9 @@ function getPanelAiSettings(){
   if(!url&&legacyUrl){url=legacyUrl;try{localStorage.setItem('gajh_ai_endpoint',url)}catch(e){}}
   if(!code&&legacyCode){code=legacyCode;try{localStorage.setItem('gajh_ai_access_code',code)}catch(e){}}
  }catch(e){}
+ // Use the repository's known production API endpoint as the default on each frontend origin.
+ // The user must still supply APP_ACCESS_CODE; secrets are never committed to GitHub.
+ if(!url)url='https://get-a-job-hobo.vercel.app/api/panel-review';
  return {url,code};
 }
 function loadPanelAiSettings(){
@@ -2299,7 +2302,7 @@ function loadPanelAiSettings(){
  if(el('panelAiUrl'))el('panelAiUrl').value=saved.url;
  if(el('panelAiCode'))el('panelAiCode').value=saved.code;
  if(el('panelAiStatus')){
-  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-indstillinger fundet på denne enhed. De bevares, når du lukker og åbner appen igen.':'AI er ikke konfigureret. Indtast endpoint og adgangskode én gang; de gemmes derefter på denne enhed.';
+  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-endpoint er fundet. Adgangskoden gemmes kun lokalt i denne browser.':'Vercel-endpointet er udfyldt automatisk. Indtast APP_ACCESS_CODE fra Vercel, gem indstillingerne, og test forbindelsen.';
   el('panelAiStatus').className='notice '+(saved.url&&saved.code?'goodbox':'warnbox');
  }
  const settings=el('panelAiSettings');if(settings)settings.open=!(saved.url&&saved.code);
@@ -2334,6 +2337,59 @@ function savePanelAiSettings(silent){
  if(!silent)notify('panelAiStatus','AI-indstillinger gemt på denne enhed i denne browser. De bevares, indtil du ændrer eller rydder dem. OpenAI API-nøglen ligger fortsat kun på serveren.','goodbox');
  return true;
 }
+
+async function testPanelAiConnection(){
+ const url=String(el('panelAiUrl')&&el('panelAiUrl').value||'').trim();
+ const code=String(el('panelAiCode')&&el('panelAiCode').value||'').trim();
+ if(!url||!code){
+  notify('panelAiStatus','Indtast APP_ACCESS_CODE fra Vercel, og gem indstillingerne, før du tester forbindelsen.','warnbox');
+  return;
+ }
+ if(!savePanelAiSettings(true)){
+  notify('panelAiStatus','Kontrollér endpoint og adgangskode, og gem indstillingerne igen.','warnbox');
+  return;
+ }
+ const button=[...document.querySelectorAll('#panelAiSettings button')].find(b=>b.getAttribute('onclick')==='testPanelAiConnection()');
+ const originalLabel=button?button.textContent:'';
+ if(button){button.disabled=true;button.textContent='Tester sprogmodellen…'}
+ notify('panelAiStatus','Tester forbindelsen til OpenAI via Vercel med en kort testtekst.','');
+ try{
+  const response=await fetch(url,{
+   method:'POST',
+   headers:{'Content-Type':'application/json','Authorization':'Bearer '+code},
+   body:JSON.stringify({
+    material:'Kort forbindelsestest. Profilen beskriver erfaring med marketing, data, AI og kundeoplevelser samt samarbejde om konkrete resultater.',
+    context:'',
+    roles:['Recruiter'],
+    documentType:'cv'
+   })
+  });
+  let data;
+  try{data=await response.json()}catch(e){data=null}
+  if(!response.ok||!data||!Array.isArray(data.assessments)){
+   throw new Error(data&&data.error?data.error:'Endpointet returnerede ikke et gyldigt modelsvar (HTTP '+response.status+').');
+  }
+  const stamp=new Date().toISOString();
+  try{
+   sessionStorage.setItem('gajh_ai_last_success',stamp);
+   sessionStorage.removeItem('gajh_ai_last_error');
+   sessionStorage.setItem('gajh_ai_last_model',String(data.model||'OpenAI API'));
+  }catch(e){}
+  updateModelIntegrationStatus();
+  notify('panelAiStatus','Forbindelsen virker. OpenAI-sprogmodellen har svaret via Vercel ('+String(data.model||'model bekræftet')+'). Kun en kort testtekst blev sendt; testen kan medføre et lille API-forbrug.','goodbox');
+ }catch(error){
+  try{sessionStorage.setItem('gajh_ai_last_error',new Date().toISOString())}catch(e){}
+  updateModelIntegrationStatus();
+  const message=String(error&&error.message||'Ukendt fejl');
+  const networkFailure=/failed to fetch|networkerror|load failed|fetch failed/i.test(message);
+  notify('panelAiStatus',networkFailure
+   ?'Kunne ikke nå endpointet fra denne webadresse. Kontrollér netværk og deploystatus. GitHub-backenden er nu sat til at tillade både GitHub Pages og get-a-job-hobo.vercel.app.'
+   :'Forbindelsestesten fejlede: '+message,'warnbox');
+ }finally{
+  if(button){button.disabled=false;button.textContent=originalLabel}
+ }
+}
+
 function clearPanelAiSettings(){
  // Clear both the new persistent values and any legacy sessionStorage copies.
  try{localStorage.removeItem('gajh_ai_endpoint');localStorage.removeItem('gajh_ai_access_code')}catch(e){}

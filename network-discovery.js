@@ -242,6 +242,7 @@ async function lookupCompanyInsights(index){
  try{
   const outcomes=await Promise.allSettled(queries.map(query=>queryIndex(query,[])));
   const gathered=[];
+  const sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
   outcomes.forEach((outcome,i)=>{
    if(outcome.status!=='fulfilled')return;
    (outcome.value.results||[]).forEach(result=>{
@@ -251,10 +252,15 @@ async function lookupCompanyInsights(index){
   });
   item.companyFacts=applyCompanySourceFacts(gathered,item.companyFacts);
   item.companyFacts.sources=gathered.slice(0,8);
-  item.companyFacts.lookupStatus='done';item.companyFacts.lookupAt=new Date().toISOString();
+  item.companyFacts.lookupStatus=(sourceErrors===queries.length&&!gathered.length)?'error':'done';
+  item.companyFacts.lookupAt=new Date().toISOString();
   persist();renderJobOpportunities();
   const status=el('jobSearchStatus');
-  if(status){status.className='notice '+(gathered.length?'goodbox':'warnbox');status.textContent=gathered.length?'Virksomhedsoplysninger søgt for '+company+'. '+gathered.length+' relevante offentlige kilder vises i infoboksen. Kontrollér kildens dato og indhold.':'Ingen relevante offentlige virksomhedsprofiler blev fundet for '+company+'. Der udfyldes ikke gættede værdier.'}
+  if(status){
+   if(gathered.length){status.className='notice goodbox';status.textContent='Virksomhedsoplysninger søgt for '+company+'. '+gathered.length+' relevante offentlige kilder vises i infoboksen. Kontrollér kildens dato og indhold.'}
+   else if(sourceErrors===queries.length){status.className='notice warnbox';status.textContent='Søgetjenesten kunne ikke hente virksomhedsdata for '+company+'. Kontrollér forbindelsen, og prøv igen.'}
+   else {status.className='notice warnbox';status.textContent='Ingen relevante offentlige virksomhedsprofiler blev fundet for '+company+'. Der udfyldes ikke gættede værdier.'+(sourceErrors?' '+sourceErrors+' af '+queries.length+' kildesøgninger fejlede.':'')}
+  }
  }catch(error){
   item.companyFacts.lookupStatus='error';item.companyFacts.lookupError=String(error&&error.message||error).slice(0,220);
   persist();renderJobOpportunities();

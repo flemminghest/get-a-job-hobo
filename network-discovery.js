@@ -532,20 +532,11 @@ async function lookupCompanyInsights(indexOrItem){
   }
   item.companyFacts=nextFacts;
   persist();renderJobOpportunities();
-  const status=el('jobSearchStatus');
-  if(status){
-   if(sourceErrors===queries.length&&!found.length){
-    status.className='notice warnbox';status.textContent='De danske kildesøgninger kunne ikke gennemføres for '+company+'. Kontrollér søgeforbindelsen, og prøv igen.';
-   }else if(!confirmedDanish){
-    status.className='notice warnbox';status.textContent='Ingen dansk virksomhedsregistrering fundet for '+company+'. Kun virksomheder med et match i danske virksomhedsregistre vises med virksomhedsdata. Der er ikke brugt udenlandske kilder.';
-   }else{
-    status.className='notice goodbox';status.textContent='Dansk virksomhedsprofil fundet for '+company+'. '+eligibleSources.length+' relevante resultater fra danske kilder. Medarbejdervurdering vises kun, hvis en dansk arbejdspladskilde har en dokumenteret score.';
-   }
-  }
+  // Company enrichment is automatic and must not overwrite the job-search result status.
  }catch(error){
   item.companyFacts={lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,220),sources:[],factSources:{}};
   persist();renderJobOpportunities();
-  const status=el('jobSearchStatus');if(status){status.className='notice warnbox';status.textContent='Den danske virksomhedssøgning fejlede for '+company+': '+item.companyFacts.lookupError}
+  // Per-company lookup errors are shown in the individual insight card.
  }
 }
 async function autoLookupJobCompanyFacts(items){
@@ -608,6 +599,7 @@ function companyInsightBox(item,index){
  out+='<div class="job-company-insight-stats"><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' evalueringer / anmeldelser':'Ingen bekræftet medarbejdervurdering')+'</span></div></div></div>';
  out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>'; if(clean(f.companyHighlight))out+='<div class="job-company-highlight"><strong>Tal fra virksomhedens egen hjemmeside</strong><span>'+escapeHtml(f.companyHighlight)+'</span></div>';
  if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>'+(f.lookupStatus==='queued'?'Virksomhedsoplysninger hentes automatisk, så snart det bliver denne virksomheds tur…':'Søger på Krak efter adresse og ansatte, på Jobindex efter virksomhedsprofil og evalueringer samt i danske virksomhedsregistre…')+'</div>';
+ if(f.lookupStatus==='error')out+='<div class="job-company-lookup-error">Virksomhedsdata kunne ikke hentes denne gang. Jobopslaget vises stadig, og søgningen efter stillinger er ikke påvirket.</div>';
  if(completed){
   out+='<div class="job-company-evidence"><div class="job-company-evidence-heading"><strong>Fundne kilder</strong><span>'+sources.length+' resultater</span></div>';
   out+=sources.length?'<div class="job-company-evidence-list">'+sources.slice(0,4).map(source=>'<a class="job-company-evidence-item" href="'+escapeHtml(safeHttpUrl(source.url))+'" target="_blank" rel="noopener noreferrer"><span class="job-company-evidence-copy"><strong>'+escapeHtml(source.domain||source.sourceLabel||'Offentlig kilde')+'</strong><small>'+escapeHtml(source.title||'Virksomhedsoplysninger')+'</small><em>'+escapeHtml(String(source.description||'').slice(0,220))+'</em></span><span class="job-company-evidence-arrow">↗</span></a>').join('')+'</div>':'<p class="job-company-evidence-empty">Ingen relevante profiler blev fundet i de offentlige søgeresultater.</p>';

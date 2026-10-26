@@ -169,8 +169,8 @@ function mapResult(raw,query,terms,usedFallback){
   employeeCount:pick(raw.employeeCount,raw.employee_count,raw.employees,raw.companySize,raw.company_size,raw.employeeRange),
   location:pick(raw.workLocation,raw.work_location,raw.location,raw.city,raw.address),
   distanceKm:pick(raw.distanceKm,raw.distance_km),
-  employeeRating:pick(raw.employeeSatisfaction,raw.employee_satisfaction,raw.companyRating,raw.company_rating,raw.ratingFromEmployees),
-  ratingCount:pick(raw.reviewCount,raw.review_count,raw.ratingCount,raw.rating_count),
+  employeeRating:pick(raw.employeeSatisfaction,raw.employee_satisfaction,raw.employeeRating,raw.employee_rating,raw.ratingFromEmployees),
+  ratingCount:pick(raw.employeeReviewCount,raw.employee_review_count,raw.workplaceReviewCount,raw.workplace_review_count),
   industry:pick(raw.industry,raw.sector),
   foundedYear:pick(raw.foundedYear,raw.founded_year,raw.founded),
   companyType:pick(raw.companyType,raw.company_type,raw.organizationType,raw.organization_type)
@@ -320,33 +320,42 @@ function companyResultRelevant(result,company,item){
 }
 function applyCompanySourceFacts(sources,prior){
  const f={...(prior||{})},factSources={...(f.factSources||{})};
- const bodyOf=s=>String((s.title||'')+' '+(s.description||'')).replace(/\s+/g,' ');
+ const bodyOf=source=>String((source.title||'')+' '+(source.description||'')).replace(/\s+/g,' ');
+ const fill=(field,value,source)=>{if(!String(f[field]||'').trim()&&value!==undefined&&value!==null&&String(value).trim()!==''){f[field]=String(value).trim();factSources[field]=source}};
  for(const source of sources){
   if(!isDanishCompanySource(source))continue;
   const text=bodyOf(source),domain=String(source.domain||'').toLowerCase().replace(/^www\./,'');
+  const structured=source.companyFacts||{};
   const workplace=domain==='jobindex.dk'||domain.endsWith('.jobindex.dk')||domain==='jobrate.dk'||domain.endsWith('.jobrate.dk');
   let m;
+  fill('employeeCount',structured.employeeCount||structured.employee_count||structured.employees||structured.companySize||structured.company_size||structured.employeeRange,source);
+  fill('location',structured.location||structured.workLocation||structured.work_location||source.location||source.city||source.address,source);
+  fill('industry',structured.industry||structured.sector,source);
+  fill('foundedYear',structured.foundedYear||structured.founded_year||structured.founded,source);
+  fill('companyType',structured.companyType||structured.company_type||structured.organizationType||structured.organization_type,source);
+  if(workplace){
+   fill('employeeRating',structured.employeeSatisfaction||structured.employee_satisfaction||structured.employeeRating||structured.employee_rating||structured.ratingFromEmployees,source);
+   fill('ratingCount',structured.employeeReviewCount||structured.employee_review_count||structured.workplaceReviewCount||structured.workplace_review_count,source);
+  }
   if(!f.employeeCount){
    m=text.match(/(?:company size|antal ansatte|antal medarbejdere|employees|employee count|staff size)\s*[:\-]?\s*(\d{1,4}\s*[-–]\s*\d{1,4}|\d{1,3}(?:[.,\s]\d{3})*|\d{1,5})(?:\s*(?:employees|medarbejdere|ansatte))?/i);
-   if(m){f.employeeCount=m[1].replace(/\s+/g,' ').trim();factSources.employeeCount=source}
+   if(m)fill('employeeCount',m[1].replace(/\s+/g,' ').trim(),source);
   }
-  if(!f.employeeCount&&(m=text.match(/\b(\d{1,4}\s*[-–]\s*\d{1,4})\s*(?:employees|medarbejdere|ansatte)\b/i))){f.employeeCount=m[1].replace(/\s+/g,' ').trim();factSources.employeeCount=source}
-  if(!f.employeeCount&&(m=text.match(/\b(\d{1,5})\s+(?:ansatte|medarbejdere|employees)\b/i))){f.employeeCount=m[1];factSources.employeeCount=source}
-  if(!f.foundedYear&&(m=text.match(/(?:stiftet|etableret|grundlagt|founded)\D{0,32}\b(19\d{2}|20\d{2})\b/i))){f.foundedYear=m[1];factSources.foundedYear=source}
+  if(!f.employeeCount&&(m=text.match(/\b(\d{1,4}\s*[-–]\s*\d{1,4})\s*(?:employees|medarbejdere|ansatte)\b/i)))fill('employeeCount',m[1].replace(/\s+/g,' ').trim(),source);
+  if(!f.employeeCount&&(m=text.match(/\b(\d{1,5})\s+(?:ansatte|medarbejdere|employees)\b/i)))fill('employeeCount',m[1],source);
+  if(!f.foundedYear&&(m=text.match(/(?:stiftet|etableret|grundlagt|founded|registreringsdato)\D{0,32}\b(19\d{2}|20\d{2})\b/i)))fill('foundedYear',m[1],source);
   if(!f.location&&(m=text.match(/(?:headquarters|headquartered|hovedkontor|location|lokation|adresse|address|besøgsadresse|postadresse)\s*[:\-]?\s*(.{3,100})/i))){
-   const location=m[1].split(/\b(?:company size|company type|type|founded|industry|specialties|employees|employee count|about us|visit website|revenue|virksomhedstype|antal ansatte|telefon|phone|CVR|kontakt)\b/i)[0].replace(/[|,;\s.]+$/,'').trim();
-   if(location&&location.length<=100){f.location=location;factSources.location=source}
+   const location=m[1].split(/\b(?:company size|company type|type|founded|industry|specialties|employees|employee count|about us|visit website|revenue|virksomhedstype|antal ansatte|telefon|phone|CVR|kontakt|åbningstider)\b/i)[0].replace(/[|,;\s.]+$/,'').trim();
+   if(location&&location.length<=100)fill('location',location,source);
   }
-  if(!f.location&&(m=text.match(/\b(\d{4}\s+[A-ZÆØÅ][A-Za-zÆØÅæøå .'-]{2,50})\b/))){
-   f.location=m[1].trim();factSources.location=source;
-  }
-  if(!f.industry&&(m=text.match(/(?:branche|industry|sector)\s*[:\-]?\s*(.{3,70})/i))){
+  if(!f.location&&(m=text.match(/\b(\d{4}\s+[A-ZÆØÅ][A-Za-zÆØÅæøå .'-]{2,50})\b/)))fill('location',m[1].trim(),source);
+  if(!f.industry&&(m=text.match(/(?:branche|industry|sector|hovedbranche|branchekode)\s*[:\-]?\s*(.{3,70})/i))){
    const industry=m[1].split(/\b(?:company size|company type|type|founded|headquarters|employees|specialties|about us|revenue)\b/i)[0].replace(/[|,;\s.]+$/,'').trim();
-   if(industry&&industry.length<=70){f.industry=industry;factSources.industry=source}
+   if(industry&&industry.length<=70)fill('industry',industry,source);
   }
-  if(!f.companyType&&(m=text.match(/(?:company type|type|virksomhedsform|organization type)\s*[:\-]?\s*(privately held|public company|privately owned|private company|offentlig institution|aktieselskab|anpartsselskab|limited|gmbh|llc|inc\.?)/i))){f.companyType=m[1];factSources.companyType=source}
-  if(workplace&&!f.employeeRating&&(m=text.match(/\b([1-5][,.]\d)\s*(?:\/\s*5|out of 5|ud af 5|stjerner af 5|stars? out of 5)\b/i))){f.employeeRating=m[1].replace(',','.');factSources.employeeRating=source}
-  if(workplace&&!f.ratingCount&&(m=text.match(/\b(\d{1,6})\s+(?:total\s+)?(?:(?:company|employee)\s+)?(?:anmeldelser|vurderinger|evalueringer|reviews|ratings)\b/i))){f.ratingCount=m[1];factSources.ratingCount=source}
+  if(!f.companyType&&(m=text.match(/(?:company type|type|virksomhedsform|selskabsform|organization type)\s*[:\-]?\s*(privately held|public company|privately owned|private company|offentlig institution|aktieselskab|anpartsselskab|ApS|A\/S|I\/S|P\/S|limited|gmbh|llc|inc\.?)/i)))fill('companyType',m[1],source);
+  if(workplace&&!f.employeeRating&&(m=text.match(/(?:medarbejdertilfredshed|arbejdspladsrating|employee rating|workplace rating|jobglæde|job satisfaction|rating)\D{0,30}([1-5][,.]\d)|\b([1-5][,.]\d)\s*(?:\/\s*5|out of 5|ud af 5|stjerner af 5|stars? out of 5)\b/i)))fill('employeeRating',(m[1]||m[2]).replace(',','.'),source);
+  if(workplace&&!f.ratingCount&&(m=text.match(/\b(\d{1,6})\s+(?:total\s+)?(?:(?:company|employee)\s+)?(?:anmeldelser|vurderinger|evalueringer|reviews|ratings)\b/i)))fill('ratingCount',m[1],source);
  }
  f.factSources=factSources;return f;
 }
@@ -358,14 +367,14 @@ async function lookupCompanyInsights(index){
  item.companyFacts.lookupStatus='loading';persist();renderJobOpportunities();
  const q='"'+company.replace(/"/g,' ')+'"';
  const queries=[
-  {id:'krak-dk',label:'Krak · adresse, placering og firmaoplysninger',targetSite:'krak.dk',query:'site:krak.dk/firma '+q+' adresse antal ansatte CVR branche',fallbackQuery:'site:krak.dk '+q+' firma adresse telefon CVR antal ansatte'},
-  {id:'jobindex-dk',label:'Jobindex · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde ansatte adresse',fallbackQuery:'site:jobindex.dk '+q+' virksomhed arbejdsplads medarbejdervurdering anmeldelser'},
+  {id:'krak-dk',label:'Krak · adresse, placering, telefon og firmadata',targetSite:'krak.dk',query:'site:krak.dk/firma '+q+' adresse postnummer ansatte CVR branche',fallbackQuery:'site:krak.dk '+q+' firmaprofil adresse telefon CVR antal ansatte'},
+  {id:'jobindex-dk',label:'Jobindex · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' jobglæde medarbejdervurdering anmeldelser',fallbackQuery:'site:jobindex.dk '+q+' virksomhed arbejdsplads medarbejdervurdering anmeldelser ansatte'},
+  {id:'jobindex-ads-dk',label:'Jobindex · arbejdsgiver og arbejdssted',targetSite:'jobindex.dk',query:'site:jobindex.dk/jobannonce '+q+' arbejdssted virksomhed Danmark',fallbackQuery:'site:jobindex.dk '+q+' virksomhed adresse Danmark stilling'},
   {id:'jobindex-ads-dk',label:'Jobindex · danske stillingsopslag',targetSite:'jobindex.dk',query:'site:jobindex.dk/jobannonce '+q+' København Danmark medarbejdere adresse',fallbackQuery:'site:jobindex.dk '+q+' København Danmark job virksomhed'},
   {id:'proff-dk',label:'Proff Danmark · CVR, branche og ansatte',targetSite:'proff.dk',query:'site:proff.dk '+q+' CVR antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' virksomhed CVR ansatte adresse'},
   {id:'estatistik-dk',label:'eStatistik · danske virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' CVR ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' CVR dansk virksomhed ansatte adresse'},
   {id:'cvr-virk-dk',label:'CVR/Virk · officielt virksomhedsregister',targetSite:'virk.dk',query:'site:datacvr.virk.dk '+q+' CVR adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},
   {id:'ownr-dk',label:'Ownr · danske virksomhedsoplysninger',targetSite:'ownr.dk',query:'site:ownr.dk '+q+' CVR antal ansatte adresse stiftet branche',fallbackQuery:'site:ownr.dk '+q+' dansk virksomhed CVR'},
-  {id:'jobindex-dk',label:'Jobindex Danmark · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde',fallbackQuery:'site:jobindex.dk '+q+' medarbejdere arbejdsplads vurdering'},
   {id:'jobrate-dk',label:'Jobrate Danmark · arbejdspladsvurdering',targetSite:'jobrate.dk',query:'site:jobrate.dk/arbejdsplads '+q+' medarbejdervurdering',fallbackQuery:'site:jobrate.dk '+q+' arbejdsplads medarbejdere'}
  ];
  try{
@@ -421,7 +430,7 @@ async function lookupCompanyInsights(index){
  out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Virksomhedsinfo fra offentlige kilder</small></div><button type="button" class="job-company-lookup-button" data-discovery-action="company-info" data-collection="jobs" data-index="'+index+'" '+(loading?'disabled':'')+'>'+(loading?'Søger…':completed?'Opdatér data':'Find data')+' ↗</button></div>';
  out+='<div class="job-company-insight-stats"><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' anmeldelser':'Ingen bekræftet medarbejderrating')+'</span></div></div></div>';
  out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>'; if(clean(f.companyHighlight))out+='<div class="job-company-highlight"><strong>Tal fra virksomhedens egen hjemmeside</strong><span>'+escapeHtml(f.companyHighlight)+'</span></div>';
- if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>Søger efter Jobindex-profiler, arbejdspladsvurderinger og offentlige virksomhedsdata…</div>';
+ if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>Søger på Krak efter adresse og ansatte, på Jobindex efter virksomhedsprofil/jobglæde og i danske virksomhedsregistre…</div>';
  if(completed){
   out+='<div class="job-company-evidence"><div class="job-company-evidence-heading"><strong>Fundne kilder</strong><span>'+sources.length+' resultater</span></div>';
   out+=sources.length?'<div class="job-company-evidence-list">'+sources.slice(0,4).map(source=>'<a class="job-company-evidence-item" href="'+escapeHtml(safeHttpUrl(source.url))+'" target="_blank" rel="noopener noreferrer"><span class="job-company-evidence-copy"><strong>'+escapeHtml(source.domain||source.sourceLabel||'Offentlig kilde')+'</strong><small>'+escapeHtml(source.title||'Virksomhedsoplysninger')+'</small><em>'+escapeHtml(String(source.description||'').slice(0,220))+'</em></span><span class="job-company-evidence-arrow">↗</span></a>').join('')+'</div>':'<p class="job-company-evidence-empty">Ingen relevante profiler blev fundet i de offentlige søgeresultater.</p>';
@@ -487,6 +496,8 @@ async function searchDanishCompaniesByCriteria(){
  const status=el('companyCriteriaStatus');
  if(status){status.className='notice goodbox';status.textContent='Søger kun efter virksomheder med danske virksomhedsprofiler. Søgeord: '+(terms||'virksomheder')+' · Geografi: '+profile.location+'.'}
  const queries=[
+  {id:'krak-dk',label:'Krak',targetSite:'krak.dk',query:'site:krak.dk/firma '+terms+' '+location+' adresse virksomhed',fallbackQuery:'site:krak.dk '+terms+' '+location+' firma adresse'},
+  {id:'jobindex-dk',label:'Jobindex Danmark',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+terms+' '+location+' virksomhed',fallbackQuery:'site:jobindex.dk '+terms+' '+location+' arbejdsplads virksomhed'},
   {id:'proff-dk',label:'Proff Danmark',targetSite:'proff.dk',query:'site:proff.dk '+terms+' '+location+' CVR virksomhed ansatte',fallbackQuery:'site:proff.dk '+terms+' '+location+' virksomhed CVR'},
   {id:'estatistik-dk',label:'eStatistik',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+terms+' '+location+' antal ansatte branche',fallbackQuery:'site:estatistik.dk '+terms+' '+location+' dansk virksomhed CVR'},
   {id:'ownr-dk',label:'Ownr',targetSite:'ownr.dk',query:'site:ownr.dk '+terms+' '+location+' CVR adresse branche',fallbackQuery:'site:ownr.dk '+terms+' '+location+' virksomhed CVR'},

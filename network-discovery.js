@@ -150,35 +150,33 @@ function isDanishMappedJob(item,profile){
 }
 
 function jobLocationQuery(value){
- const text=normalizeSearchText(value||'Frederiksberg Danmark');
- if(/\b(frederiksberg|kobenhavn|copenhagen|hovedstaden|kobenhavns omegn)\b/.test(text))return 'Frederiksberg København Copenhagen Danmark Denmark';
- if(/\b(danmark|denmark|hele landet|hele danmark)\b/.test(text))return 'Danmark Denmark København Copenhagen Aarhus Odense Aalborg';
- const location=searchPhrase(value||'Frederiksberg Danmark');
- return location+' Danmark Denmark';
+ const text=normalizeSearchText(value||'Frederiksberg København');
+ if(/\b(frederiksberg|kobenhavn|copenhagen|hovedstaden|kobenhavns omegn)\b/.test(text))return 'København';
+ if(/\b(danmark|denmark|hele landet|hele danmark)\b/.test(text))return 'Denmark';
+ return searchPhrase(value||'Denmark').split(/\s+/).filter(Boolean).slice(0,2).join(' ')||'Denmark';
 }
-function jobKeywordVariants(profile){
- const terms=(profile&&profile.terms||[]).map(searchPhrase).filter(term=>term.length>1);
- return uniqueTerms(terms).slice(0,6);
-}
-function jobKeywordQuery(profile){
- return jobKeywordVariants(profile).slice(0,3).join(' ')||'job';
-}
+function jobKeywordVariants(profile){return uniqueTerms((profile&&profile.terms||[]).map(searchPhrase).filter(term=>term.length>1)).slice(0,6)}
 function jobQueries(profile){
  const terms=jobKeywordVariants(profile),first=terms[0]||'marketing',second=terms[1]||first,third=terms[2]||second;
  const loc=jobLocationQuery(profile.location||'Frederiksberg, København og omegn, Danmark');
  const q=(domain,term,geo)=>'site:'+domain+' '+term+' '+geo;
+ const perPortal=(id,label,targetSite,domain)=>{
+  const primary=q(domain,first,loc+' job'),fallback=q(domain,first,'Denmark job');
+  const alternatives=uniqueTerms([second,third].filter(term=>term&&term!==first)).map(term=>q(domain,term,'Denmark job'));
+  if(first===second&&first===third)alternatives.push(q(domain,first,'vacancy career'));
+  return {id,label,targetSite,scope:'danish-jobs',query:primary,fallbackQuery:fallback,alternativeQueries:alternatives};
+ };
  return [
-  {id:'web-jobs',label:'Bred søgning på tværs af jobportaler',targetSite:'',scope:'danish-jobs',query:first+' job stilling '+loc+' Denmark Danmark',fallbackQuery:second+' jobs Denmark Danmark',alternativeQueries:[third+' jobs Denmark Danmark',first+' remote work from Denmark']},
-  {id:'linkedin-jobs',label:'LinkedIn Jobs · Danmark og remote',targetSite:'linkedin.com',scope:'danish-jobs',query:q('linkedin.com/jobs/view',first,loc),fallbackQuery:q('linkedin.com/jobs/view',second,'Denmark Danmark'),alternativeQueries:[q('linkedin.com/jobs/view',third,'Denmark Danmark')]},
-  {id:'jobindex',label:'Jobindex Danmark',targetSite:'jobindex.dk',scope:'danish-jobs',query:q('jobindex.dk/jobannonce',first,loc),fallbackQuery:q('jobindex.dk',second,'Danmark Denmark'),alternativeQueries:[q('jobindex.dk',third,'Danmark Denmark')]},
-  {id:'indeed-dk',label:'Indeed Danmark',targetSite:'indeed.com',scope:'danish-jobs',query:q('dk.indeed.com/viewjob',first,loc),fallbackQuery:q('dk.indeed.com',second,'Denmark Danmark'),alternativeQueries:[q('indeed.com',third,'Denmark Denmark')]},
-  {id:'jobnet',label:'Jobnet · Danmark',targetSite:'jobnet.dk',scope:'danish-jobs',query:q('jobnet.dk',first,loc),fallbackQuery:q('jobnet.dk',second,'Danmark Denmark'),alternativeQueries:[q('jobnet.dk',third,'Danmark Denmark')]},
-  {id:'hk-jobportal',label:'HK Jobportal · Danmark',targetSite:'hk.dk',scope:'danish-jobs',query:q('hk.dk',first,loc+' job stilling'),fallbackQuery:q('hk.dk',second,'Danmark Denmark job'),alternativeQueries:[q('hk.dk',third,'Danmark Denmark job')]},
-  {id:'stepstone',label:'StepStone Danmark',targetSite:'stepstone.dk',scope:'danish-jobs',query:q('stepstone.dk',first,loc),fallbackQuery:q('stepstone.dk',second,'Danmark Denmark'),alternativeQueries:[q('stepstone.dk',third,'Danmark Denmark')]},
-  {id:'ofir',label:'Ofir · Danmark',targetSite:'ofir.dk',scope:'danish-jobs',query:q('ofir.dk',first,loc),fallbackQuery:q('ofir.dk',second,'Danmark Denmark'),alternativeQueries:[q('ofir.dk',third,'Danmark Denmark')]},
-  {id:'workindenmark',label:'Workindenmark',targetSite:'workindenmark.dk',scope:'danish-jobs',query:q('workindenmark.dk',first,loc),fallbackQuery:q('workindenmark.dk',second,'Denmark'),alternativeQueries:[q('workindenmark.dk',third,'Denmark')]},
-  {id:'jobdanmark',label:'Jobdanmark',targetSite:'jobdanmark.dk',scope:'danish-jobs',query:q('jobdanmark.dk',first,loc),fallbackQuery:q('jobdanmark.dk',second,'Danmark Denmark'),alternativeQueries:[q('jobdanmark.dk',third,'Danmark Denmark')]},
-  {id:'career-sites',label:'Danske virksomheders karrieresider',targetSite:'',scope:'danish-jobs',query:first+' careers jobs '+loc+' Denmark',fallbackQuery:second+' jobs Denmark Danmark',alternativeQueries:[third+' jobs Denmark Danmark']}
+  perPortal('linkedin-jobs','LinkedIn Jobs · Danmark og remote','linkedin.com','linkedin.com/jobs/view'),
+  perPortal('jobindex','Jobindex Danmark','jobindex.dk','jobindex.dk/jobannonce'),
+  perPortal('indeed-dk','Indeed Danmark','indeed.com','dk.indeed.com/viewjob'),
+  perPortal('jobnet','Jobnet · Danmark','jobnet.dk','jobnet.dk'),
+  perPortal('hk-jobportal','HK Jobportal · Danmark','hk.dk','hk.dk'),
+  perPortal('stepstone','StepStone Danmark','stepstone.dk','stepstone.dk'),
+  perPortal('ofir','Ofir · Danmark','ofir.dk','ofir.dk'),
+  perPortal('workindenmark','Workindenmark','workindenmark.dk','workindenmark.dk'),
+  perPortal('jobdanmark','Jobdanmark','jobdanmark.dk','jobdanmark.dk'),
+  {id:'career-sites',label:'Danske virksomheders karrieresider',targetSite:'',scope:'danish-jobs',query:first+' job '+loc+' Denmark',fallbackQuery:first+' job Denmark',alternativeQueries:uniqueTerms([second,third].filter(t=>t&&t!==first)).map(t=>t+' job Denmark')}
  ];
 }
 function domainMatches(host,target){
@@ -252,45 +250,50 @@ function mapResult(raw,query,terms,usedFallback){
  return item;
 }
 function isGenericJobLandingPage(item){
- const title=normalizeSearchText(item&&item.title||'');
- const desc=normalizeSearchText(item&&item.description||'');
- const url=String(item&&item.url||'').toLowerCase();
- const domain=String(item&&item.domain||'').toLowerCase();
- const pageNumber=/\b(side|page|pagina)\s*\d+\b/i.test(String(item&&item.title||''));
- const directoryTitle=/(denmark business|business directory|company directory|phone directory|yellow pages|find more .* detailed information|lokalhistorisk arkiv for|company at denmark|telefonbog|firmaregister|virksomhedsregister|firmanummer|jobopslag\s*[-–]\s*[\d.,]+)/i.test(String(item&&item.title||''));
- const directorySnippet=/(company at denmark|phone is\s+\+?\d|find more .* detailed information on this page|business directory|company directory)/i.test(String(item&&item.description||''));
- const genericTitle=/(^| )(remote jobs?( in)? denmark|jobs? in denmark|find jobs?|job search|search jobs?|browse jobs?|all (current )?jobs?|career opportunities|job portal|job board|job categories|vacancies in denmark|work in denmark|job opportunities in|ledige stillinger|jobmuligheder|jobsogning|jobsoegning|find et job|joboversigt|marketing glossary|salary guide|job salary|lønstatistik|company profile|about us)( |$)/i.test(title);
- const genericPath=/\/(jobs?|careers?|search|job-search|job-portal|job-listings|jobs-in-denmark|remote-jobs|vacancies|business-directory|company-directory)\/?(?:\?.*)?$/.test(url);
- const nonJobHost=/\b(soopage\.com|manta\.com|bizapedia\.com|dnb\.com|businesslist\.com)\b/i.test(domain);
+ const title=String(item&&item.title||'').trim(),desc=String(item&&item.description||'').trim();
+ const url=String(item&&item.url||'').toLowerCase(),domain=String(item&&item.domain||'').toLowerCase();
+ const pageNumber=/\b(side|page|pagina)\s*\d+\b/i.test(title);
+ const directoryTitle=/(denmark business|business directory|company directory|phone directory|yellow pages|find more .* detailed information|lokalhistorisk arkiv for|company at denmark|telefonbog|firmaregister|virksomhedsregister|firmanummer|jobopslag\s*[-–]\s*[\d.,]+|job listings\s*[-–]|salary guide|marketing glossary)/i.test(title);
+ const directorySnippet=/(company at denmark|phone is\s+\+?\d|find more .* detailed information on this page|business directory|company directory|browse businesses|find a company)/i.test(desc);
+ const genericTitle=/(^| )(remote jobs?( in)? denmark|jobs? in denmark|find jobs?|job search|search jobs?|browse jobs?|all (current )?jobs?|career opportunities|job portal|job board|job categories|vacancies in denmark|work in denmark|job opportunities in|ledige stillinger|jobmuligheder|jobsogning|jobsoegning|find et job|joboversigt|marketing glossary|salary guide|job salary|lønstatistik|company profile|about us|jobopslag)( |$)/i.test(normalizeSearchText(title));
+ const genericPath=/\/(jobs?|careers?|search|job-search|job-portal|job-listings|jobs-in-denmark|remote-jobs|vacancies|business-directory|company-directory|companies|arbejdsgivere)\/?(?:\?.*)?$/.test(url);
+ const nonJobHost=/soopage\.com|manta\.com|bizapedia\.com|dnb\.com|businesslist\.com|trabajo\.org|yellowpages\.com/i.test(domain);
  return pageNumber||directoryTitle||directorySnippet||genericTitle||genericPath||nonJobHost;
 }
 function jobTitleLooksSpecific(title){
  const raw=String(title||'').trim(),normal=normalizeSearchText(raw);
  if(raw.length<8||raw.length>170)return false;
  if(/\b(side|page|pagina)\s*\d+\b/i.test(raw))return false;
- if(/\b(denmark business|business directory|company directory|phone directory|jobopslag\s*[-–]\s*[\d.,]+|job listings|jobs in denmark|remote jobs|salary guide|marketing glossary|about us)\b/i.test(raw))return false;
+ if(/\b(denmark business|business directory|company directory|phone directory|jobopslag\s*[-–]\s*[\d.,]+|job listings|jobs in denmark|remote jobs|salary guide|marketing glossary|about us|company profile|10[.,]000 jobs|10000 jobs)\b/i.test(raw))return false;
  if(/\b\d{2}\s\d{2}\s\d{2}\s\d{2}\b/.test(raw))return false;
- const words=normal.split(/\s+/).filter(Boolean);
- if(words.length<2||words.length>18)return false;
- return true;
+ const words=normal.split(/\s+/).filter(Boolean);return words.length>=2&&words.length<=16;
+}
+function directJobDetailUrl(item){
+ const parsed=(()=>{try{return new URL(String(item&&item.url||''))}catch(e){return null}})();if(!parsed)return false;
+ const host=parsed.hostname.toLowerCase().replace(/^www\./,''),path=parsed.pathname.toLowerCase(),query=parsed.search.toLowerCase();
+ if(host.endsWith('linkedin.com'))return /\/jobs\/view\/[^/]+/.test(path)&&/\d{5,}/.test(path);
+ if(host==='indeed.com'||host.endsWith('.indeed.com'))return /\/viewjob\b/.test(path)&&/[?&](jk|vjk)=/.test(query);
+ if(host==='jobindex.dk'||host.endsWith('.jobindex.dk'))return /\/jobannonce\/[^/]+/.test(path)||/\/job\/[^/]+/.test(path);
+ if(host==='jobnet.dk'||host.endsWith('.jobnet.dk'))return /\/(job|jobannonce|stilling|stillinger)\/[^/]+/.test(path);
+ if(host==='stepstone.dk'||host.endsWith('.stepstone.dk'))return /\/(job|jobad|stilling|stellenangebote)\/[^/]+/.test(path);
+ if(host==='ofir.dk'||host.endsWith('.ofir.dk'))return /\/(job|jobs|stilling|stillinger)\/[^/]+/.test(path);
+ if(host==='workindenmark.dk'||host.endsWith('.workindenmark.dk'))return /\/(job|jobs|vacancy|vacancies|stillinger)\/[^/]+/.test(path);
+ if(host==='jobdanmark.dk'||host.endsWith('.jobdanmark.dk'))return /\/(job|jobs|stilling|stillinger)\/[^/]+/.test(path);
+ if(host==='hk.dk'||host.endsWith('.hk.dk'))return /\/(job|jobs|jobannonce|stillinger)\/[^/]+/.test(path);
+ const segments=path.split('/').filter(Boolean),detailWords=['job','jobs','career','careers','vacancy','vacancies','stilling','stillinger','position','positions','opportunities'];
+ const ix=segments.findIndex(segment=>detailWords.includes(segment));
+ return ix>=0&&segments.length>=ix+2&&!['search','all','category','categories','locations','teams','department'].includes(segments[ix+1]);
 }
 function isLikelySpecificJobPosting(item,query){
  if(!item||!safeHttpUrl(item.url)||isGenericJobLandingPage(item))return false;
- const url=String(item.url).toLowerCase(),host=String(item.domain||'').toLowerCase();
- const title=String(item.jobTitle||item.title||'').trim(),description=String(item.description||'');
- if(!jobTitleLooksSpecific(title))return false;
- const strongPath=(host.includes('linkedin.com')&&/\/jobs\/view\//.test(url))||
-  (host.includes('indeed.com')&&/\/viewjob\b/i.test(url))||
-  (host.includes('jobindex.dk')&&/\/(jobannonce|job|stillinger)\//.test(url))||
-  (host.includes('stepstone.dk')&&/\/(job|jobad|stellenangebote|stilling)\//.test(url))||
-  (host.includes('jobnet.dk')&&/\/(job|stillinger|vacancy|vacancies)\//.test(url));
- if(strongPath)return true;
- const postingLanguage=/\b(we are looking for|we're looking for|you will|ansøg|søger en|vi søger|stillingen|jobbet|apply now|apply for|your role|responsibilities|requirements|qualifications|arbejdsopgaver|arbejdssted|deadline|job id|jobnummer|vi tilbyder|du bliver en del af|dine opgaver|om stillingen|du skal)\b/i.test(description);
- const titleLooksLikeRole=/\b(manager|specialist|consultant|konsulent|koordinator|koordinater|chef|leder|analyst|analytiker|developer|udvikler|advisor|rådgiver|marketing|sales|sælger|projektleder|project manager|designer|ingeniør|engineer|assistent|assistant|director|direktør|praktikant|intern|account|kommunikation|communications|crm|customer|growth|e-commerce|digital|content|produkt|product|data|finance|økonomi|HR|recruiter|rekrutter|jurist|advokat|student|specialist|job)\b/i.test(title);
- if(postingLanguage&&titleLooksLikeRole)return true;
- // Only a specific page on a known job portal can pass without full snippet text.
- const targetedPortal=['jobindex.dk','jobnet.dk','stepstone.dk','ofir.dk','hk.dk','workindenmark.dk','jobdanmark.dk','indeed.com','linkedin.com'].some(domain=>host===domain||host.endsWith('.'+domain));
- return !!(targetedPortal&&titleLooksLikeRole&&query&&query.scope==='danish-jobs'&&query.id!=='career-sites'&&query.id!=='web-jobs');
+ const title=String(item.jobTitle||item.title||'').trim();if(!jobTitleLooksSpecific(title))return false;
+ const host=(()=>{try{return new URL(item.url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return ''}})();
+ const description=String(item.description||'');
+ const postingLanguage=/\b(we are looking for|we're looking for|you will|ansøg|søger en|vi søger|stillingen|jobbet|apply now|apply for|your role|responsibilities|requirements|qualifications|arbejdsopgaver|arbejdssted|deadline|job id|jobnummer|vi tilbyder|du bliver en del af|dine opgaver|om stillingen|du skal|apply today|send your application|ansøgningsfrist)\b/i.test(description);
+ const titleLooksLikeRole=/\b(manager|specialist|consultant|konsulent|koordinator|chef|leder|analyst|analytiker|developer|udvikler|advisor|rådgiver|marketing|sales|sælger|projektleder|project manager|designer|ingeniør|engineer|assistent|assistant|director|direktør|praktikant|intern|account|kommunikation|communications|crm|customer|growth|e-commerce|digital|content|produkt|product|data|finance|økonomi|hr|recruiter|rekrutter|jurist|advokat|student|job)\b/i.test(title);
+ const knownPortal=['jobindex.dk','jobnet.dk','stepstone.dk','ofir.dk','hk.dk','workindenmark.dk','jobdanmark.dk','indeed.com','linkedin.com'].some(domain=>host===domain||host.endsWith('.'+domain));
+ if(directJobDetailUrl(item))return titleLooksLikeRole||postingLanguage;
+ return !knownPortal&&directJobDetailUrl(item)&&titleLooksLikeRole&&postingLanguage;
 }
 async function queryIndex(query,terms,profile){
  async function request(q){
@@ -685,32 +688,15 @@ function companyInsightBox(item,index){
  return out;
 }
 function jobDisplayTitle(item){
- const raw=String(item&&(item.jobTitle||item.title)||'').trim();
- return raw.replace(/\s*[|–—]\s*(?:[^|–—]*\b(?:denmark business|jobs? in denmark|page\s*\d+|side\s*\d+)\b).*$/i,'').trim()||raw;
+ const original=String(item&&(item.jobTitle||item.title)||'').trim();let title=original;
+ title=title.replace(/\s*[|–—]\s*(?:linkedin jobs?|indeed(?:\.com)?|jobindex(?:\.dk)?|stepstone(?:\.dk)?|jobnet(?:\.dk)?|ofir(?:\.dk)?|trabajo\.org|denmark business).*$/i,'').trim();
+ title=title.replace(/\s*[-–—]\s*(?:side|page|pagina)\s*\d+\s*$/i,'').trim();
+ title=title.replace(/^(?:job opening|job opportunity|vacancy|jobannonce|stillingsopslag)\s*[:|-]\s*/i,'').trim();
+ return title||original;
 }
 function jobDisplayCompany(item){
- const company=String(item&&(item.companyName||item.employer||item.company)||'').trim();
- if(company)return company;
- const title=String(item&&item.title||'').trim();
- const match=title.match(/\b(?:at|hos|ved)\s+(.+?)\s*(?:[|–—]|$)/i);
- if(match)return match[1].replace(/[.,;\s]+$/,'').trim();
- return companyNameFromOpportunity(item);
-}
-function jobDisplayLocation(item,scope){
- const raw=String(item&&(item.jobLocation||item.location||item.city)||'').trim();
- if(raw&&!/^(denmark|danmark|dk)$/i.test(raw))return raw;
- if(scope.kind==='remote-denmark')return 'Remote · Danmark';
- if(scope.kind==='remote-check')return 'Remote · kontrollér adgang fra Danmark';
- if(scope.kind==='query-location')return 'Danmark · kontrollér arbejdssted';
- return 'Danmark · arbejdssted skal bekræftes';
-}
-function jobDisplayTitle(item){
- const raw=String(item&&(item.jobTitle||item.title)||'').trim();
- return raw.replace(/\s*[|–—]\s*(?:[^|–—]*\b(?:denmark business|jobs? in denmark|page\s*\d+|side\s*\d+)\b).*$/i,'').trim()||raw;
-}
-function jobDisplayCompany(item){
- const company=String(item&&(item.companyName||item.employer||item.company)||'').trim();
- if(company&&!/^(indeed|jobindex|linkedin|stepstone|jobnet|ofir|workindenmark|trabajo|soopage)$/i.test(company))return company;
+ const supplied=String(item&&(item.companyName||item.employer||item.company)||'').trim();
+ if(supplied&&!/^(indeed|jobindex|linkedin|stepstone|jobnet|ofir|workindenmark|trabajo|soopage)$/i.test(supplied))return supplied;
  const title=String(item&&(item.jobTitle||item.title)||'').trim();
  const match=title.match(/\b(?:at|hos|ved)\s+([A-ZÆØÅ][A-Za-zÆØÅæøå\d&.' -]{1,70}?)(?:\s*[|–—,]|$)/i);
  if(match&&match[1])return match[1].trim();
@@ -724,6 +710,7 @@ function jobDisplayLocation(item,scope){
  if(scope.kind==='query-location')return 'Danmark · kontrollér arbejdssted';
  return 'Danmark · arbejdssted skal bekræftes';
 }
+
 function renderJobOpportunities(){
  const activeProfile=searchProfile(),all=(state.jobOpportunities||[]);
  const results=all.filter(item=>isDanishMappedJob(item,activeProfile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
@@ -885,7 +872,7 @@ async function searchJobOpportunities(ignoreCvWarning=false){
   let succeeded=0,failed=0;const all=[],errors=[];
   settled.forEach((result,index)=>{if(result.status==='fulfilled'){succeeded++;all.push(...result.value.results)}else{failed++;errors.push(queries[index].label+': '+String(result.reason&&result.reason.message||result.reason).slice(0,120))}});
   const unique=new Map();all.forEach(item=>{const key=canonicalSearchUrl(item.url),old=unique.get(key);if(!old||item.matchedTerms.length>old.matchedTerms.length)unique.set(key,item)});
-  state.jobOpportunities=[...unique.values()].filter(item=>isDanishMappedJob(item,profile)).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
+  state.jobOpportunities=[...unique.values()].filter(item=>isDanishMappedJob(item,profile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'})).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
   state.jobLastSearch=new Date().toISOString();persist();renderJobOpportunities();
   // Enrich job cards in the background. The cards already render; company facts fill in automatically as sources return.
   autoLookupJobCompanyFacts(state.jobOpportunities.slice());

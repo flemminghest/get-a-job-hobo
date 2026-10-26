@@ -916,6 +916,43 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 /* Job search only: company details are displayed automatically inside matching job cards */
 .company-criteria-section{display:none!important}
 
+
+/* Job cards use one consistent layout: clear title, employer/location, match rationale and company insights */
+.job-result-card{gap:13px;padding:20px;border-radius:18px;border:1px solid #dbe6f3;background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);box-shadow:0 5px 18px rgba(34,67,104,.035)}
+.job-result-card:hover{border-color:#b8d1f1;box-shadow:0 10px 26px rgba(34,67,104,.08);transform:translateY(-1px)}
+.job-result-topline{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.job-result-title{font-size:22px!important;line-height:1.3!important;letter-spacing:-.55px;font-weight:850;color:#172f50!important;margin:1px 0 0!important;overflow-wrap:anywhere}
+.job-result-employer{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:#f4f8fe;border:1px solid #e4edf8}
+.job-result-company-icon{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:11px;background:#e0edff;color:#287bf5}
+.job-result-company-icon svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.job-result-employer>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.job-result-employer strong{font-size:14px;line-height:1.35;color:#203b5d;overflow-wrap:anywhere}
+.job-result-employer span:not(.job-result-company-icon){font-size:12px;line-height:1.4;color:#657b97;overflow-wrap:anywhere}
+.job-result-meta{display:flex;flex-wrap:wrap;gap:7px}
+.job-result-meta span{display:inline-flex;flex-wrap:wrap;gap:4px;padding:5px 8px;border:1px solid #e3ebf5;border-radius:8px;background:#fff;font-size:11px;line-height:1.4;color:#60748b}
+.job-result-meta b{color:#304c6d}
+.job-result-match{padding:13px 14px;border:1px solid #dbe8f9;border-radius:13px;background:linear-gradient(110deg,#f1f7ff,#fff 78%)}
+.job-result-match h4{font-size:13px;line-height:1.35;color:#244a79;margin:0 0 7px;font-weight:850}
+.job-result-match p{margin:0 0 10px!important;font-size:13px!important;line-height:1.6!important;color:#4f6785!important}
+.job-result-match .discovery-matched{gap:6px}
+.job-result-match .job-keyword-chip{border-color:#d9e7fb;background:#e7f0ff;color:#245ba4;font-weight:800}
+.job-result-caution{padding:9px 11px;border-radius:10px;background:#f5f7fa;color:#72849b;font-size:11px;line-height:1.5}
+.job-result-card .job-company-insights{margin-top:0}
+.job-result-card .job-company-insights-head>div{min-width:0}
+.job-result-card .job-company-insights-head>div strong{overflow-wrap:anywhere}
+.job-result-card .job-company-insights-foot{row-gap:8px}
+.job-result-card .discovery-actions{align-items:center;padding-top:9px;border-top:1px solid #e9eff6}
+.job-results-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:30px!important;max-width:none!important;text-align:center;grid-column:1/-1}
+.job-results-empty-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#eef4fc;color:#4d76b7;font-size:28px;line-height:1}
+.job-results-empty strong{font-size:16px;color:#284261}
+.job-results-empty p{max-width:520px;margin:0;font-size:13px;line-height:1.6;color:#71839a}
+@media(max-width:640px){
+ .job-result-card{padding:13px;border-radius:14px;gap:11px}
+ .job-result-title{font-size:18px!important;letter-spacing:-.3px}
+ .job-result-employer{padding:8px}
+ .job-result-match{padding:10px}
+}
+
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>

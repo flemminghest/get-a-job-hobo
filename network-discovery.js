@@ -266,14 +266,18 @@ async function lookupCompanyInsights(index){
  item.companyFacts.lookupStatus='loading';persist();renderJobOpportunities();
  const q='"'+company.replace(/"/g,' ')+'"';
  const companySite=String(item.domain||'').toLowerCase().replace(/^www\./,'');
+ // Start with Danish employer/company sources. International sources are secondary
+ // because several indexed job cards may point to overseas employers.
  const queries=[
-  {id:'jobindex',label:'Jobindex · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde løn',fallbackQuery:'site:jobindex.dk '+q+' virksomhed medarbejdere jobglæde løn'},
-  {id:'jobrate',label:'Jobrate · arbejdspladsdata',targetSite:'jobrate.dk',query:'site:jobrate.dk/arbejdsplads '+q+' medarbejdere vurdering',fallbackQuery:'site:jobrate.dk '+q+' arbejdsplads'},
+  {id:'jobindex-dk',label:'Jobindex · dansk virksomhedsprofil og medarbejdervurdering',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde løn',fallbackQuery:'site:jobindex.dk '+q+' virksomhed medarbejdere jobglæde løn'},
+  {id:'proff-dk',label:'Proff Danmark · ansatte, branche og adresse',targetSite:'proff.dk',query:'site:proff.dk '+q+' antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' CVR ansatte adresse'},
+  {id:'estatistik-dk',label:'eStatistik · CVR-baserede virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' antal ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' virksomhed CVR adresse ansatte'},
+  {id:'cvr-virk-dk',label:'CVR/Virk · officielle danske virksomhedsdata',targetSite:'datacvr.virk.dk',query:'site:datacvr.virk.dk/enhed/virksomhed '+q+' adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},
+  {id:'jobrate-dk',label:'Jobrate · arbejdspladsdata',targetSite:'jobrate.dk',query:'site:jobrate.dk/arbejdsplads '+q+' medarbejdere vurdering',fallbackQuery:'site:jobrate.dk '+q+' arbejdsplads'},
   {id:'linkedin',label:'LinkedIn · firmaprofil',targetSite:'linkedin.com',query:'site:linkedin.com/company '+q+' company size headquarters founded industry',fallbackQuery:q+' LinkedIn company size headquarters founded industry'},
   {id:'glassdoor',label:'Glassdoor · medarbejdervurderinger',targetSite:'glassdoor.com',query:'site:glassdoor.com/Overview/Working-at '+q+' employee rating reviews employees headquarters founded',fallbackQuery:q+' Glassdoor employee reviews rating headquarters employees'},
   {id:'clutch',label:'Clutch · virksomhedsprofil',targetSite:'clutch.co',query:'site:clutch.co/profile '+q+' employees location year founded',fallbackQuery:q+' Clutch company profile employees location founded'},
-  {id:'official',label:'Virksomhedens egen hjemmeside',targetSite:companySite||'',query:'site:'+companySite+' '+q+' contact about company location team',fallbackQuery:q+' official website company headquarters employees'},
-  {id:'register',label:'Offentlige virksomhedsregistre',targetSite:'ownr.dk',query:'site:ownr.dk/companies/public-profile '+q+' antal ansatte adresse stiftet branche',fallbackQuery:'site:estatistik.dk/virksomhed '+q+' antal ansatte adresse branche etableret'}
+  {id:'official',label:'Virksomhedens egen hjemmeside',targetSite:companySite||'',query:'site:'+companySite+' '+q+' contact about company location team',fallbackQuery:q+' official website company headquarters employees'}
  ];
  try{
   const outcomes=await Promise.allSettled(queries.map(query=>queryIndex(query,[])));
@@ -288,14 +292,21 @@ async function lookupCompanyInsights(index){
   const priorSources=Array.isArray(item.companyFacts.sources)?item.companyFacts.sources:[];
   const mergedSources=[...priorSources,...gathered].filter((source,sourceIndex,list)=>source&&source.url&&list.findIndex(other=>other&&canonicalSearchUrl(other.url)===canonicalSearchUrl(source.url))===sourceIndex);
   item.companyFacts=applyCompanySourceFacts(gathered,item.companyFacts);
-  item.companyFacts.sources=mergedSources.slice(0,10);
+  item.companyFacts.sources=mergedSources.slice(0,12);
   item.companyFacts.lookupStatus=(sourceErrors===queries.length&&!gathered.length)?'error':'done';
-  item.companyFacts.lookupAt=new Date().toISOString();persist();renderJobOpportunities();
+  item.companyFacts.lookupAt=new Date().toISOString();
+  item.companyFacts.danishSourcesFound=gathered.some(source=>['jobindex-dk','proff-dk','estatistik-dk','cvr-virk-dk','jobrate-dk'].includes(source.sourceType));
+  persist();renderJobOpportunities();
   const status=el('jobSearchStatus');
   if(status){
-   if(gathered.length){status.className='notice goodbox';status.textContent='Virksomhedsoplysninger søgt for '+company+'. '+gathered.length+' relevante kilder vises i infoboksen. Kontrollér kilde og dato.'}
-   else if(sourceErrors===queries.length){status.className='notice warnbox';status.textContent='Søgetjenesten kunne ikke hente virksomhedsdata for '+company+'. Kontrollér forbindelsen, og prøv igen.'}
-   else {status.className='notice warnbox';status.textContent='Ingen yderligere kilder blev fundet for '+company+'. Kendte oplysninger og links er bevaret; ukendte værdier er ikke gættet.'+(sourceErrors?' '+sourceErrors+' af '+queries.length+' kildesøgninger fejlede.':'')}
+   if(gathered.length){
+    status.className='notice goodbox';
+    status.textContent='Virksomhedsoplysninger søgt for '+company+'. '+gathered.length+' relevante kilder fundet. '+(item.companyFacts.danishSourcesFound?'Der blev fundet mindst én dansk kilde. ':'Der blev ikke fundet en relevant dansk profil; de viste kilder er internationale eller virksomhedens egen hjemmeside. ')+'Kontrollér kilde og dato.';
+   }else if(sourceErrors===queries.length){
+    status.className='notice warnbox';status.textContent='Søgetjenesten kunne ikke hente virksomhedsdata for '+company+'. Kontrollér forbindelsen, og prøv igen.';
+   }else{
+    status.className='notice warnbox';status.textContent='Ingen matchende virksomhedsprofiler fundet for '+company+'. Der er ikke udfyldt gættede værdier. Virksomheden kan være uden dansk profil eller ikke være indekseret.';
+   }
   }
  }catch(error){
   item.companyFacts.lookupStatus='error';item.companyFacts.lookupError=String(error&&error.message||error).slice(0,220);persist();renderJobOpportunities();

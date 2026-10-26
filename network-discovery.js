@@ -189,27 +189,35 @@ function renderCommunities(){
 }
 function renderDiscoveryResults(){renderProspects();renderCommunities()}
 
-function curatedCompanyFacts(item){
- const domain=String(item&&item.domain||'').toLowerCase().replace(/^www\./,'');
- if(domain==='provenroi.com'){
-  const linkedin={domain:'linkedin.com',title:'Proven ROI — LinkedIn virksomhedsprofil',description:'LinkedIn oplyser 11–50 ansatte, hovedkontor i Austin, Texas, branche Marketing Services og grundlagt 2022.',url:'https://www.linkedin.com/company/provenroi',sourceLabel:'LinkedIn'};
-  const clutch={domain:'clutch.co',title:'Proven ROI — Clutch virksomhedsprofil',description:'Clutch oplyser 10–49 ansatte, lokation Austin, Texas, og grundlagt 2022. Antalsintervallet varierer lidt mellem kilderne.',url:'https://clutch.co/profile/proven-roi',sourceLabel:'Clutch'};
-  return {employeeCount:'11–50',location:'Austin, Texas, USA',industry:'Marketing Services',foundedYear:'2022',companyType:'Privately held',employeeRating:'',ratingCount:'',factSources:{employeeCount:linkedin,location:linkedin,industry:linkedin,foundedYear:linkedin,companyType:linkedin},sources:[linkedin,clutch],lookupStatus:'seeded',companyHighlight:''};
- }
- if(domain==='flurink.com'){
-  const official={domain:'flurink.com',title:'Flurink — officiel hjemmeside',description:'Flurinks hjemmeside oplyser 800+ social media posts created og 700+ SEO articles generated. Det er produktets egne markedsføringstal, ikke et verificeret medarbejdertal.',url:'https://www.flurink.com/',sourceLabel:'Officiel hjemmeside'};
-  return {employeeCount:'',location:'',industry:'AI-indhold og marketingautomation',foundedYear:'',companyType:'',employeeRating:'',ratingCount:'',factSources:{industry:official},sources:[official],lookupStatus:'seeded',companyHighlight:'800+ sociale opslag · 700+ SEO-artikler',companyHighlightSource:official};
- }
- return {};
+function isDanishCompanySource(source){
+ const raw=typeof source==='string'?source:(source&&source.url)||'';
+ const url=safeHttpUrl(raw);if(!url)return false;
+ let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return false}
+ return ['jobindex.dk','jobrate.dk','proff.dk','estatistik.dk','ownr.dk','virk.dk','datacvr.virk.dk','cvr.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
 }
+function isDanishRegistrySource(source){
+ const raw=typeof source==='string'?source:(source&&source.url)||'';
+ const url=safeHttpUrl(raw);if(!url)return false;
+ let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return false}
+ return ['proff.dk','estatistik.dk','ownr.dk','virk.dk','datacvr.virk.dk','cvr.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
+}
+function curatedCompanyFacts(){return {}}
 function effectiveCompanyFacts(item){
- const seeded=curatedCompanyFacts(item),stored=item&&item.companyFacts||{},result={...seeded,...stored};
- for(const field of ['employeeCount','location','industry','foundedYear','companyType','employeeRating','ratingCount','companyHighlight']){
-  if(!String(stored[field]||'').trim()&&String(seeded[field]||'').trim())result[field]=seeded[field];
+ const stored=item&&item.companyFacts||{};
+ const allSources=(Array.isArray(stored.sources)?stored.sources:[]).filter(source=>isDanishCompanySource(source));
+ const hasDanishRegistry=allSources.some(source=>isDanishRegistrySource(source));
+ const result={lookupStatus:stored.lookupStatus,lookupAt:stored.lookupAt,lookupError:stored.lookupError,sources:hasDanishRegistry?allSources:[]};
+ const facts=['employeeCount','location','industry','foundedYear','companyType','employeeRating','ratingCount'];
+ const factSources={};
+ if(hasDanishRegistry){
+  for(const field of facts){
+   const source=stored.factSources&&stored.factSources[field];
+   if(source&&isDanishCompanySource(source)&&String(stored[field]||'').trim()){
+    result[field]=stored[field];factSources[field]=source;
+   }
+  }
  }
- const sourceList=[...(Array.isArray(seeded.sources)?seeded.sources:[]),...(Array.isArray(stored.sources)?stored.sources:[])];
- result.sources=sourceList.filter((source,index,list)=>source&&source.url&&list.findIndex(other=>other&&other.url&&canonicalSearchUrl(other.url)===canonicalSearchUrl(source.url))===index);
- result.factSources={...(seeded.factSources||{}),...(stored.factSources||{})};
+ result.factSources=factSources;
  return result;
 }
 function companyNameFromOpportunity(item){
@@ -222,20 +230,23 @@ function companyNameFromOpportunity(item){
 }
 function normalizeInsightText(value){return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()}
 function companyResultRelevant(result,company,item){
+ if(!isDanishCompanySource(result))return false;
  const content=normalizeInsightText([result.title,result.description,result.url].join(' '));
  const target=normalizeInsightText(company);
  const tokens=target.split(/\s+/).filter(x=>x.length>=3);
- const matches=tokens.filter(t=>content.split(/\s+/).includes(t)).length;
- const domain=normalizeInsightText(item.domain||'');
- const hostMatches=domain.split(/\s+/).filter(x=>x.length>=3).some(t=>content.split(/\s+/).includes(t));
- return !!(target&&content.includes(target)||hostMatches||(tokens.length===1&&matches===1)||(tokens.length>1&&matches>=Math.min(2,tokens.length)));
+ const contentTokens=content.split(/\s+/);
+ const matches=tokens.filter(token=>contentTokens.includes(token)).length;
+ if(target&&content.includes(target))return true;
+ if(tokens.length===1)return matches===1;
+ return tokens.length>1&&matches>=Math.min(2,tokens.length);
 }
 function applyCompanySourceFacts(sources,prior){
  const f={...(prior||{})},factSources={...(f.factSources||{})};
  const bodyOf=s=>String((s.title||'')+' '+(s.description||'')).replace(/\s+/g,' ');
  for(const source of sources){
+  if(!isDanishCompanySource(source))continue;
   const text=bodyOf(source),domain=String(source.domain||'').toLowerCase().replace(/^www\./,'');
-  const workplace=domain==='jobindex.dk'||domain.endsWith('.jobindex.dk')||domain==='jobrate.dk'||domain.endsWith('.jobrate.dk')||domain==='glassdoor.com'||domain.endsWith('.glassdoor.com')||domain.endsWith('.glassdoor.co.uk')||domain==='indeed.com'||domain.endsWith('.indeed.com')||domain==='kununu.com'||domain.endsWith('.kununu.com');
+  const workplace=domain==='jobindex.dk'||domain.endsWith('.jobindex.dk')||domain==='jobrate.dk'||domain.endsWith('.jobrate.dk');
   let m;
   if(!f.employeeCount){
    m=text.match(/(?:company size|antal ansatte|antal medarbejdere|employees|employee count|staff size)\s*[:\-]?\s*(\d{1,4}\s*[-–]\s*\d{1,4}|\d{1,3}(?:[.,\s]\d{3})*|\d{1,5})(?:\s*(?:employees|medarbejdere|ansatte))?/i);
@@ -260,67 +271,61 @@ function applyCompanySourceFacts(sources,prior){
 async function lookupCompanyInsights(index){
  const item=(state.jobOpportunities||[])[index];if(!item)return;
  const company=companyNameFromOpportunity(item);if(!company||company==='Virksomheden')return;
- const seeded=curatedCompanyFacts(item);
- item.companyFacts={...seeded,...(item.companyFacts||{})};
+ item.companyFacts=item.companyFacts||{};
  if(item.companyFacts.lookupStatus==='loading')return;
  item.companyFacts.lookupStatus='loading';persist();renderJobOpportunities();
  const q='"'+company.replace(/"/g,' ')+'"';
- const companySite=String(item.domain||'').toLowerCase().replace(/^www\./,'');
- // Start with Danish employer/company sources. International sources are secondary
- // because several indexed job cards may point to overseas employers.
  const queries=[
-  {id:'jobindex-dk',label:'Jobindex · dansk virksomhedsprofil og medarbejdervurdering',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde løn',fallbackQuery:'site:jobindex.dk '+q+' virksomhed medarbejdere jobglæde løn'},
-  {id:'proff-dk',label:'Proff Danmark · ansatte, branche og adresse',targetSite:'proff.dk',query:'site:proff.dk '+q+' antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' CVR ansatte adresse'},
-  {id:'estatistik-dk',label:'eStatistik · CVR-baserede virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' antal ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' virksomhed CVR adresse ansatte'},
-  {id:'cvr-virk-dk',label:'CVR/Virk · officielle danske virksomhedsdata',targetSite:'datacvr.virk.dk',query:'site:datacvr.virk.dk/enhed/virksomhed '+q+' adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},
-  {id:'jobrate-dk',label:'Jobrate · arbejdspladsdata',targetSite:'jobrate.dk',query:'site:jobrate.dk/arbejdsplads '+q+' medarbejdere vurdering',fallbackQuery:'site:jobrate.dk '+q+' arbejdsplads'},
-  {id:'linkedin',label:'LinkedIn · firmaprofil',targetSite:'linkedin.com',query:'site:linkedin.com/company '+q+' company size headquarters founded industry',fallbackQuery:q+' LinkedIn company size headquarters founded industry'},
-  {id:'glassdoor',label:'Glassdoor · medarbejdervurderinger',targetSite:'glassdoor.com',query:'site:glassdoor.com/Overview/Working-at '+q+' employee rating reviews employees headquarters founded',fallbackQuery:q+' Glassdoor employee reviews rating headquarters employees'},
-  {id:'clutch',label:'Clutch · virksomhedsprofil',targetSite:'clutch.co',query:'site:clutch.co/profile '+q+' employees location year founded',fallbackQuery:q+' Clutch company profile employees location founded'},
-  {id:'official',label:'Virksomhedens egen hjemmeside',targetSite:companySite||'',query:'site:'+companySite+' '+q+' contact about company location team',fallbackQuery:q+' official website company headquarters employees'}
+  {id:'proff-dk',label:'Proff Danmark · CVR, branche og ansatte',targetSite:'proff.dk',query:'site:proff.dk '+q+' CVR antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' virksomhed CVR ansatte adresse'},
+  {id:'estatistik-dk',label:'eStatistik · danske virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' CVR ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' CVR dansk virksomhed ansatte adresse'},
+  {id:'cvr-virk-dk',label:'CVR/Virk · officielt virksomhedsregister',targetSite:'datacvr.virk.dk',query:'site:datacvr.virk.dk '+q+' CVR adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},
+  {id:'ownr-dk',label:'Ownr · danske virksomhedsoplysninger',targetSite:'ownr.dk',query:'site:ownr.dk '+q+' CVR antal ansatte adresse stiftet branche',fallbackQuery:'site:ownr.dk '+q+' dansk virksomhed CVR'},
+  {id:'jobindex-dk',label:'Jobindex Danmark · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde',fallbackQuery:'site:jobindex.dk '+q+' medarbejdere arbejdsplads vurdering'},
+  {id:'jobrate-dk',label:'Jobrate Danmark · arbejdspladsvurdering',targetSite:'jobrate.dk',query:'site:jobrate.dk/arbejdsplads '+q+' medarbejdervurdering',fallbackQuery:'site:jobrate.dk '+q+' arbejdsplads medarbejdere'}
  ];
  try{
   const outcomes=await Promise.allSettled(queries.map(query=>queryIndex(query,[])));
-  const gathered=[],sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
+  const found=[],sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
   outcomes.forEach((outcome,i)=>{
    if(outcome.status!=='fulfilled')return;
    (outcome.value.results||[]).forEach(result=>{
-    if(!result||!safeHttpUrl(result.url)||!companyResultRelevant(result,company,item))return;
-    if(!gathered.some(old=>canonicalSearchUrl(old.url)===canonicalSearchUrl(result.url)))gathered.push({...result,sourceType:queries[i].id,sourceLabel:queries[i].label});
+    if(!result||!isDanishCompanySource(result)||!safeHttpUrl(result.url)||!companyResultRelevant(result,company,item))return;
+    if(!found.some(old=>canonicalSearchUrl(old.url)===canonicalSearchUrl(result.url)))found.push({...result,sourceType:queries[i].id,sourceLabel:queries[i].label});
    });
   });
-  const priorSources=Array.isArray(item.companyFacts.sources)?item.companyFacts.sources:[];
-  const mergedSources=[...priorSources,...gathered].filter((source,sourceIndex,list)=>source&&source.url&&list.findIndex(other=>other&&canonicalSearchUrl(other.url)===canonicalSearchUrl(source.url))===sourceIndex);
-  item.companyFacts=applyCompanySourceFacts(gathered,item.companyFacts);
-  item.companyFacts.sources=mergedSources.slice(0,12);
-  item.companyFacts.lookupStatus=(sourceErrors===queries.length&&!gathered.length)?'error':'done';
-  item.companyFacts.lookupAt=new Date().toISOString();
-  item.companyFacts.danishSourcesFound=gathered.some(source=>['jobindex-dk','proff-dk','estatistik-dk','cvr-virk-dk','jobrate-dk'].includes(source.sourceType));
+  const registrySources=found.filter(source=>isDanishRegistrySource(source));
+  const confirmedDanish=registrySources.length>0;
+  const eligibleSources=confirmedDanish?found:[];
+  const nextFacts=confirmedDanish?applyCompanySourceFacts(eligibleSources,{}):{};
+  nextFacts.sources=eligibleSources.slice(0,12);
+  nextFacts.lookupStatus=(sourceErrors===queries.length&&!found.length)?'error':'done';
+  nextFacts.lookupAt=new Date().toISOString();
+  nextFacts.danishCompanyConfirmed=confirmedDanish;
+  item.companyFacts=nextFacts;
   persist();renderJobOpportunities();
   const status=el('jobSearchStatus');
   if(status){
-   if(gathered.length){
-    status.className='notice goodbox';
-    status.textContent='Virksomhedsoplysninger søgt for '+company+'. '+gathered.length+' relevante kilder fundet. '+(item.companyFacts.danishSourcesFound?'Der blev fundet mindst én dansk kilde. ':'Der blev ikke fundet en relevant dansk profil; de viste kilder er internationale eller virksomhedens egen hjemmeside. ')+'Kontrollér kilde og dato.';
-   }else if(sourceErrors===queries.length){
-    status.className='notice warnbox';status.textContent='Søgetjenesten kunne ikke hente virksomhedsdata for '+company+'. Kontrollér forbindelsen, og prøv igen.';
+   if(sourceErrors===queries.length&&!found.length){
+    status.className='notice warnbox';status.textContent='De danske kildesøgninger kunne ikke gennemføres for '+company+'. Kontrollér søgeforbindelsen, og prøv igen.';
+   }else if(!confirmedDanish){
+    status.className='notice warnbox';status.textContent='Ingen dansk virksomhedsregistrering fundet for '+company+'. Kun virksomheder med et match i danske virksomhedsregistre vises med virksomhedsdata. Der er ikke brugt udenlandske kilder.';
    }else{
-    status.className='notice warnbox';status.textContent='Ingen matchende virksomhedsprofiler fundet for '+company+'. Der er ikke udfyldt gættede værdier. Virksomheden kan være uden dansk profil eller ikke være indekseret.';
+    status.className='notice goodbox';status.textContent='Dansk virksomhedsprofil fundet for '+company+'. '+eligibleSources.length+' relevante resultater fra danske kilder. Medarbejdervurdering vises kun, hvis en dansk arbejdspladskilde har en dokumenteret score.';
    }
   }
  }catch(error){
-  item.companyFacts.lookupStatus='error';item.companyFacts.lookupError=String(error&&error.message||error).slice(0,220);persist();renderJobOpportunities();
-  const status=el('jobSearchStatus');if(status){status.className='notice warnbox';status.textContent='Søgningen efter virksomhedsdata fejlede for '+company+': '+item.companyFacts.lookupError}
+  item.companyFacts={lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,220),sources:[],factSources:{}};
+  persist();renderJobOpportunities();
+  const status=el('jobSearchStatus');if(status){status.className='notice warnbox';status.textContent='Den danske virksomhedssøgning fejlede for '+company+': '+item.companyFacts.lookupError}
  }
-}
-function companyInsightBox(item,index){
+}function companyInsightBox(item,index){
  const f=effectiveCompanyFacts(item),clean=value=>String(value==null?'':value).trim(),company=companyNameFromOpportunity(item);
  const rating=clean(f.employeeRating),n=Number(rating.replace(',','.'));
  const ratingDisplay=rating&&Number.isFinite(n)&&n>=0&&n<=5?n.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
  const employees=clean(f.employeeCount)||'Ikke oplyst',location=clean(f.location)||'Ikke fundet';
  const distance=clean(f.distanceKm),distanceLine=distance?distance+' km fra din adresse':(location!=='Ikke fundet'?'Afstand ikke beregnet':'Afstand kræver lokation');
  const industry=clean(f.industry)||((item.matchedTerms||[]).slice(0,2).join(' · ')||'Ikke fastslået'),founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
- const tone=['mint','orange','purple','blue'][index%4],sources=Array.isArray(f.sources)?f.sources:[],loading=f.lookupStatus==='loading',completed=f.lookupStatus==='done'||f.lookupStatus==='seeded';
+ const tone=['mint','orange','purple','blue'][index%4],sources=Array.isArray(f.sources)?f.sources:[],loading=f.lookupStatus==='loading',completed=f.lookupStatus==='done';
  const svg={
   people:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.8a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.6M18 14.2a4 4 0 0 1 4 4V20"/></svg>',
   pin:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
@@ -373,6 +378,61 @@ async function searchJobOpportunities(){
  }catch(error){if(el('jobSearchStatus')){el('jobSearchStatus').className='notice warnbox';el('jobSearchStatus').textContent='Job-søgningen fejlede: '+String(error&&error.message||error)}}
  finally{toggleBusy('jobOpportunitiesSearchButton',false)}
 }
+
+function renderCompanyCriteriaResults(){
+ const node=el('companyCriteriaResults'),meta=el('companyCriteriaMeta');
+ const results=state.companyCriteriaResults||[];
+ if(meta)meta.textContent=results.length+' danske profiler';
+ if(!node)return;
+ node.innerHTML=results.length?results.map((item,index)=>{
+  const source=String(item.sourceLabel||item.domain||'Dansk virksomhedsregister');
+  const url=safeHttpUrl(item.url);
+  const terms=item.matchedTerms||[];
+  return '<article class="discovery-card company-criteria-card"><div class="discovery-card-top"><span class="discovery-source">'+escapeHtml(item.domain||source)+'</span><span class="chip">Dansk virksomhedsdata</span></div><h3>'+escapeHtml(item.title||'Virksomhedsprofil')+'</h3><p class="lead-company">'+escapeHtml(source)+'</p>'+(item.description?'<p class="lead-snippet">'+escapeHtml(item.description)+'</p>':'<p class="lead-snippet">Åbn virksomhedsprofilen for at se tilgængelige registreringsoplysninger.</p>')+'<div class="discovery-matched">'+(terms.length?terms.slice(0,5).map(term=>'<span class="chip">'+escapeHtml(term)+'</span>').join(''):'<span class="chip">Matchet på geografi eller søgefrase</span>')+'</div><div class="discovery-actions">'+(url?'<a href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">Åbn dansk virksomhedsprofil ↗</a>':'')+'</div></article>';
+ }).join(''):'<div class="empty">Ingen danske virksomhedsprofiler søgt endnu. Brug “Find danske virksomheder” for at søge ud fra profilord og geografi.</div>';
+}
+async function searchDanishCompaniesByCriteria(){
+ const profile=searchProfile();
+ const terms=profile.terms.slice(0,8).join(' ');
+ const location=searchPhrase(profile.location||'Danmark');
+ const button=el('companyCriteriaSearchButton');
+ if(button){button.disabled=true;button.dataset.previousLabel=button.textContent;button.textContent='Søger i danske kilder…'}
+ const status=el('companyCriteriaStatus');
+ if(status){status.className='notice goodbox';status.textContent='Søger kun efter virksomheder med danske virksomhedsprofiler. Søgeord: '+(terms||'virksomheder')+' · Geografi: '+profile.location+'.'}
+ const queries=[
+  {id:'proff-dk',label:'Proff Danmark',targetSite:'proff.dk',query:'site:proff.dk '+terms+' '+location+' CVR virksomhed ansatte',fallbackQuery:'site:proff.dk '+terms+' '+location+' virksomhed CVR'},
+  {id:'estatistik-dk',label:'eStatistik',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+terms+' '+location+' antal ansatte branche',fallbackQuery:'site:estatistik.dk '+terms+' '+location+' dansk virksomhed CVR'},
+  {id:'ownr-dk',label:'Ownr',targetSite:'ownr.dk',query:'site:ownr.dk '+terms+' '+location+' CVR adresse branche',fallbackQuery:'site:ownr.dk '+terms+' '+location+' virksomhed CVR'},
+  {id:'virk-dk',label:'CVR/Virk',targetSite:'datacvr.virk.dk',query:'site:datacvr.virk.dk '+terms+' '+location+' CVR branche',fallbackQuery:'site:virk.dk '+terms+' '+location+' CVR virksomhed'},
+  {id:'jobindex-dk',label:'Jobindex Danmark',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+terms+' '+location+' virksomhed',fallbackQuery:'site:jobindex.dk '+terms+' '+location+' virksomhed'}
+ ];
+ try{
+  const outcomes=await Promise.allSettled(queries.map(query=>queryIndex(query,profile.terms)));
+  const candidates=[],errors=outcomes.filter(outcome=>outcome.status==='rejected').length;
+  outcomes.forEach((outcome,index)=>{
+   if(outcome.status!=='fulfilled')return;
+   (outcome.value.results||[]).forEach(result=>{
+    if(!result||!safeHttpUrl(result.url)||!isDanishRegistrySource(result))return;
+    if(!candidates.some(old=>canonicalSearchUrl(old.url)===canonicalSearchUrl(result.url))){
+     candidates.push({...result,sourceType:queries[index].id,sourceLabel:queries[index].label});
+    }
+   });
+  });
+  state.companyCriteriaResults=candidates.slice(0,30);
+  state.companyCriteriaLastSearch=new Date().toISOString();
+  persist();renderCompanyCriteriaResults();
+  if(status){
+   if(candidates.length){status.className='notice goodbox';status.textContent='Fandt '+candidates.length+' virksomhedsprofiler fra danske virksomhedsregistre. Resultaterne er filtreret til danske kilder. Åbn kilden og kontrollér virksomhedsidentitet og oplysninger.'}
+   else if(errors===queries.length){status.className='notice warnbox';status.textContent='Søgningen kunne ikke gennemføres i de danske kilder. Kontrollér forbindelsen, og prøv igen.'}
+   else {status.className='notice warnbox';status.textContent='Ingen danske virksomhedsprofiler matchede de valgte kriterier. Prøv bredere profilord eller justér geografi.'}
+  }
+ }catch(error){
+  if(status){status.className='notice warnbox';status.textContent='Søgningen efter danske virksomheder fejlede: '+String(error&&error.message||error)}
+ }finally{
+  if(button){button.disabled=false;button.textContent=button.dataset.previousLabel||'Find danske virksomheder';delete button.dataset.previousLabel}
+ }
+}
+
 function defaultFollowUpDate(){const date=new Date();date.setDate(date.getDate()+3);return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
 function addFollowUpFromResult(collection,index){
  const source=collection==='jobs'?state.jobOpportunities[index]:collection==='prospects'?state.networkProspects[index]:state.networkCommunities[index];if(!source)return;
@@ -467,19 +527,21 @@ function bindDiscoveryEvents(){
  }
 }
 function initializeDiscovery(){
- syncNetworkSearchPreferencesFromCV();syncOpportunityInputs();renderDiscoveryResults();renderJobOpportunities();renderFollowUps();bindDiscoveryEvents();
+ syncNetworkSearchPreferencesFromCV();syncOpportunityInputs();renderDiscoveryResults();renderJobOpportunities();renderCompanyCriteriaResults();renderFollowUps();bindDiscoveryEvents();
 }
 window.saveNetworkSearchPreferences=saveNetworkSearchPreferences;
 window.syncJobSearchPreferences=syncJobSearchPreferences;
 window.searchNetworkProspects=searchNetworkProspects;
 window.searchNetworkCommunities=searchNetworkCommunities;
 window.searchJobOpportunities=searchJobOpportunities;
+window.searchDanishCompaniesByCriteria=searchDanishCompaniesByCriteria;
 window.addFollowUpFromResult=addFollowUpFromResult;
 window.copyNetworkOutreach=copyNetworkOutreach;
 window.loadJobOpportunityInAnalyzer=loadJobOpportunityInAnalyzer;
 window.exportFollowUps=exportFollowUps;
 window.renderDiscoveryResults=renderDiscoveryResults;
 window.renderJobOpportunities=renderJobOpportunities;
+window.renderCompanyCriteriaResults=renderCompanyCriteriaResults;
 window.lookupCompanyInsights=lookupCompanyInsights;
 window.renderFollowUps=renderFollowUps;
 window.syncOpportunityInputs=syncOpportunityInputs;

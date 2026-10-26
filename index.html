@@ -824,6 +824,85 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 .discovery-card-top{flex-wrap:wrap;gap:6px}
 @media(max-width:640px){.job-location-match{font-size:10px;padding:4px 7px}}
 
+
+/* Clear job search controls */
+.job-search-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 4px;padding:12px;border:1px solid #dce8f5;border-radius:14px;background:linear-gradient(120deg,#f6faff,#fff)}
+.job-search-controls button{min-height:42px}
+#restoreSearchTermsButton{color:#2563a9;border-color:#cddff5;background:#fff}
+#restoreSearchTermsButton:hover{background:#eaf3ff;border-color:#9dc3fa}
+#jobOpportunitiesSearchButton{min-width:175px;box-shadow:0 5px 13px rgba(39,116,236,.16)}
+.job-search-controls small{flex-basis:100%;color:#71839b;font-size:11px;line-height:1.45}
+.job-search-progress-modal,.job-cv-warning-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.job-search-progress-modal[hidden],.job-cv-warning-modal[hidden]{display:none!important}
+.job-search-modal-backdrop{position:fixed;inset:0;background:rgba(20,38,65,.48);backdrop-filter:blur(5px)}
+.job-search-modal-card,.job-cv-warning-card{position:relative;z-index:1;width:min(760px,100%);max-height:calc(100vh - 40px);overflow-y:auto;padding:24px;border-radius:24px;border:1px solid #dce7f5;background:linear-gradient(145deg,#fff 0%,#f8fbff 58%,#f7f3ff 100%);box-shadow:0 28px 80px rgba(20,38,65,.24)}
+.job-search-modal-heading{display:flex;align-items:center;gap:13px}
+.job-search-heading-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:#277cf3;color:#fff;box-shadow:0 7px 18px rgba(39,124,243,.2)}
+.job-search-heading-icon svg,.job-cv-warning-icon svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.job-search-eyebrow{display:block;margin-bottom:4px;font-size:10px;font-weight:900;letter-spacing:1.4px;color:#3978c9}
+.job-search-modal-heading h2,.job-cv-warning-card h2{margin:0;font-size:23px;line-height:1.25;letter-spacing:-.5px;color:#1e3657}
+.job-search-modal-description{font-size:13px;line-height:1.55;color:#6a7e98;margin:13px 0 17px}
+.job-search-progress-overview{display:grid;grid-template-columns:104px minmax(0,1fr);gap:18px;align-items:center;padding:15px;border:1px solid #dce7f8;border-radius:18px;background:linear-gradient(110deg,#eef5ff,#fff 58%,#f4efff)}
+.job-search-progress-ring{--job-progress:0%;position:relative;display:grid;place-items:center;width:100px;height:100px;border-radius:50%;background:conic-gradient(#287bf5 0 var(--job-progress),#7957dd var(--job-progress) 0,#e4eaf5 0 100%);filter:drop-shadow(0 7px 12px rgba(39,105,200,.14))}
+.job-search-progress-ring:before{content:"";position:absolute;inset:7px;border-radius:50%;background:#fff;border:1px solid #e2eaf5}
+.job-search-progress-ring-inner{position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
+.job-search-progress-ring-inner strong{font-size:27px;line-height:1.1;letter-spacing:-.7px;color:#235fbd;font-variant-numeric:tabular-nums}
+.job-search-progress-ring-inner small{font-size:8px;letter-spacing:.8px;text-transform:uppercase;font-weight:850;color:#8392a8}
+.job-search-progress-copy strong{display:block;color:#233d60;font-size:14px;line-height:1.4}
+.job-search-progress-copy p{font-size:11px;color:#71839a;margin:4px 0 10px}
+.job-search-progress-track{height:8px;background:#e4ebf6;border-radius:99px;overflow:hidden}
+.job-search-progress-track span{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#287bf5,#7957dd,#1aa37a);transition:width .3s ease}
+.job-search-portals-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:20px 0 10px;color:#304866;font-size:12px}
+.job-search-portals-heading span{color:#8392a8;font-size:10px;font-weight:700}
+.job-search-portal-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.job-search-portal-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;align-items:center;min-width:0;padding:10px;border:1px solid #e2eaf4;border-radius:13px;background:rgba(255,255,255,.9);transition:border-color .2s ease,background .2s ease}
+.job-search-portal-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:color-mix(in srgb,var(--portal-color) 12%,white);color:var(--portal-color)}
+.job-search-portal-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.job-search-portal-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.job-search-portal-copy strong{font-size:11px;line-height:1.3;color:#293f5e}
+.job-search-portal-copy small{font-size:9px;line-height:1.3;color:#8291a5;overflow-wrap:anywhere}
+.job-search-portal-state{font-size:9px;line-height:1.3;font-weight:850;text-align:right;color:#8391a4;max-width:100px}
+.job-search-portal-row[data-state="searching"]{border-color:#bcd8ff;background:#f5f9ff}
+.job-search-portal-row[data-state="searching"] .job-search-portal-state{color:#287bf5}
+.job-search-portal-row[data-state="done"]{border-color:#ccebdc;background:#f4fcf8}
+.job-search-portal-row[data-state="done"] .job-search-portal-state{color:#16866b}
+.job-search-portal-row[data-state="empty"]{background:#fbfcfe}
+.job-search-portal-row[data-state="error"]{border-color:#f3d5cb;background:#fff8f5}
+.job-search-portal-row[data-state="error"] .job-search-portal-state{color:#c05a3d}
+.job-search-modal-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;padding-top:14px;border-top:1px solid #e4ebf4}
+.job-search-modal-footer p{margin:0;font-size:10px;line-height:1.5;color:#8391a5}
+.job-search-modal-footer button[hidden]{display:none!important}
+.job-search-modal-footer button{min-width:130px}
+.job-cv-warning-card{width:min(560px,100%);background:linear-gradient(145deg,#fff 0%,#fffaf1 100%);border-color:#f5dfbf}
+.job-cv-warning-icon{display:grid;place-items:center;width:48px;height:48px;margin-bottom:12px;border-radius:14px;background:#fff0d9;color:#c47a22}
+.job-cv-warning-eyebrow{color:#b77320}
+.job-cv-warning-card h2{font-size:23px}
+#jobCvWarningSummary{font-size:13px;line-height:1.6;color:#62758d;margin:12px 0 17px}
+.job-cv-warning-groups{display:grid;gap:13px}
+.job-cv-warning-groups>div{display:grid;gap:7px}
+.job-cv-warning-groups>div>strong{font-size:11px;color:#334963}
+.job-cv-warning-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cv-match-good{background:#e2f6ea;color:#16744c;border-color:#c8ebd6}
+.cv-match-warning{background:#fff0da;color:#9b5d11;border-color:#f3dfbb}
+.cv-match-none{background:#f1f3f6;color:#68798e;border-color:#e0e6ed}
+.job-cv-warning-help{font-size:12px;line-height:1.5;color:#63758b;margin:17px 0 14px}
+.job-cv-warning-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+@media(max-width:620px){
+ .job-search-controls{align-items:stretch;flex-direction:column}
+ .job-search-controls button{width:100%}
+ .job-search-modal-card,.job-cv-warning-card{padding:17px;border-radius:18px}
+ .job-search-modal-heading h2,.job-cv-warning-card h2{font-size:20px}
+ .job-search-progress-overview{grid-template-columns:82px minmax(0,1fr);gap:12px;padding:11px}
+ .job-search-progress-ring{width:80px;height:80px}
+ .job-search-progress-ring:before{inset:6px}
+ .job-search-progress-ring-inner strong{font-size:22px}
+ .job-search-portal-list{grid-template-columns:1fr}
+ .job-search-portal-row{grid-template-columns:32px minmax(0,1fr) auto;padding:8px}
+ .job-search-modal-footer{align-items:stretch;flex-direction:column}
+ .job-search-modal-footer button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.job-search-progress-track span{transition:none}}
+
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
@@ -989,14 +1068,15 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 
 
 <section class="section" id="page-opportunities">
- <div class="hero"><div class="eyebrow">JOB, DER ER VÆRD AT UNDERSØGE</div><h1>Oplagte jobmuligheder — på tværs af portaler.</h1><p>Find offentligt indekserede opslag på LinkedIn, Jobindex, HK Jobportal, Jobnet, Workindenmark, StepStone og relevante karrieresider. Sortér efter overlap i profilord, gem jobs og send interessante opslag til CV-vurderingen.</p><div class="actions"><button id="jobOpportunitiesSearchButton" onclick="searchJobOpportunities()">Søg efter relevante job</button><button class="secondary" id="companyCriteriaSearchButton" onclick="searchDanishCompaniesByCriteria()">Find danske virksomheder</button><button class="secondary" onclick="go('cv')">Opdatér mit CV</button></div></div>
+ <div class="hero"><div class="eyebrow">JOB, DER ER VÆRD AT UNDERSØGE</div><h1>Oplagte jobmuligheder — på tværs af portaler.</h1><p>Find offentligt indekserede opslag på LinkedIn, Jobindex, HK Jobportal, Jobnet, Workindenmark, StepStone og relevante karrieresider. Sortér efter overlap i profilord, gem jobs og send interessante opslag til CV-vurderingen.</p><div class="actions"><button class="secondary" onclick="focusJobSearch()">Gå til søgefelterne</button><button class="secondary" id="companyCriteriaSearchButton" onclick="searchDanishCompaniesByCriteria()">Find danske virksomheder</button><button class="secondary" onclick="go('cv')">Opdatér mit CV</button></div></div>
  <div class="kpis"><div class="kpi"><label>Fundet</label><strong id="jobOpportunityCount">0</strong><span>Offentligt indekserede opslag</span></div><div class="kpi"><label>Profilord</label><strong id="jobKeywordCount">0</strong><span>Ord fra søgeprofilen</span></div><div class="kpi"><label>Gemte til opfølgning</label><strong id="jobTrackedCount">0</strong><span>Lokalt i denne browser</span></div><div class="kpi"><label>Sidste søgning</label><strong id="jobLastSearchLabel">Ikke søgt</strong><span>Kontrollér altid originalopslaget</span></div></div>
- <div class="card stack"><div><h2>Din søgeprofil</h2><p class="muted">De samme profilord som under LinkedIn & netværk. De bruges som søgeord, ikke som en automatisk sandhed om dine kvalifikationer.</p></div>
-  <div class="formrow"><div><label for="jobSearchTerms">Profilord</label><input id="jobSearchTerms" placeholder="CRM, marketing automation, digital marketing…" oninput="syncJobSearchPreferences()"></div><div><label for="jobSearchLocation">Geografi</label><input id="jobSearchLocation" placeholder="Danmark, København eller anden geografi" oninput="syncJobSearchPreferences()"></div></div>
-  <div id="jobSearchStatus" class="notice">Søgningen viser stillinger i Danmark og remote-job, hvor Danmark er angivet som muligt arbejdsland. Remote i EU/Europa kan kræve ekstra kontrol.</div>
+ <div class="card stack"><div><h2>Find stillinger med dine søgeord</h2><p class="muted">Skriv jobtitler, fagområder eller kompetencer, fx marketing, CRM eller marketing automation. Søgningen gennemgår jobportaler og viser konkrete opslag, der matcher dine kriterier.</p></div>
+  <div class="formrow"><div><label for="jobSearchTerms">Hvad vil du søge efter?</label><input id="jobSearchTerms" placeholder="Marketing, CRM, marketing automation…" oninput="syncJobSearchPreferences()"><small>Adskil flere søgeord med komma. Du kan redigere dem, inden du søger.</small></div><div><label for="jobSearchLocation">Hvor vil du arbejde?</label><input id="jobSearchLocation" placeholder="Frederiksberg, København eller hele Danmark" oninput="syncJobSearchPreferences()"><small>Danske arbejdssteder og remote-job, hvor Danmark er en tilladt arbejdsplacering.</small></div></div>
+  <div class="job-search-controls"><button class="secondary" id="restoreSearchTermsButton" onclick="restoreSearchTermsFromCV()">Gendan søgeord fra mit CV</button><button id="jobOpportunitiesSearchButton" onclick="searchJobOpportunities()">Søg stillinger</button></div>
+  <div id="jobSearchStatus" class="notice">Søgningen viser konkrete danske stillingsopslag samt remote-roller, hvor Danmark er angivet som muligt arbejdsland. Generelle jobkategorisider filtreres fra.</div>
   <div class="job-source-links"><a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/jobs/">LinkedIn Jobs ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobindex.dk/">Jobindex ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.hk.dk/karriere/jobsoegningen/find-dit-naeste-job/jobportal">HK Jobportal ↗</a><a target="_blank" rel="noopener noreferrer" href="https://job.jobnet.dk/">Jobnet ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.workindenmark.dk/">Workindenmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.stepstone.dk/">StepStone ↗</a></div>
   <div class="discovery-section-head"><div><h2>Job, der matcher dine søgeord</h2><p class="muted">Søgningen tæller profilord, som findes i titel og offentligt uddrag. Det er ikke en sandsynlighed for at få jobbet og ikke en verificering af, at opslaget stadig er aktivt.</p></div><span id="jobOpportunitiesMeta" class="chip">0 forslag</span></div>
-  <div id="jobOpportunitiesResults" class="discovery-results"><div class="empty">Klik på “Søg efter relevante job” for at hente aktuelle søgeresultater fra det offentlige webindeks.</div></div>
+  <div id="jobOpportunitiesResults" class="discovery-results"><div class="empty">Klik på “Søg stillinger” for at lede efter konkrete, aktuelle jobopslag på tværs af portaler.</div></div>
   <div class="company-criteria-section">
    <div class="discovery-section-head"><div><h2>Danske virksomheder ud fra dine kriterier</h2><p class="muted">Bruger profilord og geografi fra søgeprofilen ovenfor. Søger kun i danske virksomhedsregistre og danske virksomhedskilder.</p></div><span id="companyCriteriaMeta" class="chip">0 danske profiler</span></div>
    <div id="companyCriteriaStatus" class="notice">Vælg profilord og geografi ovenfor, og klik på “Find danske virksomheder”. Uden dansk virksomhedsregistrering vises virksomheden ikke som et dansk match.</div>
@@ -1013,6 +1093,39 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
  </div>
 </section>
 <section class="section" id="page-history"><div class="hero purple"><div class="eyebrow">DIT ARBEJDSRUM</div><h1>Gem, eksportér og gendan.</h1><p>Dine data gemmes lokalt i browseren. Brug backup, hvis du vil flytte dem eller beskytte dig mod tab.</p></div><div class="grid"><div class="card stack"><h2>Backup</h2><p class="muted">Eksportér lokale data til en JSON-fil. Backup kan indeholde dit CV, ansøgninger og forbindelser — opbevar den privat.</p><button onclick="exportBackup()">Eksportér backup</button><label for="backupfile">Gendan backup</label><input type="file" id="backupfile" accept=".json,application/json" onchange="restoreBackup(event)"><button class="warn" onclick="clearAll()">Slet alle lokale data</button><div id="backupmsg" class="notice" hidden></div></div><div class="card stack"><h2>Historik</h2><div id="historyList" class="list"><div class="empty">Ingen gemte analyser endnu.</div></div><button class="secondary" onclick="exportHistory()">Eksportér historik som tekst</button></div></div><div class="card" style="margin-top:16px"><h2>Om denne version</h2><div class="statline"><span>CV, kladder og CSV-import</span><span class="pill">Lokal funktion</span></div><div class="statline"><span>Jobmatch / panel</span><span class="chip">Regelbaseret demo</span></div><div class="statline"><span>AI-personaer</span><span class="chip">Valgfri sikker backend — kræver opsætning</span></div><div class="statline"><span>Live-research / LinkedIn API</span><span class="chip">Afhænger af separat integration</span></div><div class="statline"><span>Synkronisering mellem enheder</span><span class="chip">Ikke tilkoblet</span></div></div></section>
+
+<div id="jobSearchProgressModal" class="job-search-progress-modal" hidden role="dialog" aria-modal="true" aria-labelledby="jobSearchProgressTitle" aria-describedby="jobSearchProgressDescription" tabindex="-1">
+ <div class="job-search-modal-backdrop"></div>
+ <section class="job-search-modal-card">
+  <div class="job-search-modal-heading">
+   <span class="job-search-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></span>
+   <div><span class="job-search-eyebrow">GET A JOB HOBO! · JOBSØGNING</span><h2 id="jobSearchProgressTitle">Søger efter relevante stillinger</h2></div>
+  </div>
+  <p id="jobSearchProgressDescription" class="job-search-modal-description">Søger på tværs af danske jobportaler ud fra dine søgeord.</p>
+  <div class="job-search-progress-overview">
+   <div id="jobSearchProgressRing" class="job-search-progress-ring" role="progressbar" aria-label="Jobportaler gennemgået" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="job-search-progress-ring-inner"><strong id="jobSearchProgressPercent">0%</strong><small>portaler tjekket</small></div>
+   </div>
+   <div class="job-search-progress-copy"><strong id="jobSearchProgressStatus">Forbereder søgningen…</strong><p id="jobSearchProgressCount">0 af 8 portaler færdige</p><div class="job-search-progress-track"><span id="jobSearchProgressFill"></span></div></div>
+  </div>
+  <div class="job-search-portals-heading"><strong>Portaler, der søges i</strong><span>Live status</span></div>
+  <div id="jobSearchPortalList" class="job-search-portal-list"></div>
+  <div class="job-search-modal-footer"><p id="jobSearchProgressFooter">Procenten viser hvor mange portaler der har svaret.</p><button id="jobSearchProgressClose" onclick="closeJobSearchProgress()" hidden>Se resultater</button></div>
+ </section>
+</div>
+
+<div id="jobCvRelevanceModal" class="job-cv-warning-modal" hidden role="dialog" aria-modal="true" aria-labelledby="jobCvWarningTitle" aria-describedby="jobCvWarningSummary">
+ <div class="job-search-modal-backdrop"></div>
+ <section class="job-cv-warning-card">
+  <div class="job-cv-warning-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 22 21H2z"/><path d="M12 9v5M12 17h.01"/></svg></div>
+  <span class="job-search-eyebrow job-cv-warning-eyebrow">TJEK DIT SØGEFOKUS</span>
+  <h2 id="jobCvWarningTitle">Søgeordene ligger langt fra dit CV</h2>
+  <p id="jobCvWarningSummary">De valgte søgeord ser ikke ud til at matche kompetencerne i dit gemte CV.</p>
+  <div class="job-cv-warning-groups"><div><strong>Muligt overlap med CV’et</strong><div id="jobCvWarningMatched" class="job-cv-warning-chips"></div></div><div><strong>Søgeord uden tydeligt overlap</strong><div id="jobCvWarningUnmatched" class="job-cv-warning-chips"></div></div></div>
+  <p class="job-cv-warning-help">Det kan sagtens være et bevidst karriereskift. Vil du fortsætte med disse søgeord?</p>
+  <div class="job-cv-warning-actions"><button class="secondary" onclick="cancelJobSearchForCv()">Tilbage og ret søgeord</button><button onclick="confirmJobSearchDespiteCv()">Ja, søg alligevel</button></div>
+ </section>
+</div>
 
 <div class="footnote">Privatliv: CV, ansøgninger og importerede CSV-data gemmes lokalt i browseren. Hvis du aktiverer AI-panelet og vurderer CV’et, sendes CV-teksten og et eventuelt stillingsopslag gennem din konfigurerede Vercel-backend til OpenAI API. Uden AI-indstillinger sendes CV’et ikke til modellen. Ved live-søgning sendes jobtitel, virksomhedsnavn og udvalgte søgeord fra jobopslaget til Purilis offentlige websøge-API. CV, ansøgningstekst og LinkedIn-forbindelser indgår ikke i søgeforespørgslerne. På en offentlig hjemmeside er kildekoden synlig, men dine importerede data indlejres ikke i den. Brug backup.</div>
 </main></div>

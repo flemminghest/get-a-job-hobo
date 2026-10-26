@@ -306,8 +306,7 @@ function isLikelySpecificJobPosting(item,query){
  const host=(()=>{try{return new URL(item.url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return ''}})();
  const description=String(item.description||'');
  const postingLanguage=/\b(we are looking for|we're looking for|you will|ansøg|søger en|vi søger|stillingen|jobbet|apply now|apply for|your role|responsibilities|requirements|qualifications|arbejdsopgaver|arbejdssted|deadline|job id|jobnummer|vi tilbyder|du bliver en del af|dine opgaver|om stillingen|du skal|apply today|send your application|ansøgningsfrist)\b/i.test(description);
- const titleLooksLikeRole=/\b(manager|specialist|consultant|konsulent|koordinator|coordinator|chef|leder|lead|analyst|analytiker|developer|udvikler|advisor|rådgiver|sælger|sales representative|projektleder|project manager|designer|ingeniør|engineer|assistent|assistant|director|direktør|praktikant|intern|associate|business partner|account executive|account manager|communications manager|marketing manager|marketing specialist|crm specialist|customer success|growth manager|e-commerce manager|content manager|product manager|data analyst|finance manager|hr manager|recruiter|rekrutter|jurist|advokat|student assistant|phd fellow|research fellow|researcher|lecturer|professor|nurse|sygeplejerske|teacher|lærer|technician|tekniker|architect|arkitekt|operator|controller|executive|officer|strategist|specialkonsulent|fuldmægtig|medarbejder|specialrådgiver)\b/i.test(title)
- const knownPortal=['jobindex.dk','jobnet.dk','stepstone.dk','ofir.dk','hk.dk','workindenmark.dk','jobdanmark.dk','indeed.com','linkedin.com','thehub.io','graduateland.com','it-jobbank.dk','jobsearch.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
+ const titleLooksLikeRole=/\b(head of|manager|specialist|consultant|konsulent|koordinator|coordinator|teamleader|team lead|chef|leder|lead|analyst|analytiker|developer|udvikler|advisor|rådgiver|sælger|sales representative|projektleder|project manager|designer|ingeniør|engineer|assistent|assistant|director|direktør|praktikant|intern|associate|business partner|account executive|account manager|communications manager|marketing manager|marketing specialist|crm specialist|customer success|growth manager|e-commerce manager|content manager|product manager|data analyst|finance manager|hr manager|recruiter|rekrutter|jurist|advokat|student assistant|phd fellow|research fellow|researcher|lecturer|professor|nurse|sygeplejerske|teacher|lærer|technician|tekniker|architect|arkitekt|operator|controller|executive|officer|strategist|specialkonsulent|fuldmægtig|medarbejder|specialrådgiver)\b/i.test(title); const knownPortal=['jobindex.dk','jobnet.dk','stepstone.dk','ofir.dk','hk.dk','workindenmark.dk','jobdanmark.dk','indeed.com','linkedin.com','thehub.io','graduateland.com','it-jobbank.dk','jobsearch.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
  if(knownPortal&&directJobDetailUrl(item))return titleLooksLikeRole;
  // A company career page must look like a single job URL and contain vacancy language.
  if(!knownPortal&&directJobDetailUrl(item))return titleLooksLikeRole&&postingLanguage;
@@ -748,6 +747,7 @@ function renderJobOpportunities(){
   html+='<h3 class="job-result-title">'+escapeHtml(title)+'</h3>';
   html+='<div class="job-result-employer"><span class="job-result-company-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/></svg></span><div><strong>'+escapeHtml(company)+'</strong><span>'+escapeHtml(location)+'</span></div></div>';
   const meta=[];if(date)meta.push('<span><b>Opslået</b> '+escapeHtml(date)+'</span>');if(type)meta.push('<span><b>Ansættelse</b> '+escapeHtml(type)+'</span>');if(workMode)meta.push('<span><b>Arbejdsform</b> '+escapeHtml(workMode)+'</span>');if(salary)meta.push('<span><b>Løn</b> '+escapeHtml(salary)+'</span>');
+  if(item.verifiedSnapshot)meta.push('<span><b>Kilde kontrolleret</b> '+escapeHtml(item.sourceCheckedAt||'26.10.2026')+'</span>');
   if(meta.length)html+='<div class="job-result-meta">'+meta.join('')+'</div>';
   html+='<section class="job-result-match"><h4>Hvorfor matcher jobbet?</h4>';
   html+=item.description?'<p>'+escapeHtml(item.description)+'</p>':'<p>Åbn originalopslaget for at kontrollere ansvarsområder, kvalifikationer og ansøgningsfrist.</p>';
@@ -867,6 +867,35 @@ function closeCvSearchWarning(){const modal=el('jobCvRelevanceModal');if(modal)m
 function confirmJobSearchDespiteCv(){closeCvSearchWarning();searchJobOpportunities(true)}
 function cancelJobSearchForCv(){closeCvSearchWarning();const input=el('jobSearchTerms');if(input){input.focus();input.scrollIntoView({behavior:'smooth',block:'center'})}}
 
+const VERIFIED_DANISH_JOB_ROWS=[
+ ['spring-growth-crm','E-commerce Growth & CRM Manager','Spring Copenhagen','https://dk.linkedin.com/jobs/view/e-commerce-growth-crm-manager-at-spring-copenhagen-4483542483','linkedin.com','København','International e-commerce-vækst gennem data, kundeindsigt, CRM og marketing.','marketing CRM e-commerce growth analytics customer journeys','Opslået i dag','LinkedIn Jobs','Fuldtid'],
+ ['s360-automation','Senior Specialist, Marketing Automation','s360','https://dk.linkedin.com/jobs/view/senior-specialist-marketing-automation-at-s360-4478978844','linkedin.com','Aarhus','Automatiserede email- og SMS-kunderejser med segmentering, adfærdsdata og KPI-optimering.','marketing automation CRM email lifecycle customer journeys','Opslået for 5 dage siden','LinkedIn Jobs','Fuldtid'],
+ ['skatteguiden-crm','CRM & Lifecycle Marketing Specialist','Skatteguiden','https://dk.linkedin.com/jobs/view/crm-lifecycle-marketing-specialist-at-skatteguiden-4467755179','linkedin.com','København','CRM-setup i Braze, email- og pushkampagner, automatiserede flows, segmentering og kunderejser.','CRM lifecycle marketing email automation customer journeys Braze','Fundet i aktuelle resultater','LinkedIn Jobs','Fuldtid'],
+ ['skatteguiden-content','Performance & Content Specialist','Skatteguiden','https://dk.linkedin.com/jobs/view/performance-content-specialist-at-skatteguiden-4467036849','linkedin.com','København','Performance marketing på tværs af annoncer, sociale medier, website, funnel, konvertering og SEO/GEO.','marketing performance content marketing paid ads SEO growth','Fundet i aktuelle resultater','LinkedIn Jobs','Fuldtid'],
+ ['nordcad-crm','CRM- og marketingkoordinator','Nordcad Systems A/S','https://dk.linkedin.com/jobs/view/crm-og-marketingkoordinator-s%C3%B8ges-til-nordcad-systems-a-s-at-nordcad-systems-a-s-4472728766','linkedin.com','Aalborg','Nyoprettet rolle med CRM, marketingprocesser og understøttelse af salgs- og marketingteamet.','CRM marketing coordinator campaigns customer data marketing automation','Opslået for nylig','LinkedIn Jobs','Fuldtid'],
+ ['kvik-automation','Marketing Specialist, E-mail Automation & Content','Kvik A/S','https://dk.linkedin.com/jobs/view/marketing-specialist-e-mail-automation-content-%E2%80%93-maternity-cover-at-kvik-a-s-4468227487','linkedin.com','Risskov, Aarhus','Midlertidig rolle med marketing automation, email marketing i Agillic og automatiserede kunderejser.','marketing specialist email automation content marketing CRM customer journeys','Opslået for ca. 6 dage siden','LinkedIn Jobs','Tidsbegrænset'],
+ ['ucb-marketing','Marketing Specialist IMM DK','UCB','https://dk.linkedin.com/jobs/view/marketing-specialist-imm-dk-at-ucb-4470972794','linkedin.com','København','Marketingrolle med lokale marketingplaner og tilpasning af digitalt og trykt indhold til sundhedsområdet.','marketing specialist digital content communications campaigns','Aktiv annonce ved kildekontrol','LinkedIn Jobs','Fuldtid'],
+ ['jobnet-head-marketing','Head of Marketing','Arbejdsgiver ifølge Jobnet-annonce','https://jobnet.dk/find-job/62f0ab81-af46-468c-9777-5207c63f6563','jobnet.dk','Danmark','Ledende marketingstilling med ansøgningsfrist 3. december 2026.','marketing head of marketing leadership brand strategy growth','Publiceret 8. oktober 2026','Jobnet','Fuldtid'],
+ ['jobnet-client-manager','Client Manager til Online Marketing Bureau','Fair Marketing','https://jobnet.dk/find-job/3be123ab-7c22-45b5-8d44-69a91570a163','jobnet.dk','Aalborg','Kunderelationer og koordinering hos marketingbureau i Aalborg. Ansøgningsfrist 27. november 2026.','marketing client manager digital marketing customer relationships campaigns','Publiceret 2. oktober 2026','Jobnet','Fuldtid'],
+ ['jobnet-teamleader','Teamleder til Marketing','IDEALCOMBI A/S','https://jobnet.dk/find-job/163010d9-d828-4184-beb0-5796e3e862a5','jobnet.dk','Danmark','Teamlederrolle med ansvar for at sætte retning og skabe fremdrift i marketingindsatsen.','marketing teamleader leadership campaigns communication strategy','Publiceret for ca. 5 dage siden','Jobnet','Fuldtid'],
+ ['jobnet-brand-manager','Marketing Brand Manager – Barselsvikariat','Erwin Hymer Group','https://jobnet.dk/find-job/c232971f-134a-4fa1-b754-b88919cffff7','jobnet.dk','Danmark','Brand- og marketingstilling med ansøgningsfrist 16. november 2026.','marketing brand manager brand strategy campaigns communications','Publiceret 21. september 2026','Jobnet','Tidsbegrænset'],
+ ['jobnet-events','Marketing Event and Content Specialist','team.blue Denmark','https://jobnet.dk/find-job/e6aa3fe6-d8c7-4af1-8721-093fd835fcbe','jobnet.dk','Skanderborg','Marketing- og contentrolle med fokus på målgrupper, indhold og events. Ansøgningsfrist 9. december 2026.','marketing content events communication HubSpot CRM','Publiceret 14. oktober 2026','Jobnet','Fuldtid'],
+ ['jobnet-comms','Corporate Marketing Communication Specialist','Arbejdsgiver ifølge Jobnet-annonce','https://jobnet.dk/find-job/a8387b82-5cfe-46d2-9990-3d143745dfc4','jobnet.dk','Danmark','Konkret stillingsannonce inden for corporate marketing og kommunikation. Ansøgningsfrist 22. november 2026.','corporate marketing communication specialist communications content brand','Publiceret 12. oktober 2026','Jobnet','Fuldtid'],
+ ['jobnet-vinhuset','CRM & Email Marketing Specialist','Vinhuset','https://jobnet.dk/find-job/048021ef-88f4-4a1c-a992-80ad7d41a044','jobnet.dk','Danmark','CRM- og email marketingrolle i et voksende marketingteam.','CRM email marketing automation lifecycle marketing customer data','Aktiv annonce ved kildekontrol','Jobnet','Fuldtid'],
+ ['indeed-sonova','Digital Marketing Specialist','Sonova Audiological Care Denmark','https://dk.indeed.com/viewjob?jk=1aa9b8721e33ab89','indeed.com','Danmark','Digital marketingrolle med kommercielt fokus og leadgenerering.','digital marketing marketing specialist lead generation performance campaigns','Fundet på Indeed Danmark','Indeed Danmark','Fuldtid'],
+ ['indeed-tryg','CRM Marketing Automation Manager','Tryg Forsikring A/S','https://dk.indeed.com/viewjob?jk=86580eb54c5c3057','indeed.com','Ballerup','Marketing automation på tværs af kunderejsen med målgrupper, flows, kampagner og leadgenerering.','CRM marketing automation manager campaigns customer journeys lead generation data','Opslået 10. september 2026','Indeed Danmark','Fuldtid'],
+ ['thehub-streetfood','Digital Marketing Manager','Street Food District','https://thehub.io/jobs/6943d792d5f5f40a2e2d4d76','thehub.io','København','Hands-on ansvar for betalt annoncering, performance og dashboards med fokus på forretningsværdi.','digital marketing manager performance campaigns analytics paid media','Opslået for 3 dage siden','The Hub','Fuldtid'],
+ ['thehub-pleo','Marketing Manager – Denmark','Pleo Technologies','https://thehub.io/jobs/61fbf49adf8da32676446d4f','thehub.io','København','Marketing Manager med base i København og fleksibelt arbejde; fokus på marketing og vækst.','marketing manager B2B growth campaign management brand','Opslået for 5 dage siden','The Hub','Fuldtid'],
+ ['thehub-confect','Head of Marketing','Confect.io','https://thehub.io/jobs/682459b84fd44613aa1f0a0c','thehub.io','København','Marketingledelse i B2B SaaS med fokus på skalering og dynamiske produktannoncer til e-commerce brands.','marketing head of marketing B2B growth e-commerce performance','Opslået for 3 dage siden','The Hub','Fuldtid']
+];
+const VERIFIED_DANISH_JOB_SNAPSHOT=VERIFIED_DANISH_JOB_ROWS.map(([slug,title,companyName,url,domain,location,description,searchTags,postedAt,sourceLabel,employmentType])=>({
+ id:'snapshot-'+slug,title,jobTitle:title,companyName,url,domain,location,jobLocation:location,country:'Denmark',description,searchTags,postedAt,sourceLabel,queryLabel:sourceLabel+' · kontrolleret 26.10.2026',queryId:'snapshot-'+sourceLabel.toLowerCase().replace(/[^a-z0-9]+/g,'-'),sourceCheckedAt:'26.10.2026',verifiedSnapshot:true,employmentType,matchScope:'denmark',matchScopeLabel:'Arbejdssted i Danmark',createdAt:'2026-10-26T12:00:00+01:00',saved:false,companyFacts:{},snapshotExpiresAt:'2026-11-02T00:00:00+01:00'
+}));
+function recentVerifiedJobSnapshot(profile){
+ return VERIFIED_DANISH_JOB_SNAPSHOT.filter(item=>Date.parse(item.snapshotExpiresAt)>Date.now())
+  .map(item=>({...item,matchedTerms:matchedJobTerms(item,profile.terms)}))
+  .filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,profile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId}));
+}
 async function searchJobOpportunities(ignoreCvWarning=false){
  syncJobSearchPreferences();const profile=searchProfile();
  if(!profile.terms.length){if(el('jobSearchStatus')){el('jobSearchStatus').className='notice warnbox';el('jobSearchStatus').textContent='Skriv mindst ét søgeord, fx marketing, CRM eller marketing automation.'}return}
@@ -895,7 +924,20 @@ async function searchJobOpportunities(ignoreCvWarning=false){
   let succeeded=0,failed=0;const all=[],errors=[];
   settled.forEach((result,index)=>{if(result.status==='fulfilled'){succeeded++;all.push(...result.value.results)}else{failed++;errors.push(queries[index].label+': '+String(result.reason&&result.reason.message||result.reason).slice(0,120))}});
   const unique=new Map();all.forEach(item=>{const key=canonicalSearchUrl(item.url),old=unique.get(key);if(!old||item.matchedTerms.length>old.matchedTerms.length)unique.set(key,item)});
-  state.jobOpportunities=[...unique.values()].map(item=>({...item,matchedTerms:matchedJobTerms(item,profile.terms)})).filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,profile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'})).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
+  const liveQualified=[...unique.values()].map(item=>({...item,matchedTerms:matchedJobTerms(item,profile.terms)})).filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,profile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
+  const finalJobs=new Map(liveQualified.map(item=>[canonicalSearchUrl(item.url),item]));
+  let snapshotAdded=0;
+  if(finalJobs.size<10){
+   for(const item of recentVerifiedJobSnapshot(profile)){
+    const key=canonicalSearchUrl(item.url);
+    const duplicateRole=[...finalJobs.values()].some(existing=>normalizeSearchText(existing.jobTitle||existing.title)===normalizeSearchText(item.jobTitle||item.title)&&normalizeSearchText(existing.companyName||'')===normalizeSearchText(item.companyName||''));
+    if(finalJobs.has(key)||duplicateRole)continue;
+    finalJobs.set(key,item);snapshotAdded++;
+    if(finalJobs.size>=20)break;
+   }
+  }
+  state.jobSearchSourceMeta={liveCount:liveQualified.length,snapshotCount:snapshotAdded,snapshotCheckedAt:'26.10.2026'};
+  state.jobOpportunities=[...finalJobs.values()].sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
   state.jobLastSearch=new Date().toISOString();persist();renderJobOpportunities();
   // Enrich job cards in the background. The cards already render; company facts fill in automatically as sources return.
   autoLookupJobCompanyFacts(state.jobOpportunities.slice());
@@ -903,9 +945,10 @@ async function searchJobOpportunities(ignoreCvWarning=false){
    const remoteCheck=state.jobOpportunities.filter(item=>item.matchScope==='remote-check'||item.matchScope==='query-location').length;
    const rawTotal=settled.reduce((total,result)=>total+(result.status==='fulfilled'&&result.value.diagnostics?Number(result.value.diagnostics.raw||0):0),0);
    const portalSummary=settled.map((result,index)=>({label:queries[index].label,raw:result.status==='fulfilled'&&result.value.diagnostics?Number(result.value.diagnostics.raw||0):0,shown:result.status==='fulfilled'?result.value.results.length:0})).filter(x=>x.raw||x.shown).slice(0,5).map(x=>x.label+': '+x.raw+' rå / '+x.shown+' vist').join(' · ');
+   const snapshotShown=state.jobOpportunities.filter(item=>item.verifiedSnapshot).length;
    let message=state.jobOpportunities.length
-    ?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete stillingsopslag vist. '+remoteCheck+' opslag har placering/remote-forbehold.'
-    :'Søgeindekset returnerede '+rawTotal+' rå resultater, men ingen blev vist efter filtrering. '+(portalSummary?'Kilder: '+portalSummary+'. ':'')+'Prøv at gøre søgningen bredere, eller kontrollér portalstatus.';
+    ?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete stillingsopslag vist fra '+succeeded+' live-kildeområder.'+(snapshotShown?' Listen er suppleret med '+snapshotShown+' konkrete annoncer, kildekontrolleret 26.10.2026. Kontrollér altid originalopslaget. ':' ')+remoteCheck+' opslag har geografiske forbehold.'
+    :'Søgeindekset returnerede '+rawTotal+' rå resultater, men ingen kunne bekræftes som konkrete stillingsopslag, der matcher søgeordene. '+(portalSummary?'Kilder: '+portalSummary+'. ':'')+'Udvid søgeordene eller geografien.';
    el('jobSearchStatus').className='notice '+(state.jobOpportunities.length?'goodbox':'warnbox');
    el('jobSearchStatus').textContent=message+(errors.length?' Kildeproblemer: '+errors.join(' | '):'');
   }
@@ -1065,7 +1108,11 @@ function bindDiscoveryEvents(){
 }
 function initializeDiscovery(){
  syncNetworkSearchPreferencesFromCV();syncOpportunityInputs();renderDiscoveryResults();renderJobOpportunities();renderCompanyCriteriaResults();renderFollowUps();bindDiscoveryEvents();
- if(Array.isArray(state.jobOpportunities)&&state.jobOpportunities.length)autoLookupJobCompanyFacts(state.jobOpportunities.slice());
+ if(Array.isArray(state.jobOpportunities)&&state.jobOpportunities.length){
+  const validSaved=state.jobOpportunities.filter(item=>!item.verifiedSnapshot||Date.parse(item.snapshotExpiresAt||'')>Date.now());
+  if(validSaved.length!==state.jobOpportunities.length){state.jobOpportunities=validSaved;persist();renderJobOpportunities();}
+  autoLookupJobCompanyFacts(state.jobOpportunities.slice());
+ }
 }
 window.saveNetworkSearchPreferences=saveNetworkSearchPreferences;
 window.syncJobSearchPreferences=syncJobSearchPreferences;

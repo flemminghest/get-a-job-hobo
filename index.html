@@ -739,6 +739,61 @@ button.quick-card:hover:not(:disabled){background:#fff;border-color:#cddcf0;box-
  .job-company-insights-foot{gap:6px 10px}
 }
 
+
+/* Company insight lookup: simple colored facts with source evidence */
+.job-company-insights{--insight:#159b75;--insight-soft:#edfbf5;--insight-line:#d5f0e4;min-width:0;margin:12px 0 11px;padding:0 12px 10px;border:1px solid var(--insight-line);border-radius:14px;background:linear-gradient(125deg,var(--insight-soft),#fff 82%);overflow:hidden}
+.job-company-insights-orange{--insight:#e87536;--insight-soft:#fff5e9;--insight-line:#f8e3c9}
+.job-company-insights-purple{--insight:#8250e8;--insight-soft:#f6f1ff;--insight-line:#e8ddff}
+.job-company-insights-blue{--insight:#1976e8;--insight-soft:#eef6ff;--insight-line:#d9e9fc}
+.job-company-insights-mint{--insight:#159b75;--insight-soft:#edfbf5;--insight-line:#d5f0e4}
+.job-company-insights-head{display:flex;align-items:center;gap:9px;padding:10px 0 9px;border-bottom:1px solid var(--insight-line)}
+.job-company-insights-icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:9px;background:var(--insight);color:#fff}
+.job-company-insights-icon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.job-company-insights-head>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.job-company-insights-head>div strong{font-size:12px;line-height:1.25;color:#203953}
+.job-company-insights-head>div small{font-size:10px;line-height:1.3;color:#78899a}
+button.job-company-lookup-button{margin-left:auto;flex:0 0 auto;padding:7px 10px;border-radius:9px;border:1px solid var(--insight-line);background:#fff;color:var(--insight);font-size:10px;font-weight:850;box-shadow:none}
+button.job-company-lookup-button:hover:not(:disabled){background:var(--insight-soft);box-shadow:0 3px 8px rgba(28,54,90,.06)}
+button.job-company-lookup-button:disabled{opacity:.72;cursor:wait}
+.job-company-insight-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.job-company-insight-stat{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:7px;min-width:0;padding:11px 7px;border-right:1px solid var(--insight-line)}
+.job-company-insight-stat:last-child{border-right:0}
+.job-insight-icon{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:rgba(255,255,255,.84);color:var(--insight)}
+.job-insight-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.job-company-insight-stat>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.job-company-insight-stat small{font-size:9px;line-height:1.3;font-weight:750;color:#687b8d}
+.job-company-insight-stat strong{font-size:12px;line-height:1.3;color:#1e344c;overflow-wrap:anywhere}
+.job-company-insight-stat .job-insight-sub{font-size:9px;line-height:1.35;color:#77889a;overflow-wrap:anywhere}
+.job-company-insights-foot{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin-top:1px;padding:8px 9px;border-radius:9px;background:rgba(255,255,255,.7)}
+.job-company-insights-foot span{font-size:10px;line-height:1.4;color:#617489}
+.job-company-insights-foot b{color:#334c65;margin-right:3px}
+.job-company-insight-note{font-size:9px;line-height:1.45;color:#78899a;margin:7px 1px 0}
+.job-company-lookup-status{display:flex;align-items:center;gap:9px;padding:11px 9px;margin-top:8px;border-radius:10px;background:rgba(255,255,255,.8);font-size:11px;line-height:1.5;color:#536a81}
+.job-company-lookup-spinner{width:16px;height:16px;flex:0 0 16px;border-radius:50%;border:2px solid #dfe9ed;border-top-color:var(--insight);animation:companyLookupSpin .8s linear infinite}
+@keyframes companyLookupSpin{to{transform:rotate(360deg)}}
+.job-company-evidence{margin-top:9px;padding:10px;border:1px solid var(--insight-line);border-radius:11px;background:rgba(255,255,255,.82)}
+.job-company-evidence-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;color:#324b63;font-size:11px}
+.job-company-evidence-heading span{color:#70829a;font-size:10px}
+.job-company-evidence-list{display:grid;gap:7px}
+a.job-company-evidence-item{display:grid;grid-template-columns:minmax(0,1fr) 18px;gap:10px;align-items:center;min-width:0;padding:9px 10px;border:1px solid #e3eaf0;border-radius:9px;background:#fff;text-decoration:none}
+a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 10px rgba(35,61,85,.05)}
+.job-company-evidence-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.job-company-evidence-copy strong{font-size:10px;font-weight:850;color:var(--insight)}
+.job-company-evidence-copy small{font-size:11px;line-height:1.4;font-weight:750;color:#29425d}
+.job-company-evidence-copy em{font-size:10px;line-height:1.5;font-style:normal;color:#6b7e93;overflow-wrap:anywhere}
+.job-company-evidence-arrow{color:var(--insight);font-size:16px;font-weight:800}
+.job-company-evidence-empty{font-size:11px;line-height:1.5;color:#687b90;margin:0}
+@media(max-width:640px){
+ .job-company-insights{padding:0 9px 8px}
+ .job-company-insights-head{flex-wrap:wrap}
+ button.job-company-lookup-button{margin-left:auto}
+ .job-company-insight-stats{grid-template-columns:1fr}
+ .job-company-insight-stat{grid-template-columns:29px minmax(0,1fr);border-right:0;border-bottom:1px solid var(--insight-line);padding:8px 3px}
+ .job-company-insight-stat:last-child{border-bottom:0}
+ .job-company-insights-foot{gap:6px 10px}
+}
+@media(prefers-reduced-motion:reduce){.job-company-lookup-spinner{animation:none}}
+
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>

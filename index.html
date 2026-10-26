@@ -586,8 +586,49 @@ button.quick-card:hover:not(:disabled){background:#fff;border-color:#cddcf0;box-
 .kpi strong{display:block;width:auto;max-width:100%;white-space:normal;overflow-wrap:break-word;word-break:normal;font-variant-numeric:tabular-nums}
 .kpi span:not(.kpi-icon){display:block;max-width:100%;overflow-wrap:normal;word-break:normal}
 
+
+/* Accessibility pass: readable hero copy and a sidebar footer that never overlaps navigation */
+#page-opportunities .hero h1,
+#page-followups .hero h1{
+  color:#fff!important;
+  text-shadow:0 1px 1px rgba(4,35,27,.12);
+}
+#page-opportunities .hero p,
+#page-followups .hero p{
+  color:#e4f5ee!important;
+}
+#page-opportunities .hero .eyebrow,
+#page-followups .hero .eyebrow{
+  color:#b9f2d6!important;
+}
+#page-opportunities .hero .actions button.secondary,
+#page-followups .hero .actions button.secondary{
+  background:#fff!important;
+  color:#174b3c!important;
+  border-color:rgba(255,255,255,.8)!important;
+}
+
+/* Wordmark based on the supplied Get a Job Hobo logo */
+.brand{display:flex;align-items:center;gap:8px;padding:7px 9px 25px;white-space:nowrap}
+.brand-symbol{display:inline-block;flex:0 0 auto;color:#172b46;font-size:31px;font-weight:500;line-height:1;transform:translateY(-1px)}
+.brand-title{display:inline-block;font-size:22px;font-weight:850;line-height:1.1;letter-spacing:-1.05px}
+.brand-getajob{color:#078f93}
+.brand-hobo{color:#172b46}
+
+/* Sidebar layout keeps the local-storage note below the navigation */
+@media(min-width:851px){
+  .side{display:flex;flex-direction:column;height:100vh;min-height:0;overflow:hidden}
+  .side .nav{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:8px}
+  .side .side-foot{position:static;flex:0 0 auto;margin-top:auto;padding:12px 4px 0;border-top:1px solid #edf1f6;background:rgba(255,255,255,.96);overflow-wrap:anywhere}
+}
+@media(max-width:850px){
+  .brand{padding:2px 6px 10px;gap:7px}
+  .brand-symbol{font-size:26px}
+  .brand-title{font-size:19px;letter-spacing:-.8px}
+}
+
 </style></head><body>
-<div class="shell"><aside class="side"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2.5"/><path d="M8 8V5.5A2.5 2.5 0 0 1 10.5 3h3A2.5 2.5 0 0 1 16 5.5V8M3 12h18M10 12v2h4v-2"/></svg></span><span class="brand-copy"><strong>Get a Job</strong><small>HOBO!</small></span></div><nav class="nav" id="nav">
+<div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
 <button data-page="job"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 8h5M8 11h4"/></svg></span><span>Jobopslag</span></button>
 <button data-page="cv"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg></span><span>Mit CV</span></button>

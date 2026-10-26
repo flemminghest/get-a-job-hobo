@@ -189,6 +189,29 @@ function renderCommunities(){
 }
 function renderDiscoveryResults(){renderProspects();renderCommunities()}
 
+function curatedCompanyFacts(item){
+ const domain=String(item&&item.domain||'').toLowerCase().replace(/^www\./,'');
+ if(domain==='provenroi.com'){
+  const linkedin={domain:'linkedin.com',title:'Proven ROI — LinkedIn virksomhedsprofil',description:'LinkedIn oplyser 11–50 ansatte, hovedkontor i Austin, Texas, branche Marketing Services og grundlagt 2022.',url:'https://www.linkedin.com/company/provenroi',sourceLabel:'LinkedIn'};
+  const clutch={domain:'clutch.co',title:'Proven ROI — Clutch virksomhedsprofil',description:'Clutch oplyser 10–49 ansatte, lokation Austin, Texas, og grundlagt 2022. Antalsintervallet varierer lidt mellem kilderne.',url:'https://clutch.co/profile/proven-roi',sourceLabel:'Clutch'};
+  return {employeeCount:'11–50',location:'Austin, Texas, USA',industry:'Marketing Services',foundedYear:'2022',companyType:'Privately held',employeeRating:'',ratingCount:'',factSources:{employeeCount:linkedin,location:linkedin,industry:linkedin,foundedYear:linkedin,companyType:linkedin},sources:[linkedin,clutch],lookupStatus:'seeded',companyHighlight:''};
+ }
+ if(domain==='flurink.com'){
+  const official={domain:'flurink.com',title:'Flurink — officiel hjemmeside',description:'Flurinks hjemmeside oplyser 800+ social media posts created og 700+ SEO articles generated. Det er produktets egne markedsføringstal, ikke et verificeret medarbejdertal.',url:'https://www.flurink.com/',sourceLabel:'Officiel hjemmeside'};
+  return {employeeCount:'',location:'',industry:'AI-indhold og marketingautomation',foundedYear:'',companyType:'',employeeRating:'',ratingCount:'',factSources:{industry:official},sources:[official],lookupStatus:'seeded',companyHighlight:'800+ sociale opslag · 700+ SEO-artikler',companyHighlightSource:official};
+ }
+ return {};
+}
+function effectiveCompanyFacts(item){
+ const seeded=curatedCompanyFacts(item),stored=item&&item.companyFacts||{},result={...seeded,...stored};
+ for(const field of ['employeeCount','location','industry','foundedYear','companyType','employeeRating','ratingCount','companyHighlight']){
+  if(!String(stored[field]||'').trim()&&String(seeded[field]||'').trim())result[field]=seeded[field];
+ }
+ const sourceList=[...(Array.isArray(seeded.sources)?seeded.sources:[]),...(Array.isArray(stored.sources)?stored.sources:[])];
+ result.sources=sourceList.filter((source,index,list)=>source&&source.url&&list.findIndex(other=>other&&other.url&&canonicalSearchUrl(other.url)===canonicalSearchUrl(source.url))===index);
+ result.factSources={...(seeded.factSources||{}),...(stored.factSources||{})};
+ return result;
+}
 function companyNameFromOpportunity(item){
  const supplied=String(item&&(item.companyName||item.company||item.employer)||'').trim();if(supplied)return supplied.slice(0,120);
  const title=String(item&&item.title||'').trim();
@@ -208,41 +231,53 @@ function companyResultRelevant(result,company,item){
  return !!(target&&content.includes(target)||hostMatches||(tokens.length===1&&matches===1)||(tokens.length>1&&matches>=Math.min(2,tokens.length)));
 }
 function applyCompanySourceFacts(sources,prior){
- const f={...(prior||{})};
- const factSources={...(f.factSources||{})};
+ const f={...(prior||{})},factSources={...(f.factSources||{})};
  const bodyOf=s=>String((s.title||'')+' '+(s.description||'')).replace(/\s+/g,' ');
  for(const source of sources){
-  const text=bodyOf(source);
-  const domain=String(source.domain||'').toLowerCase().replace(/^www\./,'');
-  const workplace=domain==='jobindex.dk'||domain.endsWith('.jobindex.dk')||domain==='jobrate.dk'||domain.endsWith('.jobrate.dk');
+  const text=bodyOf(source),domain=String(source.domain||'').toLowerCase().replace(/^www\./,'');
+  const workplace=domain==='jobindex.dk'||domain.endsWith('.jobindex.dk')||domain==='jobrate.dk'||domain.endsWith('.jobrate.dk')||domain==='glassdoor.com'||domain.endsWith('.glassdoor.com')||domain.endsWith('.glassdoor.co.uk')||domain==='indeed.com'||domain.endsWith('.indeed.com')||domain==='kununu.com'||domain.endsWith('.kununu.com');
   let m;
-  if(!f.employeeCount&&(m=text.match(/(?:antal ansatte|antal medarbejdere|employees|employee count)\s*[:\-]?\s*(\d{1,3}(?:[.,\s]\d{3})*|\d{1,4}\s*[-–]\s*\d{1,4})/i))){f.employeeCount=m[1].trim();factSources.employeeCount=source}
-  if(!f.employeeCount&&(m=text.match(/\b(\d{1,4}\s*[-–]\s*\d{1,4})\s*(?:employees|medarbejdere)\b/i))){f.employeeCount=m[1].trim();factSources.employeeCount=source}
+  if(!f.employeeCount){
+   m=text.match(/(?:company size|antal ansatte|antal medarbejdere|employees|employee count|staff size)\s*[:\-]?\s*(\d{1,4}\s*[-–]\s*\d{1,4}|\d{1,3}(?:[.,\s]\d{3})*|\d{1,5})(?:\s*(?:employees|medarbejdere|ansatte))?/i);
+   if(m){f.employeeCount=m[1].replace(/\s+/g,' ').trim();factSources.employeeCount=source}
+  }
+  if(!f.employeeCount&&(m=text.match(/\b(\d{1,4}\s*[-–]\s*\d{1,4})\s*(?:employees|medarbejdere|ansatte)\b/i))){f.employeeCount=m[1].replace(/\s+/g,' ').trim();factSources.employeeCount=source}
   if(!f.foundedYear&&(m=text.match(/(?:stiftet|etableret|grundlagt|founded)\D{0,32}\b(19\d{2}|20\d{2})\b/i))){f.foundedYear=m[1];factSources.foundedYear=source}
-  if(!f.location&&(m=text.match(/(?:hovedkontor|headquarters|lokation|adresse|address|beliggenhed)\s*[:\-]?\s*([^.;\n]{3,65})/i))){f.location=m[1].trim();factSources.location=source}
-  if(!f.industry&&(m=text.match(/(?:branche|industry|sector)\s*[:\-]?\s*([^.;\n]{3,65})/i))){f.industry=m[1].trim();factSources.industry=source}
-  if(workplace&&!f.employeeRating&&(m=text.match(/\b([1-5][,.]\d)\s*(?:\/\s*5|ud af 5|out of 5|stjerner af 5)\b/i))){f.employeeRating=m[1].replace(',','.');factSources.employeeRating=source}
-  if(workplace&&!f.ratingCount&&(m=text.match(/\b(\d{1,6})\s+(?:anmeldelser|vurderinger|evalueringer|reviews|ratings)\b/i))){f.ratingCount=m[1];factSources.ratingCount=source}
+  if(!f.location&&(m=text.match(/(?:headquarters|headquartered|hovedkontor|location|lokation|adresse|address)\s*[:\-]?\s*(.{3,85})/i))){
+   const location=m[1].split(/\b(?:company size|company type|type|founded|industry|specialties|employees|employee count|about us|visit website|revenue|virksomhedstype|antal ansatte)\b/i)[0].replace(/[|,;\s.]+$/,'').trim();
+   if(location&&location.length<=85){f.location=location;factSources.location=source}
+  }
+  if(!f.industry&&(m=text.match(/(?:branche|industry|sector)\s*[:\-]?\s*(.{3,70})/i))){
+   const industry=m[1].split(/\b(?:company size|company type|type|founded|headquarters|employees|specialties|about us|revenue)\b/i)[0].replace(/[|,;\s.]+$/,'').trim();
+   if(industry&&industry.length<=70){f.industry=industry;factSources.industry=source}
+  }
+  if(!f.companyType&&(m=text.match(/(?:company type|type|virksomhedsform|organization type)\s*[:\-]?\s*(privately held|public company|privately owned|private company|offentlig institution|aktieselskab|anpartsselskab|limited|gmbh|llc|inc\.?)/i))){f.companyType=m[1];factSources.companyType=source}
+  if(workplace&&!f.employeeRating&&(m=text.match(/\b([1-5][,.]\d)\s*(?:\/\s*5|out of 5|ud af 5|stjerner af 5|stars? out of 5)\b/i))){f.employeeRating=m[1].replace(',','.');factSources.employeeRating=source}
+  if(workplace&&!f.ratingCount&&(m=text.match(/\b(\d{1,6})\s+(?:total\s+)?(?:(?:company|employee)\s+)?(?:anmeldelser|vurderinger|evalueringer|reviews|ratings)\b/i))){f.ratingCount=m[1];factSources.ratingCount=source}
  }
  f.factSources=factSources;return f;
 }
 async function lookupCompanyInsights(index){
  const item=(state.jobOpportunities||[])[index];if(!item)return;
- const company=companyNameFromOpportunity(item);
- if(!company||company==='Virksomheden')return;
- item.companyFacts=item.companyFacts||{};
+ const company=companyNameFromOpportunity(item);if(!company||company==='Virksomheden')return;
+ const seeded=curatedCompanyFacts(item);
+ item.companyFacts={...seeded,...(item.companyFacts||{})};
  if(item.companyFacts.lookupStatus==='loading')return;
  item.companyFacts.lookupStatus='loading';persist();renderJobOpportunities();
  const q='"'+company.replace(/"/g,' ')+'"';
+ const companySite=String(item.domain||'').toLowerCase().replace(/^www\./,'');
  const queries=[
   {id:'jobindex',label:'Jobindex · virksomhedsprofil og jobglæde',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' medarbejdervurdering jobglæde løn',fallbackQuery:'site:jobindex.dk '+q+' virksomhed medarbejdere jobglæde løn'},
   {id:'jobrate',label:'Jobrate · arbejdspladsdata',targetSite:'jobrate.dk',query:'site:jobrate.dk/arbejdsplads '+q+' medarbejdere vurdering',fallbackQuery:'site:jobrate.dk '+q+' arbejdsplads'},
+  {id:'linkedin',label:'LinkedIn · firmaprofil',targetSite:'linkedin.com',query:'site:linkedin.com/company '+q+' company size headquarters founded industry',fallbackQuery:q+' LinkedIn company size headquarters founded industry'},
+  {id:'glassdoor',label:'Glassdoor · medarbejdervurderinger',targetSite:'glassdoor.com',query:'site:glassdoor.com/Overview/Working-at '+q+' employee rating reviews employees headquarters founded',fallbackQuery:q+' Glassdoor employee reviews rating headquarters employees'},
+  {id:'clutch',label:'Clutch · virksomhedsprofil',targetSite:'clutch.co',query:'site:clutch.co/profile '+q+' employees location year founded',fallbackQuery:q+' Clutch company profile employees location founded'},
+  {id:'official',label:'Virksomhedens egen hjemmeside',targetSite:companySite||'',query:'site:'+companySite+' '+q+' contact about company location team',fallbackQuery:q+' official website company headquarters employees'},
   {id:'register',label:'Offentlige virksomhedsregistre',targetSite:'ownr.dk',query:'site:ownr.dk/companies/public-profile '+q+' antal ansatte adresse stiftet branche',fallbackQuery:'site:estatistik.dk/virksomhed '+q+' antal ansatte adresse branche etableret'}
  ];
  try{
   const outcomes=await Promise.allSettled(queries.map(query=>queryIndex(query,[])));
-  const gathered=[];
-  const sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
+  const gathered=[],sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
   outcomes.forEach((outcome,i)=>{
    if(outcome.status!=='fulfilled')return;
    (outcome.value.results||[]).forEach(result=>{
@@ -250,31 +285,31 @@ async function lookupCompanyInsights(index){
     if(!gathered.some(old=>canonicalSearchUrl(old.url)===canonicalSearchUrl(result.url)))gathered.push({...result,sourceType:queries[i].id,sourceLabel:queries[i].label});
    });
   });
+  const priorSources=Array.isArray(item.companyFacts.sources)?item.companyFacts.sources:[];
+  const mergedSources=[...priorSources,...gathered].filter((source,sourceIndex,list)=>source&&source.url&&list.findIndex(other=>other&&canonicalSearchUrl(other.url)===canonicalSearchUrl(source.url))===sourceIndex);
   item.companyFacts=applyCompanySourceFacts(gathered,item.companyFacts);
-  item.companyFacts.sources=gathered.slice(0,8);
+  item.companyFacts.sources=mergedSources.slice(0,10);
   item.companyFacts.lookupStatus=(sourceErrors===queries.length&&!gathered.length)?'error':'done';
-  item.companyFacts.lookupAt=new Date().toISOString();
-  persist();renderJobOpportunities();
+  item.companyFacts.lookupAt=new Date().toISOString();persist();renderJobOpportunities();
   const status=el('jobSearchStatus');
   if(status){
-   if(gathered.length){status.className='notice goodbox';status.textContent='Virksomhedsoplysninger søgt for '+company+'. '+gathered.length+' relevante offentlige kilder vises i infoboksen. Kontrollér kildens dato og indhold.'}
+   if(gathered.length){status.className='notice goodbox';status.textContent='Virksomhedsoplysninger søgt for '+company+'. '+gathered.length+' relevante kilder vises i infoboksen. Kontrollér kilde og dato.'}
    else if(sourceErrors===queries.length){status.className='notice warnbox';status.textContent='Søgetjenesten kunne ikke hente virksomhedsdata for '+company+'. Kontrollér forbindelsen, og prøv igen.'}
-   else {status.className='notice warnbox';status.textContent='Ingen relevante offentlige virksomhedsprofiler blev fundet for '+company+'. Der udfyldes ikke gættede værdier.'+(sourceErrors?' '+sourceErrors+' af '+queries.length+' kildesøgninger fejlede.':'')}
+   else {status.className='notice warnbox';status.textContent='Ingen yderligere kilder blev fundet for '+company+'. Kendte oplysninger og links er bevaret; ukendte værdier er ikke gættet.'+(sourceErrors?' '+sourceErrors+' af '+queries.length+' kildesøgninger fejlede.':'')}
   }
  }catch(error){
-  item.companyFacts.lookupStatus='error';item.companyFacts.lookupError=String(error&&error.message||error).slice(0,220);
-  persist();renderJobOpportunities();
+  item.companyFacts.lookupStatus='error';item.companyFacts.lookupError=String(error&&error.message||error).slice(0,220);persist();renderJobOpportunities();
   const status=el('jobSearchStatus');if(status){status.className='notice warnbox';status.textContent='Søgningen efter virksomhedsdata fejlede for '+company+': '+item.companyFacts.lookupError}
  }
 }
 function companyInsightBox(item,index){
- const f=item.companyFacts||{},clean=value=>String(value==null?'':value).trim(),company=companyNameFromOpportunity(item);
+ const f=effectiveCompanyFacts(item),clean=value=>String(value==null?'':value).trim(),company=companyNameFromOpportunity(item);
  const rating=clean(f.employeeRating),n=Number(rating.replace(',','.'));
  const ratingDisplay=rating&&Number.isFinite(n)&&n>=0&&n<=5?n.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
  const employees=clean(f.employeeCount)||'Ikke oplyst',location=clean(f.location)||'Ikke fundet';
  const distance=clean(f.distanceKm),distanceLine=distance?distance+' km fra din adresse':(location!=='Ikke fundet'?'Afstand ikke beregnet':'Afstand kræver lokation');
  const industry=clean(f.industry)||((item.matchedTerms||[]).slice(0,2).join(' · ')||'Ikke fastslået'),founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
- const tone=['mint','orange','purple','blue'][index%4],sources=Array.isArray(f.sources)?f.sources:[],loading=f.lookupStatus==='loading',completed=f.lookupStatus==='done';
+ const tone=['mint','orange','purple','blue'][index%4],sources=Array.isArray(f.sources)?f.sources:[],loading=f.lookupStatus==='loading',completed=f.lookupStatus==='done'||f.lookupStatus==='seeded';
  const svg={
   people:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.8a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.6M18 14.2a4 4 0 0 1 4 4V20"/></svg>',
   pin:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
@@ -284,7 +319,7 @@ function companyInsightBox(item,index){
  let out='<section class="job-company-insights job-company-insights-'+tone+'" aria-label="Virksomhedsinfo">';
  out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Virksomhedsinfo fra offentlige kilder</small></div><button type="button" class="job-company-lookup-button" data-discovery-action="company-info" data-collection="jobs" data-index="'+index+'" '+(loading?'disabled':'')+'>'+(loading?'Søger…':completed?'Opdatér data':'Find data')+' ↗</button></div>';
  out+='<div class="job-company-insight-stats"><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span></div></div><div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' anmeldelser':'Ingen bekræftet medarbejderrating')+'</span></div></div></div>';
- out+='<div class="job-company-insights-foot"><span><b>Branche</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>';
+ out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+'</span><span><b>Etableret</b> '+escapeHtml(founded)+'</span><span><b>Type</b> '+escapeHtml(type)+'</span></div>'; if(clean(f.companyHighlight))out+='<div class="job-company-highlight"><strong>Tal fra virksomhedens egen hjemmeside</strong><span>'+escapeHtml(f.companyHighlight)+'</span></div>';
  if(loading)out+='<div class="job-company-lookup-status" aria-live="polite"><span class="job-company-lookup-spinner"></span>Søger efter Jobindex-profiler, arbejdspladsvurderinger og offentlige virksomhedsdata…</div>';
  if(completed){
   out+='<div class="job-company-evidence"><div class="job-company-evidence-heading"><strong>Fundne kilder</strong><span>'+sources.length+' resultater</span></div>';

@@ -84,7 +84,7 @@ function discoverQueries(kind,profile){
 }
 function isDanishJobPortalHost(host){
  const value=String(host||'').toLowerCase().replace(/^www\./,'');
- return ['jobindex.dk','jobnet.dk','jobdanmark.dk','ofir.dk','stepstone.dk','hk.dk','workindenmark.dk','jobsearch.dk','it-jobbank.dk'].some(domain=>value===domain||value.endsWith('.'+domain));
+ return ['jobindex.dk','jobnet.dk','jobdanmark.dk','ofir.dk','stepstone.dk','hk.dk','workindenmark.dk','jobsearch.dk','it-jobbank.dk','indeed.com'].some(domain=>value===domain||value.endsWith('.'+domain));
 }
 function jobEvidenceText(item){
  return [item&&item.title,item&&item.description,item&&item.location,item&&item.city,item&&item.country,item&&item.address,item&&item.url].filter(Boolean).join(' ');
@@ -128,6 +128,10 @@ function getDanishJobScope(item,profile){
 function isDanishJobResult(raw,query,profile){
  if(!query||query.scope!=='danish-jobs')return true;
  const url=safeHttpUrl(raw&&raw.url);if(!url)return false;
+ let rawHost='';try{rawHost=new URL(url).hostname.toLowerCase()}catch(e){}
+ // Query is explicitly site-limited and includes Danish geographic terms.
+ if(query.id==='indeed-dk'&&domainMatches(rawHost,'dk.indeed.com'))return true;
+ if(query.id==='linkedin-jobs'&&domainMatches(rawHost,'linkedin.com')&&/\/jobs\/view\//i.test(url))return true;
  const item={
   url,
   domain:(()=>{try{return new URL(url).hostname}catch(e){return ''}})(),
@@ -140,21 +144,34 @@ function isDanishJobResult(raw,query,profile){
  return getDanishJobScope(item,profile).eligible;
 }
 function isDanishMappedJob(item,profile){
- if(item&&item.matchScope&&['denmark','remote-denmark','remote-check','danish-portal'].includes(item.matchScope))return true;
+ if(item&&item.matchScope&&['denmark','remote-denmark','remote-check','danish-portal','query-location'].includes(item.matchScope))return true;
  return getDanishJobScope(item,profile).eligible;
 }
 
+function jobLocationQuery(value){
+ const text=normalizeSearchText(value||'Frederiksberg Danmark');
+ if(/\b(frederiksberg|kobenhavn|copenhagen|hovedstaden|kobenhavns omegn)\b/.test(text))return '(Frederiksberg OR København OR Copenhagen OR Hovedstaden OR Denmark OR Danmark)';
+ if(/\b(danmark|denmark|hele landet|hele danmark)\b/.test(text))return '(Denmark OR Danmark OR København OR Copenhagen OR Aarhus OR Odense OR Aalborg)';
+ const location=searchPhrase(value||'Denmark Danmark');
+ return '("'+location+'" OR Denmark OR Danmark)';
+}
+function jobKeywordQuery(profile){
+ const terms=(profile&&profile.terms||[]).slice(0,6).map(term=>'"'+searchPhrase(term)+'"').filter(Boolean);
+ return terms.length?'('+terms.join(' OR ')+')':'jobs';
+}
 function jobQueries(profile){
- const terms=profile.terms.slice(0,7).join(' '),loc=searchPhrase(profile.location||'Danmark');
+ const terms=jobKeywordQuery(profile),loc=jobLocationQuery(profile.location||'Frederiksberg, København og omegn, Danmark');
  return [
-  {id:'linkedin-jobs',label:'LinkedIn Jobs · Danmark og remote i Danmark',targetSite:'linkedin.com',scope:'danish-jobs',query:'site:linkedin.com/jobs/view '+terms+' '+loc+' Denmark remote Denmark eligible',fallbackQuery:'site:linkedin.com/jobs/view '+terms+' '+loc+' remote Denmark'},
-  {id:'jobindex',label:'Jobindex Danmark',targetSite:'jobindex.dk',scope:'danish-jobs',query:'site:jobindex.dk/jobannonce '+terms+' '+loc+' Danmark',fallbackQuery:'site:jobindex.dk '+terms+' '+loc+' Danmark job'},
-  {id:'hk-jobportal',label:'HK Jobportal · Danmark',targetSite:'hk.dk',scope:'danish-jobs',query:'site:hk.dk '+terms+' '+loc+' Danmark stilling',fallbackQuery:'site:hk.dk '+terms+' '+loc+' Danmark job'},
-  {id:'jobnet',label:'Jobnet · Danmark',targetSite:'jobnet.dk',scope:'danish-jobs',query:'site:jobnet.dk '+terms+' '+loc+' Danmark',fallbackQuery:'site:jobnet.dk '+terms+' '+loc+' Danmark job'},
-  {id:'workindenmark',label:'Workindenmark · jobs i Danmark',targetSite:'workindenmark.dk',scope:'danish-jobs',query:'site:workindenmark.dk '+terms+' '+loc+' Denmark',fallbackQuery:'site:workindenmark.dk '+terms+' '+loc+' Denmark remote'},
-  {id:'stepstone',label:'StepStone Danmark',targetSite:'stepstone.dk',scope:'danish-jobs',query:'site:stepstone.dk '+terms+' '+loc+' Danmark',fallbackQuery:'site:stepstone.dk '+terms+' '+loc+' Danmark job'},
-  {id:'jobdanmark',label:'Jobdanmark · Danmark',targetSite:'jobdanmark.dk',scope:'danish-jobs',query:'site:jobdanmark.dk '+terms+' '+loc+' Danmark',fallbackQuery:'site:jobdanmark.dk '+terms+' '+loc+' job Danmark'},
-  {id:'career-sites',label:'Danske virksomheders karrieresider',targetSite:'',scope:'danish-jobs',query:'career jobs '+terms+' '+loc+' Denmark Denmark remote eligible',fallbackQuery:'jobs '+terms+' '+loc+' Denmark remote from Denmark'}
+  {id:'linkedin-jobs',label:'LinkedIn Jobs · Danmark og remote',targetSite:'linkedin.com',scope:'danish-jobs',query:'site:linkedin.com/jobs/view '+terms+' '+loc,fallbackQuery:'site:linkedin.com/jobs/view '+terms+' Denmark remote'},
+  {id:'jobindex',label:'Jobindex Danmark',targetSite:'jobindex.dk',scope:'danish-jobs',query:'site:jobindex.dk/jobannonce '+terms+' '+loc,fallbackQuery:'site:jobindex.dk/jobannonce '+terms+' Denmark OR Danmark'},
+  {id:'indeed-dk',label:'Indeed Danmark',targetSite:'dk.indeed.com',scope:'danish-jobs',query:'site:dk.indeed.com/viewjob '+terms+' '+loc,fallbackQuery:'site:dk.indeed.com '+terms+' Denmark OR Danmark'},
+  {id:'jobnet',label:'Jobnet · Danmark',targetSite:'jobnet.dk',scope:'danish-jobs',query:'site:jobnet.dk '+terms+' '+loc,fallbackQuery:'site:jobnet.dk '+terms+' Danmark'},
+  {id:'hk-jobportal',label:'HK Jobportal · Danmark',targetSite:'hk.dk',scope:'danish-jobs',query:'site:hk.dk '+terms+' '+loc+' stilling',fallbackQuery:'site:hk.dk '+terms+' Danmark job'},
+  {id:'stepstone',label:'StepStone Danmark',targetSite:'stepstone.dk',scope:'danish-jobs',query:'site:stepstone.dk '+terms+' '+loc,fallbackQuery:'site:stepstone.dk '+terms+' Danmark job'},
+  {id:'ofir',label:'Ofir · Danmark',targetSite:'ofir.dk',scope:'danish-jobs',query:'site:ofir.dk '+terms+' '+loc+' job',fallbackQuery:'site:ofir.dk '+terms+' Danmark stilling'},
+  {id:'workindenmark',label:'Workindenmark',targetSite:'workindenmark.dk',scope:'danish-jobs',query:'site:workindenmark.dk '+terms+' '+loc,fallbackQuery:'site:workindenmark.dk '+terms+' Denmark'},
+  {id:'jobdanmark',label:'Jobdanmark',targetSite:'jobdanmark.dk',scope:'danish-jobs',query:'site:jobdanmark.dk '+terms+' '+loc,fallbackQuery:'site:jobdanmark.dk '+terms+' Danmark job'},
+  {id:'career-sites',label:'Danske virksomheders karrieresider',targetSite:'',scope:'danish-jobs',query:'career jobs '+terms+' '+loc+' Denmark',fallbackQuery:'jobs '+terms+' '+loc+' Denmark remote from Denmark'}
  ];
 }
 function domainMatches(host,target){
@@ -204,7 +221,7 @@ function mapResult(raw,query,terms,usedFallback){
  if(query.scope==='danish-jobs'){const scope=getDanishJobScope(item,null);item.matchScope=scope.kind;item.matchScopeLabel=scope.label}
  return item;
 }
-async function isGenericJobLandingPage(item){
+function isGenericJobLandingPage(item){
  const title=normalizeSearchText(item&&item.title||'');
  const url=String(item&&item.url||'').toLowerCase();
  const genericTitle=/(^| )(remote jobs?( in)? denmark|jobs? in denmark|find jobs?|job search|search jobs?|browse jobs?|all (current )?jobs?|career opportunities|job portal|job board|job categories|vacancies in denmark|work in denmark|job opportunities in|ledige stillinger|jobmuligheder|jobsogning|jobsoegning|find et job|joboversigt)( |$)/i.test(title);
@@ -215,6 +232,7 @@ function isLikelySpecificJobPosting(item,query){
  if(!item||!safeHttpUrl(item.url)||isGenericJobLandingPage(item))return false;
  const url=String(item.url).toLowerCase(),host=String(item.domain||'').toLowerCase();
  const strongPath=(host.includes('linkedin.com')&&/\/jobs\/view\//.test(url))||
+  (host.includes('indeed.com')&&/\/viewjob\b/i.test(url))||
   (host.includes('jobindex.dk')&&/\/(jobannonce|job|stillinger)\//.test(url))||
   (host.includes('stepstone.dk')&&/\/(job|jobad|stellenangebote|stilling)\//.test(url))||
   (host.includes('jobnet.dk')&&/\/(job|stillinger|vacancy|vacancies)\//.test(url));
@@ -241,7 +259,9 @@ async function queryIndex(query,terms,profile){
    if(query.targetSite&&!domainMatches(new URL(item.url).hostname,query.targetSite))return null;
    if(query.scope==='danish-jobs'&&!isLikelySpecificJobPosting(item,query))return null;
    if(query.scope==='danish-jobs'){
-    const scope=getDanishJobScope(item,profile);
+    let scope=getDanishJobScope(item,profile);
+    if(!scope.eligible&&query.id==='indeed-dk')scope={eligible:true,kind:'query-location',label:'Indeed Danmark · kontrollér arbejdssted'};
+    if(!scope.eligible&&query.id==='linkedin-jobs')scope={eligible:true,kind:'query-location',label:'Søgt med dansk geografi · kontrollér opslaget'};
     if(!scope.eligible)return null;
     item.matchScope=scope.kind;item.matchScopeLabel=scope.label;
    }

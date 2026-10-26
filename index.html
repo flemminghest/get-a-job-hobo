@@ -954,9 +954,10 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 }
 
 
-/* Application typography: Roboto for the letter body, Roboto Slab for its highlighted salutation and sign-off */
-#apptext{font-family:Roboto,Arial,sans-serif;line-height:1.7;font-size:15px;letter-spacing:0}
-#appPreview.output{font-family:Roboto,Arial,sans-serif;line-height:1.7;letter-spacing:0}
+/* Application typography matches the letter reference: Roboto Slab throughout the letter; Roboto remains available for UI/contact details. */
+#apptext{font-family:"Roboto Slab",Georgia,serif;line-height:1.7;font-size:15px;letter-spacing:0;font-weight:400}
+#appPreview.output{font-family:"Roboto Slab",Georgia,serif;line-height:1.7;letter-spacing:0;font-weight:400}
+#apptext::placeholder{font-family:"Roboto Slab",Georgia,serif}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
@@ -2500,14 +2501,14 @@ async function createApplicationPdfBlob(){
  const pageWidth=210,pageHeight=297,left=10.5,textWidth=pageWidth-left-10.5;
  drawPdfHeader(doc,portraitDataUrl);
  let y=drawPdfGreeting(doc,parsed.greeting,greetingColor);
- doc.setFont('Roboto','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
+ doc.setFont('RobotoSlab','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
  const lineHeight=4.9,paragraphGap=4.0;
  const paragraphs=parsed.body.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
  const newPage=()=>{
   doc.addPage('a4','portrait');
   drawPdfHeader(doc,portraitDataUrl);
   y=58;
-  doc.setFont('times','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
+  doc.setFont('RobotoSlab','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
  };
  for(const paragraph of paragraphs){
   const paragraphLines=doc.splitTextToSize(paragraph,textWidth);

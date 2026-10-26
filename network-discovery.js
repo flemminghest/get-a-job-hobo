@@ -202,7 +202,19 @@ function alreadyInExport(item){
 }
 function matchedTerms(title,description,terms){
  const text=normalizeSearchText((title||'')+' '+(description||''));
- return terms.filter(term=>normalizeSearchText(term).split(' ').every(token=>token.length>1&&text.includes(token)));
+ const words=new Set(text.split(/\s+/).filter(Boolean));
+ return terms.filter(term=>{
+  const tokens=normalizeSearchText(term).split(/\s+/).filter(token=>token.length>1);
+  return tokens.length>0&&tokens.every(token=>words.has(token));
+ });
+}
+function matchedJobTerms(item,terms){
+ const text=normalizeSearchText([item&&item.jobTitle,item&&item.title,item&&item.description].filter(Boolean).join(' '));
+ const words=new Set(text.split(/\s+/).filter(Boolean));
+ return (terms||[]).filter(term=>{
+  const tokens=normalizeSearchText(term).split(/\s+/).filter(token=>token.length>1);
+  return tokens.length>0&&tokens.every(token=>words.has(token));
+ });
 }
 function mapResult(raw,query,terms,usedFallback){
  const url=canonicalSearchUrl(raw&&raw.url);if(!url)return null;
@@ -290,9 +302,9 @@ function isLikelySpecificJobPosting(item,query){
  const host=(()=>{try{return new URL(item.url).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return ''}})();
  const description=String(item.description||'');
  const postingLanguage=/\b(we are looking for|we're looking for|you will|ansøg|søger en|vi søger|stillingen|jobbet|apply now|apply for|your role|responsibilities|requirements|qualifications|arbejdsopgaver|arbejdssted|deadline|job id|jobnummer|vi tilbyder|du bliver en del af|dine opgaver|om stillingen|du skal|apply today|send your application|ansøgningsfrist)\b/i.test(description);
- const titleLooksLikeRole=/\b(manager|specialist|consultant|konsulent|koordinator|chef|leder|analyst|analytiker|developer|udvikler|advisor|rådgiver|marketing|sales|sælger|projektleder|project manager|designer|ingeniør|engineer|assistent|assistant|director|direktør|praktikant|intern|account|kommunikation|communications|crm|customer|growth|e-commerce|digital|content|produkt|product|data|finance|økonomi|hr|recruiter|rekrutter|jurist|advokat|student|job)\b/i.test(title);
+ const titleLooksLikeRole=/\b(manager|specialist|consultant|konsulent|koordinator|coordinator|chef|leder|lead|analyst|analytiker|developer|udvikler|advisor|rådgiver|sælger|sales representative|projektleder|project manager|designer|ingeniør|engineer|assistent|assistant|director|direktør|praktikant|intern|account executive|account manager|communications manager|marketing manager|marketing specialist|crm specialist|customer success|growth manager|e-commerce manager|content manager|product manager|data analyst|finance manager|hr manager|recruiter|rekrutter|jurist|advokat|student assistant|phd fellow|research fellow|researcher|lecturer|professor|nurse|sygeplejerske|teacher|lærer|technician|tekniker|architect|arkitekt|operator|controller|executive|officer|strategist|specialkonsulent|fuldmægtig|medarbejder|specialrådgiver)\b/i.test(title);
  const knownPortal=['jobindex.dk','jobnet.dk','stepstone.dk','ofir.dk','hk.dk','workindenmark.dk','jobdanmark.dk','indeed.com','linkedin.com'].some(domain=>host===domain||host.endsWith('.'+domain));
- if(knownPortal&&directJobDetailUrl(item))return titleLooksLikeRole||postingLanguage;
+ if(knownPortal&&directJobDetailUrl(item))return titleLooksLikeRole;
  // A company career page must look like a single job URL and contain vacancy language.
  if(!knownPortal&&directJobDetailUrl(item))return titleLooksLikeRole&&postingLanguage;
  return false;
@@ -310,6 +322,10 @@ async function queryIndex(query,terms,profile){
    if(!row||!safeHttpUrl(row.url))return null;
    if(!isDanishJobResult(row,query,profile))return null;
    const item=mapResult(row,query,terms,usedFallback);if(!item)return null;
+   if(query.scope==='danish-jobs'){
+    item.matchedTerms=matchedJobTerms(item,terms);
+    if(!item.matchedTerms.length)return null;
+   }
    const host=new URL(item.url).hostname;
    // Restrict results to the intended portal; Indeed subdomains such as dk.indeed.com count as Indeed.
    if(query.targetSite&&!domainMatches(host,query.targetSite))return null;
@@ -444,14 +460,14 @@ function effectiveCompanyFacts(item){
 }
 function companyNameFromOpportunity(item){
  const supplied=String(item&&(item.companyName||item.company||item.employer)||'').trim();
- if(supplied&&!/^(indeed|jobindex|linkedin|stepstone|jobnet|ofir|workindenmark|trabajo|soopage)$/i.test(supplied))return supplied.slice(0,120);
+ if(supplied&&!/^\d{4,}$/.test(supplied)&&!/^(indeed|jobindex|linkedin|stepstone|jobnet|ofir|workindenmark|trabajo|soopage)$/i.test(supplied))return supplied.slice(0,120);
  const title=String(item&&(item.jobTitle||item.title)||'').trim();
  const byline=title.match(/\b(?:at|hos|ved)\s+([A-ZÆØÅ][A-Za-zÆØÅæøå\d&.' -]{1,70}?)(?:\s*[|–—,]|$)/i);
  if(byline&&byline[1]&&!/^(denmark|danmark|company|the company|unknown)$/i.test(byline[1].trim()))return byline[1].trim();
  const pipeParts=title.split(/\s*\|\s*/).map(value=>value.trim()).filter(Boolean);
  if(pipeParts.length>1){
   const candidate=pipeParts.slice(1).find(value=>value.length<65&&!/\b(side|page|denmark business|jobopslag|job listings|salary|jobs? in|remote jobs?)\b/i.test(value));
-  if(candidate&&!/\.(com|org|net|dk|co\.uk)$/i.test(candidate))return candidate;
+  if(candidate&&!/^\d{4,}$/.test(candidate)&&!/\.(com|org|net|dk|co\.uk)$/i.test(candidate))return candidate;
  }
  return 'Arbejdsgiver ikke oplyst';
 }
@@ -715,7 +731,7 @@ function jobDisplayLocation(item,scope){
 
 function renderJobOpportunities(){
  const activeProfile=searchProfile(),all=(state.jobOpportunities||[]);
- const results=all.filter(item=>isDanishMappedJob(item,activeProfile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
+ const results=all.map(item=>({...item,matchedTerms:matchedJobTerms(item,activeProfile.terms)})).filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,activeProfile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
  if(el('jobOpportunitiesResults'))el('jobOpportunitiesResults').innerHTML=results.length?results.map((item,index)=>{
   const stateIndex=all.indexOf(item),url=safeHttpUrl(item.url),matched=item.matchedTerms||[];
   const tracked=url&&state.followUps.some(f=>f.url&&canonicalSearchUrl(f.url)===canonicalSearchUrl(url));
@@ -874,7 +890,7 @@ async function searchJobOpportunities(ignoreCvWarning=false){
   let succeeded=0,failed=0;const all=[],errors=[];
   settled.forEach((result,index)=>{if(result.status==='fulfilled'){succeeded++;all.push(...result.value.results)}else{failed++;errors.push(queries[index].label+': '+String(result.reason&&result.reason.message||result.reason).slice(0,120))}});
   const unique=new Map();all.forEach(item=>{const key=canonicalSearchUrl(item.url),old=unique.get(key);if(!old||item.matchedTerms.length>old.matchedTerms.length)unique.set(key,item)});
-  state.jobOpportunities=[...unique.values()].filter(item=>isDanishMappedJob(item,profile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'})).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
+  state.jobOpportunities=[...unique.values()].map(item=>({...item,matchedTerms:matchedJobTerms(item,profile.terms)})).filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,profile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'})).sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
   state.jobLastSearch=new Date().toISOString();persist();renderJobOpportunities();
   // Enrich job cards in the background. The cards already render; company facts fill in automatically as sources return.
   autoLookupJobCompanyFacts(state.jobOpportunities.slice());

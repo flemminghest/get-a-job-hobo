@@ -912,6 +912,10 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 .job-company-lookup-error{margin-top:8px;padding:9px 11px;border-radius:9px;background:#fff6f3;border:1px solid #f1d6cf;color:#9f4e39;font-size:10px;line-height:1.5}
 @media(max-width:640px){.job-company-auto-status{max-width:120px;font-size:9px;padding:5px 7px}.job-company-insights-head>div{flex:1}}
 
+
+/* Job search only: company details are displayed automatically inside matching job cards */
+.company-criteria-section{display:none!important}
+
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
@@ -1077,7 +1081,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 
 
 <section class="section" id="page-opportunities">
- <div class="hero"><div class="eyebrow">JOB, DER ER VÆRD AT UNDERSØGE</div><h1>Oplagte jobmuligheder — på tværs af portaler.</h1><p>Find konkrete, offentligt indekserede stillingsopslag på LinkedIn, Jobindex, Indeed, HK Jobportal, Jobnet, Ofir, Workindenmark, StepStone og relevante karrieresider. Sortér efter overlap i profilord, gem jobs og send interessante opslag til CV-vurderingen.</p><div class="actions"><button class="secondary" onclick="focusJobSearch()">Gå til søgefelterne</button><button class="secondary" id="companyCriteriaSearchButton" onclick="searchDanishCompaniesByCriteria()">Find danske virksomheder</button><button class="secondary" onclick="go('cv')">Opdatér mit CV</button></div></div>
+ <div class="hero"><div class="eyebrow">JOB, DER ER VÆRD AT UNDERSØGE</div><h1>Oplagte jobmuligheder — på tværs af portaler.</h1><p>Find konkrete, offentligt indekserede stillingsopslag på LinkedIn, Jobindex, Indeed, HK Jobportal, Jobnet, Ofir, Workindenmark, StepStone og relevante karrieresider. Sortér efter overlap i profilord, gem jobs og send interessante opslag til CV-vurderingen.</p><div class="actions"><button class="secondary" onclick="focusJobSearch()">Gå til søgefelterne</button><button class="secondary" onclick="go('cv')">Opdatér mit CV</button></div></div>
  <div class="kpis"><div class="kpi"><label>Fundet</label><strong id="jobOpportunityCount">0</strong><span>Offentligt indekserede opslag</span></div><div class="kpi"><label>Søgeord</label><strong id="jobKeywordCount">0</strong><span>Ord til jobsøgningen</span></div><div class="kpi"><label>Gemte til opfølgning</label><strong id="jobTrackedCount">0</strong><span>Lokalt i denne browser</span></div><div class="kpi"><label>Sidste søgning</label><strong id="jobLastSearchLabel">Ikke søgt</strong><span>Kontrollér altid originalopslaget</span></div></div>
  <div class="card stack"><div><h2>Find stillinger med dine søgeord</h2><p class="muted">Skriv jobtitler, fagområder eller kompetencer, fx marketing, CRM eller marketing automation. Søgningen gennemgår jobportaler og viser konkrete opslag, der matcher dine kriterier.</p></div>
   <div class="formrow"><div><label for="jobSearchTerms">Hvad vil du søge efter?</label><input id="jobSearchTerms" placeholder="Marketing, CRM, marketing automation…" oninput="syncJobSearchPreferences()"><small>Adskil flere søgeord med komma. Du kan redigere dem, inden du søger.</small></div><div><label for="jobSearchLocation">Hvor vil du arbejde?</label><input id="jobSearchLocation" placeholder="Frederiksberg, København eller hele Danmark" oninput="syncJobSearchPreferences()"><small>Danske arbejdssteder og remote-job, hvor Danmark er en tilladt arbejdsplacering.</small></div></div>
@@ -1086,11 +1090,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
   <div class="job-source-links"><a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/jobs/">LinkedIn Jobs ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobindex.dk/">Jobindex ↗</a><a target="_blank" rel="noopener noreferrer" href="https://dk.indeed.com/">Indeed ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.hk.dk/karriere/jobsoegningen/find-dit-naeste-job/jobportal">HK Jobportal ↗</a><a target="_blank" rel="noopener noreferrer" href="https://job.jobnet.dk/">Jobnet ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.workindenmark.dk/">Workindenmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.stepstone.dk/">StepStone ↗</a></div>
   <div class="discovery-section-head"><div><h2>Job, der matcher dine søgeord</h2><p class="muted">Søgningen tæller profilord, som findes i titel og offentligt uddrag. Det er ikke en sandsynlighed for at få jobbet og ikke en verificering af, at opslaget stadig er aktivt.</p></div><span id="jobOpportunitiesMeta" class="chip">0 forslag</span></div>
   <div id="jobOpportunitiesResults" class="discovery-results"><div class="empty">Klik på “Søg stillinger” for at lede efter konkrete, aktuelle jobopslag på tværs af portaler.</div></div>
-  <div class="company-criteria-section">
-   <div class="discovery-section-head"><div><h2>Danske virksomheder ud fra dine kriterier</h2><p class="muted">Bruger profilord og geografi fra søgeprofilen ovenfor. Søger kun i danske virksomhedsregistre og danske virksomhedskilder.</p></div><span id="companyCriteriaMeta" class="chip">0 danske profiler</span></div>
-   <div id="companyCriteriaStatus" class="notice">Vælg profilord og geografi ovenfor, og klik på “Find danske virksomheder”. Uden dansk virksomhedsregistrering vises virksomheden ikke som et dansk match.</div>
-   <div id="companyCriteriaResults" class="discovery-results"><div class="empty">Her vises danske virksomhedsprofiler, der matcher dine kriterier.</div></div>
-  </div>
+  
  </div>
 </section>
 <section class="section" id="page-followups">

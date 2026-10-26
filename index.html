@@ -374,7 +374,6 @@ label{font-size:14px;font-weight:750}
 #proposals .proposal-focus{margin:0;font-size:13px;line-height:1.5}
 #proposals .proposal-preview{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75;color:#354b63;margin:13px 0 18px;font-size:15px;max-width:100%}
 #proposals .proposal-card button{margin-top:2px}
-
 /* Get a Job HOBO — refreshed, icon-led UI system */
 :root{
  --ink:#142849;--muted:#60738d;--line:#e3eaf4;--bg:#f4f7fc;--paper:#fff;
@@ -453,7 +452,7 @@ input:focus,textarea:focus,select:focus{border-color:#79aef5;box-shadow:0 0 0 3p
 
 /* Dashboard journey cards: restrained color, simple line icons, no illustrations */
 .dashboard-hero{padding:31px 32px 29px;margin-bottom:18px}
-.dashboard-hero .hero p{max-width:780px}
+.dashboard-hero p{max-width:780px}
 .button-inline-icon{display:inline-grid;place-items:center;width:20px;height:20px}
 .button-inline-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .dashboard-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -578,11 +577,21 @@ button.quick-card:hover:not(:disabled){background:#fff;border-color:#cddcf0;box-
  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 
+
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2.5"/><path d="M8 8V5.5A2.5 2.5 0 0 1 10.5 3h3A2.5 2.5 0 0 1 16 5.5V8M3 12h18M10 12v2h4v-2"/></svg></span><span class="brand-copy"><strong>Get a Job</strong><small>HOBO!</small></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
 <button data-page="job"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 8h5M8 11h4"/></svg></span><span>Jobopslag</span></button>
-<button data-page="cv"><span class="nav-icon" ari<section class="section active" id="page-home">
+<button data-page="cv"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg></span><span>Mit CV</span></button>
+<button data-page="application"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h4l11-11a2.1 2.1 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4M4 20l1-4"/></svg></span><span>Motiveret ansøgning</span></button>
+<button data-page="opportunities"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"/></svg></span><span>Jobmuligheder</span></button>
+<button data-page="network"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="16" r="3"/><path d="m10.5 9.5 4 4M3 20a5 5 0 0 1 6-4.9M15 5h5v5"/></svg></span><span>LinkedIn &amp; netværk</span></button>
+<button data-page="followups"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16.5 9"/></svg></span><span>Opfølgning</span></button>
+<button data-page="panel"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v7a3.5 3.5 0 0 1-3.5 3.5H10l-5 4v-5.2A3.4 3.4 0 0 1 4 12.5z"/><path d="M8 8h8M8 11h5"/></svg></span><span>Spørg panelet</span></button>
+<button data-page="history"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2M4 5v5h5"/></svg></span><span>Historik &amp; backup</span></button></nav><div class="side-foot">Lokal prototype · AI kræver separat backend-opsætning<br><br><span id="storageStatus">Lokal lagring kontrolleres…</span></div></aside>
+<main><div class="topline"><span class="muted" id="crumb">Dit jobsøgningsarbejdsrum</span><span class="pill">Gratis prototype</span></div>
+
+<section class="section active" id="page-home">
 <div class="hero dashboard-hero">
   <div class="eyebrow"><span class="eyebrow-dot"></span> VELKOMMEN TIL GET A JOB HOBO!</div>
   <h1>Din næste mulighed starter her.</h1>
@@ -653,7 +662,7 @@ button.quick-card:hover:not(:disabled){background:#fff;border-color:#cddcf0;box-
     <p class="footnote">Jobmatch og live-websøgning er særskilte funktioner. CV-/tekstvurdering og ansøgningsforslag kan bruge OpenAI via Vercel, når forbindelsen er konfigureret. Live-websøgning bruger et eksternt indeks; kildesider verificeres ikke automatisk.</p>
   </div>
 </div>
-</section>="kpi"><label>Analyser</label><strong id="kanalysis">0</strong><span>Gemte jobforløb</span></div><div class="kpi"><label>Forbindelser</label><strong id="kcontacts">0</strong><span>Importér LinkedIn CSV</span></div><div class="kpi"><label>Ansøgning</label><strong id="kapp">Tom</strong><span>Udfyldes ved dit valg</span></div></div><div class="grid"><div class="card"><h2>Kom godt i gang</h2><div class="statline"><span>1. Tilføj dit CV</span><button class="secondary fit" onclick="go('cv')">Åbn CV</button></div><div class="statline"><span>2. Indsæt et jobopslag</span><button class="secondary fit" onclick="go('job')">Analyser</button></div><div class="statline"><span>3. Vælg ansøgningsforslag</span><button class="secondary fit" onclick="go('application')">Ansøgning</button></div></div><div class="card"><h2>Hvad er tilkoblet?</h2><div class="statline"><span>CV, kladder, CSV og backup</span><span class="pill">Lokalt</span></div><div class="statline"><span>Sprogmodel (OpenAI via Vercel)</span><span class="chip" id="modelConnectionStatus">Kontrollerer…</span></div><div class="statline"><span>AI-model</span><span class="chip" id="modelNameStatus">OpenAI API</span></div><div class="statline"><span>Motiveret ansøgning med AI</span><span class="chip" id="applicationAiStatus">Kontrollerer…</span></div><div class="statline"><span>Live-websøgning (webindeks)</span><span class="chip" id="liveResearchStatus">Afventer test</span></div><div class="statline"><span>Direkte verificering af kildesider</span><span class="chip">Ikke tilkoblet</span></div><div class="statline"><span>LinkedIn API</span><span class="chip">Ikke tilkoblet</span></div><p class="footnote">Jobmatch og live-websøgning er særskilte funktioner. CV-/tekstvurdering og ansøgningsforslag kan bruge OpenAI via Vercel, når forbindelsen er konfigureret. Live-websøgning bruger et eksternt indeks; kildesider verificeres ikke automatisk.</p></div></div></section>
+</section>
 
 <section class="section" id="page-cv"><div class="hero green"><div class="eyebrow">DIN FAGLIGE PROFIL</div><h1>Dit CV, klar når du har brug for det.</h1><p>Indsæt dit CV én gang. Jobmatch og panel kan bruge teksten lokalt i browseren.</p><div class="actions"><button onclick="saveCV()">Gem CV</button><button class="secondary" onclick="document.getElementById('cvfile').click()">Importér tekstfil</button><input id="cvfile" type="file" accept=".txt,.md,.csv" hidden onchange="readTextFile(event,'cvtext')"></div></div><div class="card stack"><div><label for="cvtext">CV-tekst</label><textarea id="cvtext" rows="16" placeholder="Indsæt CV-tekst her…"></textarea><small>Kun tekst i denne lokale prototype. PDF/OCR er ikke tilkoblet. Når du har gemt CV’et i denne browser, bliver det bevaret ved genindlæsning på samme webadresse.</small><div class="cv-persistence" style="margin-top:10px"><span aria-hidden="true" style="font-size:20px">✓</span><div><strong>Dit CV gemmes privat i din browser</strong>CV’et er ikke indlejret i den offentlige hjemmeside. Hvis det mangler efter skift fra en gammel HTML-fil, skal du importere CV-tekstfilen én gang og klikke Gem. Derefter huskes det i denne browser.</div></div></div><div class="toolbar"><button onclick="saveCV()">Gem ændringer</button><button class="secondary" onclick="exportText('cvtext','cv.txt')">Download CV som tekst</button><button class="warn" onclick="clearCV()">Slet CV</button></div><div id="cvmsg" class="notice" hidden></div></div></section>
 

@@ -292,8 +292,10 @@ function isLikelySpecificJobPosting(item,query){
  const postingLanguage=/\b(we are looking for|we're looking for|you will|ansøg|søger en|vi søger|stillingen|jobbet|apply now|apply for|your role|responsibilities|requirements|qualifications|arbejdsopgaver|arbejdssted|deadline|job id|jobnummer|vi tilbyder|du bliver en del af|dine opgaver|om stillingen|du skal|apply today|send your application|ansøgningsfrist)\b/i.test(description);
  const titleLooksLikeRole=/\b(manager|specialist|consultant|konsulent|koordinator|chef|leder|analyst|analytiker|developer|udvikler|advisor|rådgiver|marketing|sales|sælger|projektleder|project manager|designer|ingeniør|engineer|assistent|assistant|director|direktør|praktikant|intern|account|kommunikation|communications|crm|customer|growth|e-commerce|digital|content|produkt|product|data|finance|økonomi|hr|recruiter|rekrutter|jurist|advokat|student|job)\b/i.test(title);
  const knownPortal=['jobindex.dk','jobnet.dk','stepstone.dk','ofir.dk','hk.dk','workindenmark.dk','jobdanmark.dk','indeed.com','linkedin.com'].some(domain=>host===domain||host.endsWith('.'+domain));
- if(directJobDetailUrl(item))return titleLooksLikeRole||postingLanguage;
- return !knownPortal&&directJobDetailUrl(item)&&titleLooksLikeRole&&postingLanguage;
+ if(knownPortal&&directJobDetailUrl(item))return titleLooksLikeRole||postingLanguage;
+ // A company career page must look like a single job URL and contain vacancy language.
+ if(!knownPortal&&directJobDetailUrl(item))return titleLooksLikeRole&&postingLanguage;
+ return false;
 }
 async function queryIndex(query,terms,profile){
  async function request(q){

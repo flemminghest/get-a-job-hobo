@@ -12,7 +12,7 @@ When configured, the panel supports four material types: CV, job application, ar
 2. In the Vercel project, open **Settings → Environment Variables** and add:
    - `OPENAI_API_KEY`: an OpenAI API key from your OpenAI API project.
    - `APP_ACCESS_CODE`: a long, unique passphrase that you choose. Do not commit this value to GitHub.
-   - `FRONTEND_ORIGIN`: `https://flemminghest.github.io`
+   - `FRONTEND_ORIGIN` (optional additional allowed origins, comma-separated): `https://flemminghest.github.io,https://get-a-job-hobo.vercel.app` — both production frontends are allowed by default, so this variable can also be left unset unless you need extra origins.
    - `OPENAI_MODEL` (optional): defaults to `gpt-6.1-sol`.
 3. Redeploy the Vercel project after saving the environment variables.
 4. Copy the Vercel project URL. Its endpoint is `https://YOUR-PROJECT.vercel.app/api/panel-review`.

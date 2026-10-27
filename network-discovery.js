@@ -952,6 +952,7 @@ async function lookupCompanyInsights(indexOrItem){
   jobindexFacts.sources=[compactCompanySource(jobindexRead)];
   jobindexFacts.danishCompanyConfirmed=false;
   item.companyFacts=jobindexFacts;
+  rememberCompanyFacts(item);
   persist();renderJobOpportunities();
   const outcomes=await queryOutcomesPromise;
   const found=[jobindexRead],sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
@@ -1023,16 +1024,19 @@ async function lookupCompanyInsights(indexOrItem){
   }
   await updateOpportunityDistance(item,nextFacts);
   item.companyFacts=nextFacts;
+  rememberCompanyFacts(item);
   persist();renderJobOpportunities();
  }catch(error){
   const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
-  const facts={lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,220),sources:[],factSources:{}};
-  if(jobLocation&&!/^(?:denmark|danmark|dk|remote|remote jobs?)$/i.test(jobLocation)){
+  const cached=state.companyFactsCache&&state.companyFactsCache[companyFactsCacheKey(company)];
+  const facts=cached?mergeReusableCompanyFacts(cached,{lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,220)}):{lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,220),sources:[],factSources:{}};
+  if(jobLocation&&!/^(?:denmark|danmark|dk|remote|remote jobs?)$/i.test(jobLocation)&&!facts.location){
    facts.location=jobLocation;facts.locationKind='job';
    facts.factSources.location={url:safeHttpUrl(item.url),title:String(item.jobTitle||item.title||'Originalt jobopslag'),domain:String(item.domain||''),description:String(item.description||'').slice(0,1000)};
   }
   await updateOpportunityDistance(item,facts);
   item.companyFacts=facts;
+  rememberCompanyFacts(item);
   persist();renderJobOpportunities();
  }
 }
@@ -1353,6 +1357,77 @@ function recentVerifiedJobSnapshot(profile){
   .map(item=>({...item,matchedTerms:matchedJobTerms(item,profile.terms)}))
   .filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,profile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId}));
 }
+function companyFactsCacheKey(name){
+ const normalized=normalizeInsightText(name)
+  .replace(/\b(?:aps|a s|as|i s|is|p s|ps|ivs|ab|gmbh|ltd|limited|inc|llc|plc|holding|holdings)\b/g,' ')
+  .replace(/\s+/g,' ').trim();
+ return normalized.slice(0,200);
+}
+function cacheSafeCompanyFacts(raw){
+ const facts={...(raw||{})};
+ delete facts.distanceKm;delete facts.distanceMethod;delete facts.distanceOriginLabel;
+ delete facts.distanceTargetLabel;delete facts.distanceMessage;delete facts.distanceDestinationDisplay;
+ delete facts.factSources;
+ facts.factSources={...(raw&&raw.factSources||{})};
+ delete facts.factSources.distanceKm;
+ if(facts.locationKind==='job'){
+  delete facts.location;
+  delete facts.factSources.location;
+  facts.locationKind='';
+ }
+ facts.sources=Array.isArray(facts.sources)?facts.sources.map(compactCompanySource).filter(Boolean).slice(0,20):[];
+ return facts;
+}
+function mergeReusableCompanyFacts(baseRaw,nextRaw){
+ const base=cacheSafeCompanyFacts(baseRaw),next=cacheSafeCompanyFacts(nextRaw);
+ const merged={...base,...next};
+ const evidenceFields=['employeeCount','location','employeeRating','ratingCount','industry','foundedYear','companyType','companyHighlight'];
+ for(const field of evidenceFields){
+  if(!String(next[field]||'').trim()&&String(base[field]||'').trim())merged[field]=base[field];
+ }
+ merged.factSources={...(base.factSources||{}),...(next.factSources||{})};
+ // Empty or failed later lookups must not erase a previously verified rating or its source link.
+ for(const field of ['employeeRating','ratingCount','employeeCount','location','industry','foundedYear','companyType']){
+  if(String(merged[field]||'').trim()&&!merged.factSources[field]&&base.factSources&&base.factSources[field]){
+   merged.factSources[field]=base.factSources[field];
+  }
+ }
+ const sourceMap=new Map();
+ [...(base.sources||[]),...(next.sources||[])].forEach(source=>{
+  const url=safeHttpUrl(source&&source.url);
+  if(url)sourceMap.set(canonicalSearchUrl(url),{...source,url});
+ });
+ merged.sources=[...sourceMap.values()].slice(-20);
+ const hasVerifiedRating=!!(String(merged.employeeRating||'').trim()&&merged.factSources.employeeRating&&safeHttpUrl(merged.factSources.employeeRating.url));
+ if(hasVerifiedRating){
+  merged.lookupStatus='done';
+  merged.employeeRatingFetchStatus=merged.employeeRatingFetchStatus==='found'?'found':(base.employeeRatingFetchStatus||'found');
+  merged.employeeRatingLookupVersion=JOBINDEX_LOOKUP_VERSION;
+ }
+ return merged;
+}
+function rememberCompanyFacts(item){
+ if(!item||!item.companyFacts)return;
+ const key=companyFactsCacheKey(companyNameFromOpportunity(item));
+ if(!key||key==='virksomheden'||key==='arbejdsgiver ikke oplyst')return;
+ state.companyFactsCache=state.companyFactsCache&&typeof state.companyFactsCache==='object'?state.companyFactsCache:{};
+ const previous=state.companyFactsCache[key]||{};
+ const merged=mergeReusableCompanyFacts(previous,item.companyFacts);
+ if(String(merged.employeeRating||'').trim()||String(merged.ratingCount||'').trim()||Object.keys(merged.factSources||{}).length){
+  state.companyFactsCache[key]=merged;
+ }
+}
+function restoreCompanyFactsForJob(item){
+ if(!item)return;
+ const key=companyFactsCacheKey(companyNameFromOpportunity(item));
+ if(!key)return;
+ const cached=state.companyFactsCache&&state.companyFactsCache[key];
+ if(!cached)return;
+ item.companyFacts=mergeReusableCompanyFacts(cached,item.companyFacts||{});
+}
+function rememberCurrentCompanyFacts(){
+ (state.jobOpportunities||[]).forEach(rememberCompanyFacts);
+}
 async function searchJobOpportunities(ignoreCvWarning=false){
  syncJobSearchPreferences();const profile=searchProfile();
  if(!profile.terms.length){if(el('jobSearchStatus')){el('jobSearchStatus').className='notice warnbox';el('jobSearchStatus').textContent='Skriv mindst ét søgeord, fx marketing, CRM eller marketing automation.'}return}
@@ -1394,7 +1469,10 @@ async function searchJobOpportunities(ignoreCvWarning=false){
    }
   }
   state.jobSearchSourceMeta={liveCount:liveQualified.length,snapshotCount:snapshotAdded,snapshotCheckedAt:'26.10.2026'};
-  state.jobOpportunities=[...finalJobs.values()].sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
+  rememberCurrentCompanyFacts();
+  const nextJobOpportunities=[...finalJobs.values()].sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
+  nextJobOpportunities.forEach(restoreCompanyFactsForJob);
+  state.jobOpportunities=nextJobOpportunities;
   state.jobLastSearch=new Date().toISOString();persist();renderJobOpportunities();
   // Calculate distance for every job first, including postings whose employer name is missing.
   autoCalculateJobDistances(state.jobOpportunities.slice());

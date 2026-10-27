@@ -725,7 +725,8 @@ function applyCompanySourceFacts(sources,prior){
      const pct=Number(positivePct[1]);
      if(pct>=0&&pct<=100)fill('employeeRating',pct+'% positive medarbejderoplevelse',source);
     }
-    if(!f.employeeRating){
+    m=null;
+   if(!f.employeeRating){
      m=text.match(/(?:employee|workplace|company|employer|overall|jobindex|indeed|glassdoor|kununu)?\s*(?:rating|rated|score|job satisfaction|jobglæde|medarbejdertilfredshed|arbejdspladsvurdering|samlet vurdering|evaluering)\D{0,45}([1-5](?:[,.]\d)?)(?:\s*(?:\/\s*5|out of 5|ud af 5|af 5|stjerner?|stars?))?/i)
       ||text.match(/\b([1-5][,.]\d)\s*(?:\/\s*5|out of 5|ud af 5|stjerner af 5|stars? out of 5)\b/i);
     }

@@ -2224,7 +2224,7 @@ const COMPETENCY_LIBRARY=[
  {id:'machinery-operation',label:'Betjening af maskiner og værktøj',aliases:['maskinbetjening','maskinoperatør','betjening af maskiner','elværktøj','håndværktøj','power tools','machinery operation','machine operation','operating machinery'],baseWeight:3.5,critical:true},
  {id:'quality-control',label:'Kvalitetskontrol og systematisk inspektion',aliases:['kvalitetskontrol','kvalitetssikring','inspektion','quality control','quality assurance','quality inspection'],baseWeight:2.2}
 
- {id:'sexton-church-preparation',label:'Klargøring af kirke og lokaler',aliases:['klargøring af kirken','klargøring af kirke','klargøre kirken','klargøre kirke','forberede kirken','forberedelse af kirken','klargøring af lokaler','forberedelse af lokaler','prepare the church','prepare church','prepare rooms','set up the church','church preparation'],baseWeight:4.5,critical:true},
+, {id:'sexton-church-preparation',label:'Klargøring af kirke og lokaler',aliases:['klargøring af kirken','klargøring af kirke','klargøre kirken','klargøre kirke','forberede kirken','forberedelse af kirken','klargøring af lokaler','forberedelse af lokaler','prepare the church','prepare church','prepare rooms','set up the church','church preparation'],baseWeight:4.5,critical:true},
  {id:'sexton-services-ceremonies',label:'Praktisk bistand ved gudstjenester og ceremonier',aliases:['gudstjeneste','gudstjenester','kirkelige handlinger','kirkelig handling','ceremonier','bisættelser','begravelse','bryllupper','assistere ved gudstjenester','bistå ved gudstjenester','assistere ved kirkelige handlinger','assist at services','church services','religious ceremonies'],baseWeight:4.5,critical:true},
  {id:'sexton-cleaning',label:'Rengøring og vedligehold af kirke og lokaler',aliases:['rengøring af kirken','rengøring af kirke','rengøring af lokaler','rengøring','renholdelse','cleaning','cleaning duties','cleaning church','maintain church premises'],baseWeight:3.7,critical:true},
  {id:'sexton-hospitality-events',label:'Forplejning og praktisk hjælp ved arrangementer',aliases:['kaffe','servering','forplejning','dække bord','dække op','rydde af','opvask','indkøb','arrangementer','menighedsarrangementer','mødeopdækning','hospitality','catering','event setup','serve refreshments','wash dishes'],baseWeight:3.2,critical:true},
@@ -2271,10 +2271,10 @@ function buildCompetencyAssessment(jobText,cvText,title,research){
  const profile=COMPETENCY_DOMAIN_PROFILES.find(p=>p.detectJob.test(job))||COMPETENCY_DOMAIN_PROFILES.find(p=>p.detectTitle.test(titleText))||null;
  const rows=[];
  for(const skill of COMPETENCY_LIBRARY){
-  const jobAliases=skill.aliases.filter(alias=>hasCompetencyTerm(combinedJob,alias));
+  const jobAliases=skill.aliases.filter(alias=>hasCompetencyTerm(job,alias));
   if(!jobAliases.length)continue;
   const cvAliases=skill.aliases.filter(alias=>hasCompetencyTerm(cv,alias));
-  const jobEvidence=extractSkillSnippet(combinedJob,jobAliases);
+  const jobEvidence=extractSkillSnippet(job,jobAliases);
   const cvEvidence=extractSkillSnippet(cv,cvAliases);
   const priority=competencyPriority(jobEvidence||jobAliases.join(', '),jobAliases);
   const specificEvidence=cvEvidence&&/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|experience with|performed|operated|handled|repaired|installed|prepared|cleaned|served|assisted|coordinated|maintained|ansvarlig|arbejdede med|erfaring med|erfaring inden for|klargjorde|forberedte|rengjorde|serverede|assisterede|koordinerede|vedligeholdt|udførte|betjente|reparerede|monterede|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\\b\\d+\\s?%|\\bled to\\s+\\d{3,}\\b|\\b\\d{1,3}(?:,\\d{3})+\\b)/i.test(cvEvidence);

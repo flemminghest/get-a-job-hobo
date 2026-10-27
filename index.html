@@ -929,6 +929,15 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 
 /* Job cards use one consistent layout: clear title, employer/location, match rationale and company insights */
 .job-result-card{gap:13px;padding:20px;border-radius:18px;border:1px solid #dbe6f3;background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);box-shadow:0 5px 18px rgba(34,67,104,.035)}
+.distance-origin-settings{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:end;margin-top:2px;padding:13px 14px;border:1px solid #dce7f3;border-radius:14px;background:#f8fbff}
+.distance-origin-copy{display:grid;gap:6px;min-width:0}
+.distance-origin-copy input{width:100%;box-sizing:border-box;min-height:42px;padding:10px 12px;border:1px solid #d5e1ef;border-radius:10px;background:#fff;color:#243b53;font:inherit}
+.distance-origin-copy small{font-size:11px;line-height:1.45;color:#687d94}
+.distance-origin-status{grid-column:1/-1;font-size:11px;line-height:1.5;color:#61758c}
+.distance-origin-status.is-saved{color:#14744f}
+.distance-origin-status.is-warning{color:#8b671a}
+@media(max-width:640px){.distance-origin-settings{grid-template-columns:1fr}.distance-origin-settings>button{width:100%}.distance-origin-status{grid-column:1}}
+
 .job-result-card:hover{border-color:#b8d1f1;box-shadow:0 10px 26px rgba(34,67,104,.08);transform:translateY(-1px)}
 .job-result-topline{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .job-result-title{font-size:22px!important;line-height:1.3!important;letter-spacing:-.55px;font-weight:850;color:#172f50!important;margin:1px 0 0!important;overflow-wrap:anywhere}
@@ -1137,6 +1146,11 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
  <div class="kpis"><div class="kpi"><label>Fundet</label><strong id="jobOpportunityCount">0</strong><span>Offentligt indekserede opslag</span></div><div class="kpi"><label>Søgeord</label><strong id="jobKeywordCount">0</strong><span>Ord til jobsøgningen</span></div><div class="kpi"><label>Gemte til opfølgning</label><strong id="jobTrackedCount">0</strong><span>Lokalt i denne browser</span></div><div class="kpi"><label>Sidste søgning</label><strong id="jobLastSearchLabel">Ikke søgt</strong><span>Kontrollér altid originalopslaget</span></div></div>
  <div class="card stack"><div><h2>Find stillinger med dine søgeord</h2><p class="muted">Skriv jobtitler, fagområder eller kompetencer, fx marketing, CRM eller marketing automation. Søgningen gennemgår jobportaler og viser konkrete opslag, der matcher dine kriterier.</p></div>
   <div class="formrow"><div><label for="jobSearchTerms">Hvad vil du søge efter?</label><input id="jobSearchTerms" placeholder="Marketing, CRM, marketing automation…" oninput="syncJobSearchPreferences()"><small>Adskil flere søgeord med komma. Du kan redigere dem, inden du søger.</small></div><div><label for="jobSearchLocation">Hvor vil du arbejde?</label><input id="jobSearchLocation" placeholder="Frederiksberg, København eller hele Danmark" oninput="syncJobSearchPreferences()"><small>Danske arbejdssteder og remote-job, hvor Danmark er en tilladt arbejdsplacering.</small></div></div>
+  <div class="distance-origin-settings">
+   <div class="distance-origin-copy"><label for="distanceOriginInput">Din placering til afstandsberegning</label><input id="distanceOriginInput" type="text" autocomplete="street-address" maxlength="300" placeholder="Adresse, postnummer eller by — fx 1958 Frederiksberg C"><small>Gem din adresse eller dit postnummer én gang. Den gemmes lokalt i denne browser og bruges kun til afstandsberegning.</small></div>
+   <button type="button" class="secondary" id="saveDistanceOriginButton" onclick="saveDistanceOrigin()">Gem min placering</button>
+   <div id="distanceOriginStatus" class="distance-origin-status" role="status">Indtil du angiver din egen placering, vises en grov afstand fra Frederiksberg bymidte. For præcisere afstand skal appen kende din adresse, dit postnummer eller din by.</div>
+  </div>
   <div class="job-search-controls"><button class="secondary" id="restoreSearchTermsButton" onclick="restoreSearchTermsFromCV()">Gendan søgeord fra mit CV</button><button id="jobOpportunitiesSearchButton" onclick="searchJobOpportunities()">Søg stillinger</button></div>
   <div id="jobSearchStatus" class="notice">Søgningen viser konkrete danske stillingsopslag samt remote-roller, hvor Danmark er angivet som muligt arbejdsland. Generelle jobkategorisider filtreres fra.</div>
   <div class="job-source-links"><a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/jobs/">LinkedIn Jobs ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobindex.dk/">Jobindex ↗</a><a target="_blank" rel="noopener noreferrer" href="https://dk.indeed.com/">Indeed ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.hk.dk/karriere/jobsoegningen/find-dit-naeste-job/jobportal">HK Jobportal ↗</a><a target="_blank" rel="noopener noreferrer" href="https://job.jobnet.dk/">Jobnet ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.workindenmark.dk/">Workindenmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.stepstone.dk/">StepStone ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.ofir.dk/">Ofir ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobdanmark.dk/">Jobdanmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.it-jobbank.dk/">IT-Jobbank ↗</a><a target="_blank" rel="noopener noreferrer" href="https://thehub.io/jobs?countryCode=DK">The Hub ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.graduateland.com/">Graduateland ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobsearch.dk/">Jobsearch.dk ↗</a></div>
@@ -1342,7 +1356,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',distanceOrigin:'',networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
@@ -1382,13 +1396,46 @@ function normalizeCompetencyAssessment(raw){
  const references=Array.isArray(raw.references)?raw.references.slice(0,8).filter(ref=>ref&&typeof ref==='object').map(ref=>({title:String(ref.title||'').slice(0,300),url:safeHttpUrl(ref.url),domain:String(ref.domain||'').slice(0,200),categoryId:String(ref.categoryId||'').slice(0,100),kind:String(ref.kind||'').slice(0,200),description:String(ref.description||'').slice(0,500),trust:String(ref.trust||'').slice(0,200),staticReference:!!ref.staticReference})):[];
  return {rows,requiredCount:rows.length,documentedCount:rows.filter(row=>row.status==='evidenced').length,mentionedCount:rows.filter(row=>row.status==='mentioned').length,missingCount:rows.filter(row=>row.status==='missing').length,coverageScore:raw.coverageScore==null?null:Math.max(0,Math.min(100,Number(raw.coverageScore)||0)),references,method:String(raw.method||'').slice(0,1000)};
 }
+function normalizeCompanySourceRecord(source){
+ if(!source||typeof source!=='object'||Array.isArray(source))return null;
+ const url=safeHttpUrl(source.url);if(!url)return null;
+ let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\\./,'')}catch(e){}
+ return {
+  url,
+  title:typeof source.title==='string'?source.title.slice(0,500):host,
+  domain:typeof source.domain==='string'?source.domain.slice(0,200):host,
+  description:typeof source.description==='string'?source.description.slice(0,1200):'',
+  sourceLabel:typeof source.sourceLabel==='string'?source.sourceLabel.slice(0,200):'',
+  sourceType:typeof source.sourceType==='string'?source.sourceType.slice(0,100):'',
+  pageContent:typeof source.pageContent==='string'?source.pageContent.slice(0,10000):'',
+  contextTitle:typeof source.contextTitle==='string'?source.contextTitle.slice(0,500):''
+ };
+}
+function normalizeCompanyFacts(raw){
+ if(!raw||typeof raw!=='object'||Array.isArray(raw))return null;
+ const out={};
+ for(const key of ['employeeCount','location','distanceKm','distanceMethod','distanceOriginLabel','distanceTargetLabel','locationKind','employeeRating','ratingCount','industry','foundedYear','companyType','companyHighlight','lookupError','lookupAt']){
+  if(typeof raw[key]==='string')out[key]=raw[key].slice(0,1000);
+ }
+ out.lookupStatus=['waiting','queued','loading','done','error'].includes(raw.lookupStatus)?raw.lookupStatus:'waiting';
+ out.danishCompanyConfirmed=raw.danishCompanyConfirmed===true;
+ out.sources=Array.isArray(raw.sources)?raw.sources.slice(0,20).map(normalizeCompanySourceRecord).filter(Boolean):[];
+ out.factSources={};
+ if(raw.factSources&&typeof raw.factSources==='object'&&!Array.isArray(raw.factSources)){
+  for(const [key,value] of Object.entries(raw.factSources)){
+   const safe=normalizeCompanySourceRecord(value);
+   if(safe)out.factSources[key]=safe;
+  }
+ }
+ return out;
+}
 function normalizeResearchRecords(raw,defaultType){
  if(!Array.isArray(raw))return [];
  return raw.slice(0,120).filter(x=>x&&typeof x==='object'&&!Array.isArray(x)).map((x,index)=>{
   const url=safeHttpUrl(x.url);if(!url)return null;
   let domain='';try{domain=new URL(url).hostname.replace(/^www\./i,'')}catch(e){}
   const type=typeof x.type==='string'&&/^(person|company|post|group|job|other)$/.test(x.type)?x.type:(defaultType||'other');
-  return {id:typeof x.id==='string'||typeof x.id==='number'?String(x.id):String(Date.now())+'-'+index,type,title:typeof x.title==='string'?x.title.slice(0,500):domain,company:typeof x.company==='string'?x.company.slice(0,300):'',url,domain:typeof x.domain==='string'?x.domain.slice(0,200):domain,description:typeof x.description==='string'?x.description.slice(0,1200):'',sourceLabel:typeof x.sourceLabel==='string'?x.sourceLabel.slice(0,120):domain,queryLabel:typeof x.queryLabel==='string'?x.queryLabel.slice(0,160):'',matchedTerms:Array.isArray(x.matchedTerms)?x.matchedTerms.slice(0,12).filter(v=>typeof v==='string').map(v=>v.slice(0,80)):[],createdAt:typeof x.createdAt==='string'?x.createdAt.slice(0,50):'',saved:!!x.saved};
+  return {id:typeof x.id==='string'||typeof x.id==='number'?String(x.id):String(Date.now())+'-'+index,type,title:typeof x.title==='string'?x.title.slice(0,500):domain,company:typeof x.company==='string'?x.company.slice(0,300):'',url,domain:typeof x.domain==='string'?x.domain.slice(0,200):domain,description:typeof x.description==='string'?x.description.slice(0,1200):'',sourceLabel:typeof x.sourceLabel==='string'?x.sourceLabel.slice(0,120):domain,queryLabel:typeof x.queryLabel==='string'?x.queryLabel.slice(0,160):'',matchedTerms:Array.isArray(x.matchedTerms)?x.matchedTerms.slice(0,12).filter(v=>typeof v==='string').map(v=>v.slice(0,80)):[],createdAt:typeof x.createdAt==='string'?x.createdAt.slice(0,50):'',saved:!!x.saved,companyFacts:normalizeCompanyFacts(x.companyFacts)};
  }).filter(Boolean);
 }
 function normalizeFollowUpRecords(raw){
@@ -1426,6 +1473,7 @@ function normalizeState(raw){
  out.savedJobs=Array.isArray(raw.savedJobs)?raw.savedJobs.slice(0,10000).filter(j=>j&&typeof j==='object'&&!Array.isArray(j)).map(j=>({title:typeof j.title==='string'?j.title.slice(0,1000):'',company:typeof j.company==='string'?j.company.slice(0,1000):'',url:safeHttpUrl(j.url)})).filter(j=>j.title||j.company||j.url): [];
  out.networkSearchTerms=typeof raw.networkSearchTerms==='string'?raw.networkSearchTerms.slice(0,600):blank.networkSearchTerms;
  out.networkSearchLocation=typeof raw.networkSearchLocation==='string'?raw.networkSearchLocation.slice(0,300):blank.networkSearchLocation;
+ out.distanceOrigin=typeof raw.distanceOrigin==='string'?raw.distanceOrigin.slice(0,300):'';
  out.networkProspects=normalizeResearchRecords(raw.networkProspects,'person');
  out.networkCommunities=normalizeResearchRecords(raw.networkCommunities,'post');
  out.jobOpportunities=normalizeResearchRecords(raw.jobOpportunities,'job');

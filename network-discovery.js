@@ -656,11 +656,20 @@ async function updateOpportunityDistance(item,facts){
 }
 async function refreshOpportunityDistances(){
  const jobs=(state.jobOpportunities||[]).filter(item=>item&&item.url);
+ let processed=0;
+ const status=el('distanceOriginStatus');
  for(const item of jobs){
   item.companyFacts=item.companyFacts||{};
   await updateOpportunityDistance(item,item.companyFacts);
+  processed++;
+  persist();
+  renderJobOpportunities();
+  if(status){
+   status.className='distance-origin-status'+(state.distanceOrigin?' is-saved':'');
+   status.textContent='Afstande opdateres løbende: '+processed+' af '+jobs.length+' stillinger kontrolleret. Kort afstand er luftlinje; jobbet vises stadig, mens de øvrige adresser undersøges.';
+  }
  }
- persist();renderJobOpportunities();
+ if(!jobs.length){persist();renderJobOpportunities()}
 }
 function applyCompanySourceFacts(sources,prior){
  const f={...(prior||{})},factSources={...(f.factSources||{})};
@@ -891,7 +900,8 @@ function companyInsightBox(item,index){
  out+='</div>';
  out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+factSourceLink('industry')+'</span><span><b>Etableret</b> '+escapeHtml(founded)+factSourceLink('foundedYear')+'</span><span><b>Type</b> '+escapeHtml(type)+factSourceLink('companyType')+'</span></div>';
  if(completed){
-  out+='<div class="job-company-quality"><strong>Datakvalitet</strong><span>'+qualityCount+' af '+qualityFields.length+' virksomhedsoplysninger har en tilknyttet kilde.</span>';
+  const checkedAt=f.lookupAt&&Number.isFinite(Date.parse(f.lookupAt))?new Date(f.lookupAt).toLocaleString('da-DK'):'Dato ikke tilgængelig';
+  out+='<div class="job-company-quality"><strong>Datakvalitet</strong><span>Senest kontrolleret: '+escapeHtml(checkedAt)+'.</span><span>'+qualityCount+' af '+qualityFields.length+' virksomhedsoplysninger har en tilknyttet kilde.</span>';
   if(official)out+='<span>En officiel CVR/Virk-kilde blev fundet. Kontrollér stadig, at den matcher den konkrete arbejdsgiver.</span>';
   else if(sources.length)out+='<span>Der er fundet offentlige kilder, men ingen officiel CVR/Virk-kilde blev bekræftet.</span>';
   else out+='<span>Ingen relevante kilder blev fundet. Virksomhedsoplysningerne er derfor ikke verificeret.</span>';

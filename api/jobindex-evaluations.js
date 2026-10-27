@@ -185,82 +185,60 @@ module.exports = async function handler(req, res) {
   if (rateLimited(req)) {
     return send(res, 429, { ok: false, status: "rate_limited", message: "Prøv igen om lidt." });
   }
-
   const company = String(req.query && req.query.company || "").replace(/\s+/g, " ").trim().slice(0, MAX_COMPANY_LENGTH);
-  if (company.length < 2) {
-    return send(res, 400, { ok: false, status: "invalid_company", message: "Virksomhedsnavn mangler." });
+  if (company.length < 2 || /[\u0000-\u001f<>]/.test(company)) {
+    return send(res, 400, { ok: false, status: "invalid_company", message: "Virksomhedsnavnet mangler eller indeholder ugyldige tegn." });
   }
-  if (/[\u0000-\u001f<>]/.test(company)) {
-    return send(res, 400, { ok: false, status: "invalid_company", message: "Virksomhedsnavnet indeholder ugyldige tegn." });
-  }
-
-  const sourceUrl = "https://www.jobindex.dk/virksomhedsoversigt/resultat?company="
-    + encodeURIComponent(company).replace(/%20/g, "+") + "&evaluate_tab=0";
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12_000);
-  try {
-    const response = await fetch(sourceUrl, {
-      method: "GET",
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        "Accept": "text/html,application/xhtml+xml",
-        "Accept-Language": "da-DK,da;q=0.9,en;q=0.7",
-        "User-Agent": "Get-A-Job-Hobo/1.0 (Jobindex employee-evaluation lookup)"
+  const hasLegalSuffix = /\b(?:ApS|A\/S|I\/S|P\/S|IVS|AB|GmbH|Ltd|Limited|Inc|LLC|PLC)\b/i.test(company);
+  const candidates = [company];
+  if (!hasLegalSuffix) candidates.push(company + " ApS", company + " A/S");
+  const uniqueCandidates = [...new Set(candidates.map(value => value.trim()))].slice(0, 3);
+  async function fetchCandidate(candidate) {
+    const sourceUrl = "https://www.jobindex.dk/virksomhedsoversigt/resultat?company="
+      + encodeURIComponent(candidate).replace(/%20/g, "+") + "&evaluate_tab=0";
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5_500);
+    try {
+      const response = await fetch(sourceUrl, {
+        method: "GET", redirect: "follow", signal: controller.signal,
+        headers: {
+          "Accept": "text/html,application/xhtml+xml",
+          "Accept-Language": "da-DK,da;q=0.9,en;q=0.7",
+          "User-Agent": "Get-A-Job-Hobo/1.0 (Jobindex employee-evaluation lookup)"
+        }
+      });
+      if (!response.ok) return { candidate, sourceUrl, status: "upstream_http_error", upstreamStatus: response.status, extracted: null,
+        message: "Jobindex returnerede HTTP " + response.status + "." };
+      const html = await response.text();
+      if (/captcha|verify you are human|access denied|robot check|security challenge/i.test(html.slice(0, 50_000))) {
+        return { candidate, sourceUrl, status: "upstream_blocked", extracted: null, message: "Jobindex blokerede det automatiske opslag." };
       }
-    });
-    if (!response.ok) {
-      return send(res, 502, {
-        ok: false,
-        status: "upstream_http_error",
-        upstreamStatus: response.status,
-        company,
-        sourceUrl,
-        message: "Jobindex returnerede HTTP " + response.status + ". Der vises ingen gættet tilfredshedsscore."
-      });
-    }
-
-    const html = await response.text();
-    if (/captcha|verify you are human|access denied|robot check|security challenge/i.test(html.slice(0, 50_000))) {
-      return send(res, 502, {
-        ok: false,
-        status: "upstream_blocked",
-        company,
-        sourceUrl,
-        message: "Jobindex kunne ikke læses automatisk. Den direkte kilde kan stadig åbnes manuelt."
-      });
-    }
-
-    const extracted = parseJobindexEvaluation(html);
-    const ok = extracted.hasRating || extracted.hasEvaluations;
-    if(ok)res.setHeader("Cache-Control", "public, s-maxage=1800, stale-while-revalidate=86400");
-    return send(res, 200, {
-      ok,
-      status: ok ? "found" : "no_public_evaluation_data",
-      company,
-      source: "Jobindex",
-      sourceUrl,
-      rating: extracted.rating,
-      ratingLabel: extracted.ratingLabel,
-      ratingCount: extracted.ratingCount,
-      pageTitle: extracted.pageTitle,
-      message: ok
-        ? "Oplysningerne er hentet fra Jobindex."
-        : "Jobindex-siden blev hentet, men der kunne ikke udtrækkes en pålidelig score eller et antal evalueringer. Der er ikke gættet et resultat."
-    });
-  } catch (error) {
-    const timeoutError = error && error.name === "AbortError";
-    return send(res, 502, {
-      ok: false,
-      status: timeoutError ? "upstream_timeout" : "upstream_unavailable",
-      company,
-      sourceUrl,
-      message: timeoutError
-        ? "Jobindex svarede ikke inden for tidsgrænsen."
-        : "Jobindex kunne ikke hentes fra serveren.",
-    });
-  } finally {
-    clearTimeout(timeout);
+      const extracted = parseJobindexEvaluation(html);
+      const found = extracted.hasRating || extracted.hasEvaluations;
+      return { candidate, sourceUrl, extracted, status: found ? "found" : "no_public_evaluation_data",
+        message: found ? "Oplysningerne er hentet fra Jobindex." : "Jobindex-siden blev hentet, men der kunne ikke aflæses en score eller et evalueringstal." };
+    } catch (error) {
+      return { candidate, sourceUrl, extracted: null,
+        status: error && error.name === "AbortError" ? "upstream_timeout" : "upstream_unavailable",
+        message: error && error.name === "AbortError" ? "Jobindex svarede ikke inden for tidsgrænsen." : "Jobindex kunne ikke hentes fra serveren." };
+    } finally { clearTimeout(timeout); }
   }
+  let best = null;
+  for (const candidate of uniqueCandidates) {
+    const result = await fetchCandidate(candidate);
+    const extracted = result.extracted;
+    const score = extracted ? (extracted.hasRating ? 2 : 0) + (extracted.hasEvaluations ? 1 : 0) : 0;
+    if (!best || score > best.score || (!best.extracted && extracted)) best = { ...result, score };
+    if (score === 3) break;
+  }
+  if (!best) return send(res, 502, { ok: false, status: "upstream_unavailable", company, message: "Jobindex returnerede ingen brugbare svar." });
+  const extracted = best.extracted;
+  const ok = !!(extracted && (extracted.hasRating || extracted.hasEvaluations));
+  if (ok) res.setHeader("Cache-Control", "public, s-maxage=1800, stale-while-revalidate=86400");
+  return send(res, ok ? 200 : (best.status === "no_public_evaluation_data" ? 200 : 502), {
+    ok, status: best.status, company, queriedCompany: best.candidate, source: "Jobindex",
+    sourceUrl: best.sourceUrl, rating: extracted ? extracted.rating : null,
+    ratingLabel: extracted ? extracted.ratingLabel : "", ratingCount: extracted ? extracted.ratingCount : "",
+    pageTitle: extracted ? extracted.pageTitle : "", message: best.message || "Jobindex-data kunne ikke verificeres."
+  });
 };

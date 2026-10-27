@@ -61,19 +61,21 @@ function searchProfile(){
  const loc=String((el('jobSearchLocation')?.value??el('networkSearchLocation')?.value??state.networkSearchLocation)||'Frederiksberg, København og omegn, Danmark').trim();
  return {terms:terms.length?terms:profileTermsFromCV(),location:loc.slice(0,300)||'København og omegn'};
 }
+function selectedJobDistanceLimit(){const raw=Number(state.jobDistanceMaxKm);return Number.isFinite(raw)?Math.max(0,Math.min(300,Math.round(raw/5)*5)):50}
+function opportunityDistanceKm(item){const raw=item&&item.companyFacts&&item.companyFacts.distanceKm;if(raw===undefined||raw===null||String(raw).trim()==='')return null;const normalized=String(raw).trim().replace(/\s/g,'').replace(',','.');const match=normalized.match(/-?\d+(?:\.\d+)?/);if(!match)return null;const distance=Number(match[0]);return Number.isFinite(distance)&&distance>=0?distance:null}
+function updateJobDistanceFilter(value){const parsed=Number(value);state.jobDistanceMaxKm=Number.isFinite(parsed)?Math.max(0,Math.min(300,Math.round(parsed/5)*5)):50;const limit=selectedJobDistanceLimit();if(el('jobDistanceSlider'))el('jobDistanceSlider').value=String(limit);if(el('jobDistanceValue'))el('jobDistanceValue').textContent=limit+' km';persist();renderJobOpportunities()}
 function syncOpportunityInputs(){
  if(el('jobSearchTerms'))el('jobSearchTerms').value=state.networkSearchTerms||profileTermsFromCV().join(', ');
  if(el('jobSearchLocation'))el('jobSearchLocation').value=state.networkSearchLocation||'Frederiksberg, København og omegn, Danmark';
  if(el('distanceOriginInput'))el('distanceOriginInput').value=state.distanceOrigin||'';
+ if(el('jobDistanceSlider'))el('jobDistanceSlider').value=String(selectedJobDistanceLimit());
+ if(el('jobDistanceValue'))el('jobDistanceValue').textContent=selectedJobDistanceLimit()+' km';
  if(el('jobKeywordCount'))el('jobKeywordCount').textContent=parseTerms(state.networkSearchTerms).length;
  if(el('jobOpportunityCount'))el('jobOpportunityCount').textContent=(state.jobOpportunities||[]).length;
  if(el('jobTrackedCount'))el('jobTrackedCount').textContent=(state.followUps||[]).filter(item=>item.type==='job').length;
  if(el('jobLastSearchLabel'))el('jobLastSearchLabel').textContent=state.jobLastSearch?new Date(state.jobLastSearch).toLocaleDateString('da-DK'):'Ikke søgt';
  const originStatus=el('distanceOriginStatus');
- if(originStatus){
-  originStatus.className='distance-origin-status'+(state.distanceOrigin?' is-saved':'');
-  originStatus.textContent=state.distanceOrigin?'Din placering er gemt lokalt. Afstande beregnes fra denne adresse/by, når adressen og arbejdsstedet kan geokodes.':'Afstand vises altid, når arbejdsstedet kan placeres. Standard uden gemt placering: Frederiksberg bymidte. Indtast din egen adresse/postnummer/by for at bruge din bopæl.';
- }
+ if(originStatus){originStatus.className='distance-origin-status'+(state.distanceOrigin?' is-saved':'');originStatus.textContent=state.distanceOrigin?'Din placering er gemt lokalt. Afstande beregnes fra denne adresse/by, når adressen og arbejdsstedet kan geokodes.':'Afstand vises altid, når arbejdsstedet kan placeres. Standard uden gemt placering: Frederiksberg bymidte. Indtast din egen adresse/postnummer/by for at bruge din bopæl.';}
 }
 async function saveDistanceOrigin(){
  const input=el('distanceOriginInput'),button=el('saveDistanceOriginButton'),status=el('distanceOriginStatus');
@@ -658,6 +660,24 @@ async function updateOpportunityDistance(item,facts){
  }
  return true;
 }
+async function autoCalculateJobDistances(items){
+ const current=(items||[]).filter(item=>item&&state.jobOpportunities.includes(item));
+ let cursor=0,completed=0;
+ const status=el('jobSearchStatus');
+ const worker=async()=>{
+  while(cursor<current.length){
+   const item=current[cursor++];
+   if(!state.jobOpportunities.includes(item))continue;
+   item.companyFacts=item.companyFacts||{};
+   if(opportunityDistanceKm(item)!==null&&item.companyFacts.distanceOriginLabel)continue;
+   try{await updateOpportunityDistance(item,item.companyFacts)}catch(error){item.companyFacts.distanceMessage=String(error&&error.message||error).slice(0,160)||'Afstand kunne ikke beregnes endnu'}
+   completed++;persist();renderJobOpportunities();
+   if(status&&unknownDistanceCountForJobs(current)>0)status.textContent='Afstand beregnes løbende: '+completed+' af '+current.length+' opslag kontrolleret. Kun opslag inden for '+selectedJobDistanceLimit()+' km vises.';
+  }
+ };
+ await Promise.all(Array.from({length:Math.min(3,current.length)},()=>worker()));
+}
+function unknownDistanceCountForJobs(items){return (items||[]).filter(item=>opportunityDistanceKm(item)===null).length}
 async function refreshOpportunityDistances(){
  const jobs=(state.jobOpportunities||[]).filter(item=>item&&item.url);
  let processed=0;
@@ -765,6 +785,7 @@ async function lookupCompanyInsights(indexOrItem){
  // Calculate from the job's own location immediately while the more extensive employer lookup continues.
  const earlyDistanceTask=(async()=>{
   const facts=item.companyFacts;
+  if(opportunityDistanceKm(item)!==null&&facts.distanceOriginLabel)return true;
   const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
   const generic=/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark))$/i.test(jobLocation);
   if(jobLocation&&!generic&&(!facts.location||facts.locationKind==='job')){
@@ -886,9 +907,17 @@ async function autoLookupJobCompanyFacts(items){
     if(seed.companyFacts.lookupStatus==='done')continue;
     await lookupCompanyInsights(seed);
     const facts=seed.companyFacts||{lookupStatus:'done',sources:[],factSources:{}};
+    const siblingDistanceTasks=[];
     group.items.forEach(item=>{
-     if(item!==seed)item.companyFacts={...facts,sources:Array.isArray(facts.sources)?facts.sources.slice():[],factSources:{...(facts.factSources||{})}};
+     if(item!==seed){
+      const copied={...facts,sources:Array.isArray(facts.sources)?facts.sources.slice():[],factSources:{...(facts.factSources||{})}};
+      if(copied.locationKind==='job'){delete copied.location;delete copied.factSources.location;copied.locationKind=''}
+      delete copied.distanceKm;delete copied.distanceMethod;delete copied.distanceOriginLabel;delete copied.distanceTargetLabel;delete copied.distanceMessage;delete copied.distanceDestinationDisplay;delete copied.factSources.distanceKm;
+      item.companyFacts=copied;
+      siblingDistanceTasks.push(updateOpportunityDistance(item,copied).catch(()=>false));
+     }
     });
+    await Promise.all(siblingDistanceTasks);
     persist();renderJobOpportunities();
    }catch(error){
     group.items.forEach(item=>{item.companyFacts={...(item.companyFacts||{}),lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,180)}});
@@ -988,10 +1017,19 @@ function jobDisplayLocation(item,scope){
 }
 
 function renderJobOpportunities(){
- const activeProfile=searchProfile(),all=(state.jobOpportunities||[]);
- const results=all.map(item=>({...item,matchedTerms:matchedJobTerms(item,activeProfile.terms)})).filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,activeProfile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
+ const activeProfile=searchProfile(),all=(state.jobOpportunities||[]),distanceLimit=selectedJobDistanceLimit();
+ const matchedResults=all.map(item=>({...item,matchedTerms:matchedJobTerms(item,activeProfile.terms)})).filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,activeProfile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
+ const unknownDistanceCount=matchedResults.filter(item=>opportunityDistanceKm(item)===null).length;
+ const measuredResults=matchedResults.filter(item=>opportunityDistanceKm(item)!==null);
+ const outsideDistanceCount=measuredResults.filter(item=>opportunityDistanceKm(item)>distanceLimit).length;
+ const results=measuredResults.filter(item=>opportunityDistanceKm(item)<=distanceLimit).sort((a,b)=>opportunityDistanceKm(a)-opportunityDistanceKm(b)||b.matchedTerms.length-a.matchedTerms.length);
+ const emptyResultsHtml=!matchedResults.length
+  ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen konkrete stillingsopslag blev fundet</strong><p>Prøv flere søgeord eller en bredere geografi.</p></div>'
+  :unknownDistanceCount
+   ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Afstande beregnes</strong><p>'+unknownDistanceCount+' relevante opslag afventer en beregnet afstand. De vises, så snart arbejdsstedet kan placeres. '+(outsideDistanceCount?outsideDistanceCount+' opslag ligger allerede uden for '+distanceLimit+' km.':'')+'</p></div>'
+   :'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen opslag inden for '+distanceLimit+' km</strong><p>'+outsideDistanceCount+' relevante opslag ligger længere væk. Øg afstanden med slideren for at udvide området.</p></div>';
  if(el('jobOpportunitiesResults'))el('jobOpportunitiesResults').innerHTML=results.length?results.map((item,index)=>{
-  const stateIndex=all.indexOf(item),url=safeHttpUrl(item.url),matched=item.matchedTerms||[];
+  const stateIndex=all.findIndex(row=>canonicalSearchUrl(row.url)===canonicalSearchUrl(item.url)),url=safeHttpUrl(item.url),matched=item.matchedTerms||[];
   const tracked=url&&state.followUps.some(f=>f.url&&canonicalSearchUrl(f.url)===canonicalSearchUrl(url));
   const source=item.queryLabel||item.sourceLabel||item.domain||'Jobportal',scope=getDanishJobScope(item,activeProfile);
   const title=jobDisplayTitle(item),company=jobDisplayCompany(item),location=jobDisplayLocation(item,scope);
@@ -1011,12 +1049,14 @@ function renderJobOpportunities(){
   if(url)html+='<a href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">Åbn originalopslag ↗</a>';
   html+='<button class="secondary" data-discovery-action="follow" data-collection="jobs" data-index="'+stateIndex+'">'+(tracked?'Opfølgning oprettet':'Følg op')+'</button><button data-discovery-action="analyze" data-index="'+stateIndex+'">Vurdér mod mit CV</button></div></article>';
   return html;
- }).join(''):'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen konkrete stillingsopslag blev fundet</strong><p>Resultater som jobkataloger, firmaregistre, telefonbøger og sider med “Side 3” vises ikke som jobs. Prøv flere søgeord eller en bredere geografi.</p></div>';
+ }).join(''):emptyResultsHtml;
  if(el('jobOpportunityCount'))el('jobOpportunityCount').textContent=results.length;
  if(el('jobKeywordCount'))el('jobKeywordCount').textContent=searchProfile().terms.length;
  if(el('jobTrackedCount'))el('jobTrackedCount').textContent=(state.followUps||[]).filter(item=>item.type==='job').length;
  if(el('jobLastSearchLabel'))el('jobLastSearchLabel').textContent=state.jobLastSearch?new Date(state.jobLastSearch).toLocaleDateString('da-DK'):'Ikke søgt';
- if(el('jobOpportunitiesMeta'))el('jobOpportunitiesMeta').textContent=results.length+' forslag';
+ if(el('jobOpportunitiesMeta'))el('jobOpportunitiesMeta').textContent=results.length+' inden for '+distanceLimit+' km';
+ const distanceFilterStatus=el('jobDistanceFilterStatus');
+ if(distanceFilterStatus){distanceFilterStatus.textContent='Viser '+results.length+' opslag inden for '+distanceLimit+' km, sorteret med de nærmeste først.'+(unknownDistanceCount?' '+unknownDistanceCount+' opslag afventer en beregnet afstand og skjules, indtil den kendes.':'');}
 }
 let jobSearchProgressOriginalOverflow='';
 let jobSearchProgressQueries=[];
@@ -1193,7 +1233,8 @@ async function searchJobOpportunities(ignoreCvWarning=false){
   state.jobSearchSourceMeta={liveCount:liveQualified.length,snapshotCount:snapshotAdded,snapshotCheckedAt:'26.10.2026'};
   state.jobOpportunities=[...finalJobs.values()].sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
   state.jobLastSearch=new Date().toISOString();persist();renderJobOpportunities();
-  // Enrich job cards in the background. The cards already render; company facts fill in automatically as sources return.
+  // Calculate distance for every job first, including postings whose employer name is missing.
+  autoCalculateJobDistances(state.jobOpportunities.slice());
   autoLookupJobCompanyFacts(state.jobOpportunities.slice());
   if(el('jobSearchStatus')){
    const remoteCheck=state.jobOpportunities.filter(item=>item.matchScope==='remote-check'||item.matchScope==='query-location').length;

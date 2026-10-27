@@ -1,6 +1,6 @@
 const windows = new Map();
 const WINDOW_MS = 60_000;
-const MAX_REQUESTS_PER_WINDOW = 24;
+const MAX_REQUESTS_PER_WINDOW = 120;
 const MAX_COMPANY_LENGTH = 140;
 
 function send(res, status, body) {

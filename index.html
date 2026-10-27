@@ -1425,6 +1425,7 @@ function normalizeCompanySourceRecord(source){
   sourceLabel:typeof source.sourceLabel==='string'?source.sourceLabel.slice(0,200):'',
   sourceType:typeof source.sourceType==='string'?source.sourceType.slice(0,100):'',
   pageContent:typeof source.pageContent==='string'?source.pageContent.slice(0,10000):'',
+  pageHtml:typeof source.pageHtml==='string'?source.pageHtml.slice(0,30000):'',
   contextTitle:typeof source.contextTitle==='string'?source.contextTitle.slice(0,500):''
  };
 }

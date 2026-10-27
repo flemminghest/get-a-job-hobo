@@ -787,13 +787,21 @@ function applyCompanySourceFacts(sources,prior){
    }
   }
   if(workplace&&!f.ratingCount){
-   const jobindexCount=hostMatchesOne(companySourceHost(source),['jobindex.dk'])&&text.match(/\\b([\\d.,]{1,10})\\s+evalueringer\\b/i);
-   if(jobindexCount)fill('ratingCount',jobindexCount[1].replace(/[.,](?=\\d{3}(?:\\D|$))/g,'').trim(),source);
-   const patterns=[
-    /\\b([\\d.,]{1,10})\\s+(?:total\\s+)?(?:(?:company|employee|employer)\\s+)?(?:anmeldelser|vurderinger|evalueringer|medarbejderanmeldelser|employee reviews|company reviews|reviews|ratings)\\b/i,
-    /(?:based on|baseret på|from)\s+([\d.,]{1,10})\s+(?:reviews|ratings|anmeldelser|vurderinger)/i
-   ];
-   for(const pattern of patterns){m=text.match(pattern);if(m){fill('ratingCount',m[1].replace(/[.,](?=\d{3}(?:\D|$))/g,'').trim(),source);if(f.ratingCount)break}}
+   let countMatch=null;
+   if(hostMatchesOne(companySourceHost(source),['jobindex.dk'])){
+    countMatch=text.match(/\b([\d.,]{1,10})\s+evalueringer\b/i);
+   }
+   if(!countMatch){
+    const patterns=[
+     /\b([\d.,]{1,10})\s+(?:total\s+)?(?:(?:company|employee|employer)\s+)?(?:anmeldelser|vurderinger|evalueringer|medarbejderanmeldelser|employee reviews|company reviews|reviews|ratings)\b/i,
+     /(?:based on|baseret på|from)\s+([\d.,]{1,10})\s+(?:reviews|ratings|anmeldelser|vurderinger)/i
+    ];
+    for(const pattern of patterns){countMatch=text.match(pattern);if(countMatch)break}
+   }
+   if(countMatch){
+    const count=countMatch[1].replace(/[.,](?=\d{3}(?:\D|$))/g,'').trim();
+    if(count)fill('ratingCount',count,source);
+   }
   }
  }
  f.factSources=factSources;return f;

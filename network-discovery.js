@@ -1430,6 +1430,8 @@ window.renderCompanyCriteriaResults=renderCompanyCriteriaResults;
 window.lookupCompanyInsights=lookupCompanyInsights;
 window.renderFollowUps=renderFollowUps;
 window.syncOpportunityInputs=syncOpportunityInputs;
+window.updateJobDistanceFilter=updateJobDistanceFilter;
+window.saveDistanceOrigin=saveDistanceOrigin;
 window.fillSearchPreferences=initializeDiscovery;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initializeDiscovery,{once:true});else initializeDiscovery();
 })();

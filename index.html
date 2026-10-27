@@ -1435,7 +1435,23 @@ function normalizeResearchRecords(raw,defaultType){
   const url=safeHttpUrl(x.url);if(!url)return null;
   let domain='';try{domain=new URL(url).hostname.replace(/^www\./i,'')}catch(e){}
   const type=typeof x.type==='string'&&/^(person|company|post|group|job|other)$/.test(x.type)?x.type:(defaultType||'other');
-  return {id:typeof x.id==='string'||typeof x.id==='number'?String(x.id):String(Date.now())+'-'+index,type,title:typeof x.title==='string'?x.title.slice(0,500):domain,company:typeof x.company==='string'?x.company.slice(0,300):'',url,domain:typeof x.domain==='string'?x.domain.slice(0,200):domain,description:typeof x.description==='string'?x.description.slice(0,1200):'',sourceLabel:typeof x.sourceLabel==='string'?x.sourceLabel.slice(0,120):domain,queryLabel:typeof x.queryLabel==='string'?x.queryLabel.slice(0,160):'',matchedTerms:Array.isArray(x.matchedTerms)?x.matchedTerms.slice(0,12).filter(v=>typeof v==='string').map(v=>v.slice(0,80)):[],createdAt:typeof x.createdAt==='string'?x.createdAt.slice(0,50):'',saved:!!x.saved,companyFacts:normalizeCompanyFacts(x.companyFacts)};
+  return {id:typeof x.id==='string'||typeof x.id==='number'?String(x.id):String(Date.now())+'-'+index,type,title:typeof x.title==='string'?x.title.slice(0,500):domain,company:typeof x.company==='string'?x.company.slice(0,300):'',url,domain:typeof x.domain==='string'?x.domain.slice(0,200):domain,description:typeof x.description==='string'?x.description.slice(0,1200):'',sourceLabel:typeof x.sourceLabel==='string'?x.sourceLabel.slice(0,120):domain,queryLabel:typeof x.queryLabel==='string'?x.queryLabel.slice(0,160):'',matchedTerms:Array.isArray(x.matchedTerms)?x.matchedTerms.slice(0,12).filter(v=>typeof v==='string').map(v=>v.slice(0,80)):[],createdAt:typeof x.createdAt==='string'?x.createdAt.slice(0,50):'',saved:!!x.saved,companyFacts:normalizeCompanyFacts(x.companyFacts),
+  jobTitle:typeof x.jobTitle==='string'?x.jobTitle.slice(0,500):'',
+  companyName:typeof x.companyName==='string'?x.companyName.slice(0,500):'',
+  employer:typeof x.employer==='string'?x.employer.slice(0,500):'',
+  jobLocation:typeof x.jobLocation==='string'?x.jobLocation.slice(0,500):'',
+  location:typeof x.location==='string'?x.location.slice(0,500):'',
+  city:typeof x.city==='string'?x.city.slice(0,200):'',
+  country:typeof x.country==='string'?x.country.slice(0,100):'',
+  postedAt:typeof x.postedAt==='string'?x.postedAt.slice(0,100):'',
+  employmentType:typeof x.employmentType==='string'?x.employmentType.slice(0,150):'',
+  workMode:typeof x.workMode==='string'?x.workMode.slice(0,150):'',
+  salary:typeof x.salary==='string'?x.salary.slice(0,200):'',
+  matchScope:typeof x.matchScope==='string'?x.matchScope.slice(0,100):'',
+  matchScopeLabel:typeof x.matchScopeLabel==='string'?x.matchScopeLabel.slice(0,200):'',
+  verifiedSnapshot:x.verifiedSnapshot===true,
+  sourceCheckedAt:typeof x.sourceCheckedAt==='string'?x.sourceCheckedAt.slice(0,50):'',
+  queryId:typeof x.queryId==='string'?x.queryId.slice(0,100):''};
  }).filter(Boolean);
 }
 function normalizeFollowUpRecords(raw){

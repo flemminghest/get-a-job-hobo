@@ -476,7 +476,7 @@ function isDanishCompanySource(source){
 }
 function isWorkplaceReviewSource(source){
  const host=companySourceHost(source);
- return !!host&&hostMatchesOne(host,['jobindex.dk','jobrate.dk','glassdoor.com','glassdoor.co.uk','indeed.com','indeed.co.uk','kununu.com','comparably.com','greatplacetowork.com']);
+ return !!host&&hostMatchesOne(host,['jobindex.dk','jobrate.dk','glassdoor.com','glassdoor.co.uk','indeed.com','indeed.co.uk','kununu.com','comparably.com','greatplacetowork.dk','greatplacetowork.com']);
 }
 function isCompanyLookupSource(source){return isDanishCompanySource(source)||isWorkplaceReviewSource(source)}
 function isOfficialDanishCompanySource(source){
@@ -499,7 +499,8 @@ function effectiveCompanyFacts(item){
  for(const field of facts){
   const source=stored.factSources&&stored.factSources[field];
   const jobLocation=field==='location'&&stored.locationKind==='job'&&safeHttpUrl(source&&source.url);
-  const sourceAllowed=(field==='employeeRating'||field==='ratingCount')?isWorkplaceReviewSource(source):(jobLocation||isDanishCompanySource(source));
+  const greatPlaceEmployeeCount=field==='employeeCount'&&hostMatchesOne(companySourceHost(source),['greatplacetowork.dk','greatplacetowork.com']);
+  const sourceAllowed=(field==='employeeRating'||field==='ratingCount')?isWorkplaceReviewSource(source):(greatPlaceEmployeeCount||jobLocation||isDanishCompanySource(source));
   if(source&&sourceAllowed&&String(stored[field]||'').trim()){
    result[field]=stored[field];factSources[field]=source;
   }
@@ -711,12 +712,23 @@ function applyCompanySourceFacts(sources,prior){
    }
    if(!f.companyType&&(m=text.match(/(?:company type|type|virksomhedsform|selskabsform|organization type)\s*[:\-]?\s*(privately held|public company|privately owned|private company|offentlig institution|aktieselskab|anpartsselskab|ApS|A\/S|I\/S|P\/S|limited|gmbh|llc|inc\.?)/i)))fill('companyType',m[1],source);
   }
+  if(workplace&&hostMatchesOne(companySourceHost(source),['greatplacetowork.dk','greatplacetowork.com'])&&!f.employeeCount){
+   m=text.match(/(?:antal medarbejdere i Danmark|employees in Denmark|number of employees in Denmark)\\s*[:\\-]?\\s*(\\d{1,5})/i);
+   if(m)fill('employeeCount',m[1],source);
+  }
   if(workplace&&!f.employeeRating){
    const structuredRating=structured.employeeSatisfaction||structured.employee_satisfaction||structured.employeeRating||structured.employee_rating||structured.ratingFromEmployees||structured.rating;
    if(structuredRating&&Number(String(structuredRating).replace(',','.'))>=0&&Number(String(structuredRating).replace(',','.'))<=5)fill('employeeRating',String(structuredRating).replace(',','.'),source);
    if(!f.employeeRating){
-    m=text.match(/(?:employee|workplace|company|employer|overall|jobindex|indeed|glassdoor|kununu)?\s*(?:rating|rated|score|job satisfaction|jobglæde|medarbejdertilfredshed|arbejdspladsvurdering|samlet vurdering|evaluering)\D{0,45}([1-5](?:[,.]\d)?)(?:\s*(?:\/\s*5|out of 5|ud af 5|af 5|stjerner?|stars?))?/i)
-     ||text.match(/\b([1-5][,.]\d)\s*(?:\/\s*5|out of 5|ud af 5|stjerner af 5|stars? out of 5)\b/i);
+    const positivePct=text.match(/\b(100|[1-9]?\d)\s*%\s*(?:af medarbejderne|of employees)[\s\S]{0,220}(?:rigtig godt sted at arbejde|great place to work|positive workplace|positive experience|trives på arbejdet)/i);
+    if(positivePct){
+     const pct=Number(positivePct[1]);
+     if(pct>=0&&pct<=100)fill('employeeRating',pct+'% positive medarbejderoplevelse',source);
+    }
+    if(!f.employeeRating){
+     m=text.match(/(?:employee|workplace|company|employer|overall|jobindex|indeed|glassdoor|kununu)?\s*(?:rating|rated|score|job satisfaction|jobglæde|medarbejdertilfredshed|arbejdspladsvurdering|samlet vurdering|evaluering)\D{0,45}([1-5](?:[,.]\d)?)(?:\s*(?:\/\s*5|out of 5|ud af 5|af 5|stjerner?|stars?))?/i)
+      ||text.match(/\b([1-5][,.]\d)\s*(?:\/\s*5|out of 5|ud af 5|stjerner af 5|stars? out of 5)\b/i);
+    }
     if(m){
      const possible=String(m[1]||m[2]||'').replace(',','.');
      const ratingNumber=Number(possible);
@@ -766,6 +778,8 @@ async function lookupCompanyInsights(indexOrItem){
   {id:'glassdoor-reviews',label:'Glassdoor · medarbejderanmeldelser',targetSite:'glassdoor.com',query:'site:glassdoor.com/Reviews/ '+q+' employee reviews overall rating company culture Denmark',fallbackQuery:'site:glassdoor.com '+q+' employer reviews rating work culture'},
   {id:'indeed-reviews',label:'Indeed · virksomheds- og medarbejderanmeldelser',targetSite:'indeed.com',query:'site:indeed.com/cmp/ '+q+' company reviews rating employees Denmark',fallbackQuery:'site:dk.indeed.com/cmp/ '+q+' reviews company rating'},
   {id:'kununu-reviews',label:'Kununu · medarbejdervurderinger',targetSite:'kununu.com',query:'site:kununu.com '+q+' arbeitgeber bewertungen kununu score Denmark',fallbackQuery:'site:kununu.com '+q+' reviews employer rating'},
+  {id:'great-place-to-work-dk',label:'Great Place to Work Danmark · medarbejderoplevelser',targetSite:'greatplacetowork.dk',query:'site:greatplacetowork.dk/certificerede-arbejdspladser '+q+' medarbejderoplevelser procent antal medarbejdere',fallbackQuery:'site:greatplacetowork.dk '+q+' medarbejdernes oplevelse af arbejdspladsen'},
+  {id:'great-place-to-work-global',label:'Great Place to Work · employee experience',targetSite:'greatplacetowork.com',query:'site:greatplacetowork.com '+q+' employee experience percentage employees',fallbackQuery:'site:greatplacetowork.com '+q+' employees say great place to work'},
   {id:'proff-dk',label:'Proff · CVR, branche og ansatte',targetSite:'proff.dk',query:'site:proff.dk '+q+' CVR antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' virksomhed CVR ansatte adresse'},
   {id:'estatistik-dk',label:'eStatistik · danske virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' CVR ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' CVR dansk virksomhed ansatte adresse'},
   {id:'cvr-virk-dk',label:'CVR/Virk · officielt virksomhedsregister',targetSite:'virk.dk',query:'site:datacvr.virk.dk '+q+' CVR adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},

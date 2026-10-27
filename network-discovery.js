@@ -933,7 +933,7 @@ function companyInsightBox(item,index){
  const rating=clean(f.employeeRating),ratingNumber=Number(rating.replace(',','.'));
  const ratingDisplay=rating&&Number.isFinite(ratingNumber)&&ratingNumber>=0&&ratingNumber<=5?ratingNumber.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
  const employees=clean(f.employeeCount)||'Ikke oplyst',location=clean(f.location)||'Ikke fundet';
- const distance=clean(f.distanceKm),distanceDisplay=distance?'ca. '+distance+' km':clean(f.distanceMessage)||'Afventer afstand';
+ const distance=clean(f.distanceKm),distanceDisplay=distance?distance+' km':clean(f.distanceMessage)||'Afventer afstand';
  const industry=clean(f.industry)||'Ikke fundet',founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
  const tone=['mint','orange','purple','blue'][index%4],loading=f.lookupStatus==='loading'||f.lookupStatus==='queued',completed=f.lookupStatus==='done';
  const employeeIsRange=/\d\s*[-–]\s*\d/.test(employees)||/(?:ca\.?|cirka|estimat|omkring|~)/i.test(employees);

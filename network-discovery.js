@@ -466,6 +466,13 @@ function renderCommunities(){
 }
 function renderDiscoveryResults(){renderProspects();renderCommunities()}
 
+function compactCompanySource(source){
+ if(!source||typeof source!=='object')return source;
+ const copy={...source};
+ delete copy.pageHtml;
+ if(typeof copy.pageContent==='string')copy.pageContent=copy.pageContent.slice(0,1200);
+ return copy;
+}
 function companySourceHost(source){
  const raw=typeof source==='string'?source:(source&&source.url)||'';
  const url=safeHttpUrl(raw);if(!url)return '';
@@ -704,7 +711,7 @@ async function refreshOpportunityDistances(){
 function applyCompanySourceFacts(sources,prior){
  const f={...(prior||{})},factSources={...(f.factSources||{})};
  const bodyOf=source=>String((source.title||'')+' '+(source.description||'')+' '+(source.pageContent||'')+' '+(source.pageHtml||'')).replace(/\s+/g,' ');
- const fill=(field,value,source)=>{if(!String(f[field]||'').trim()&&value!==undefined&&value!==null&&String(value).trim()!==''){f[field]=String(value).trim();factSources[field]=source}};
+ const fill=(field,value,source)=>{if(!String(f[field]||'').trim()&&value!==undefined&&value!==null&&String(value).trim()!==''){f[field]=String(value).trim();factSources[field]=compactCompanySource(source)}};
  const prioritised=[...(sources||[])].sort((a,b)=>{
   const rank=source=>companySourceHost(source).includes('jobindex.dk')?0:companySourceHost(source).includes('krak.dk')?1:isWorkplaceReviewSource(source)?2:3;
   return rank(a)-rank(b);
@@ -747,8 +754,11 @@ function applyCompanySourceFacts(sources,prior){
   }
   if(workplace&&hostMatchesOne(companySourceHost(source),['jobindex.dk'])&&!f.employeeRating){
    // Jobindex may render the aggregate as a row of stars instead of a textual 4.2/5 value.
-   const htmlRating=String(source.pageHtml||'').match(/(?:itemprop=["']ratingValue["'][^>]*content=["']|content=["']([1-5](?:[,.]\d)?)["'][^>]*(?:ratingValue|rating))/i);
-   const explicitJobindexRating=(htmlRating&&htmlRating[1]?htmlRating:text.match(/(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse)\D{0,35}([1-5](?:[,.]\d)?)\b\s*(?:\/\s*5|af\s*5|ud af\s*5)?/i))
+   const rawHtml=String(source.pageHtml||'');
+   const htmlRating=rawHtml.match(/itemprop=["']ratingValue["'][^>]*content=["']([1-5](?:[,.]\d)?)["']/i)
+    ||rawHtml.match(/content=["']([1-5](?:[,.]\d)?)["'][^>]*(?:ratingValue|rating)/i);
+   const explicitJobindexRating=htmlRating
+    ||text.match(/(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse)\D{0,35}([1-5](?:[,.]\d)?)\b\s*(?:\/\s*5|af\s*5|ud af\s*5)?/i)
     ||text.match(/\b([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)\b/i)
     ||text.match(/\b([1-5])\s+stjerner\b/i);
    if(explicitJobindexRating){
@@ -878,7 +888,7 @@ async function lookupCompanyInsights(indexOrItem){
    if(priorFacts.factSources&&priorFacts.factSources.location)jobindexFacts.factSources.location=priorFacts.factSources.location;
   }
   jobindexFacts.lookupStatus='loading';
-  jobindexFacts.sources=[jobindexRead];
+  jobindexFacts.sources=[compactCompanySource(jobindexRead)];
   jobindexFacts.danishCompanyConfirmed=false;
   item.companyFacts=jobindexFacts;
   persist();renderJobOpportunities();
@@ -923,7 +933,7 @@ async function lookupCompanyInsights(indexOrItem){
   });
   const registrySources=found.filter(source=>isOfficialDanishCompanySource(source));
   const nextFacts=applyCompanySourceFacts(found,{});
-  nextFacts.sources=found.slice(0,20);
+  nextFacts.sources=found.slice(0,20).map(compactCompanySource);
   nextFacts.lookupStatus=(sourceErrors===queries.length&&!found.length)?'error':'done';
   nextFacts.lookupAt=new Date().toISOString();
   nextFacts.danishCompanyConfirmed=registrySources.length>0;

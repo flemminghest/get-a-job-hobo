@@ -104,6 +104,21 @@ function parseJobindexEvaluation(html) {
     /(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse|vurdering)\D{0,45}([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)\b/i,
     /\b([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)\b/i
   ];
+  // Jobindex sometimes exposes the aggregate rating in accessible attributes rather than visible text.
+  if (rating === null) {
+    const labels = [...source.matchAll(/(?:aria-label|title|data-rating)=["']([^"']{1,160})["']/gi)].map(match => decodeEntities(match[1]));
+    for (const label of labels) {
+      const match = label.match(/([1-5](?:[,.]\d)?)\s*(?:\/\s*5|out of 5|ud af 5|af 5|stars?|stjerner)/i)
+        || label.match(/(?:rating|vurdering|bedømmelse)\D{0,30}([1-5](?:[,.]\d)?)/i);
+      if (!match) continue;
+      const candidate = numericRating(match[1]);
+      if (candidate !== null) {
+        rating = candidate;
+        ratingLabel = candidate.toLocaleString("da-DK", { maximumFractionDigits: 1 }) + "/5";
+        break;
+      }
+    }
+  }
   if (rating === null) {
     for (const pattern of ratingPatterns) {
       const match = text.match(pattern);

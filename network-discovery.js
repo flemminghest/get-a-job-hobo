@@ -529,12 +529,13 @@ function companyResultRelevant(result,company,item){
  if(!isCompanyLookupSource(result))return false;
  const content=normalizeInsightText([result.title,result.description,result.url].join(' '));
  const target=normalizeInsightText(company);
- const tokens=target.split(/\s+/).filter(x=>x.length>=3);
+ const legalForms=new Set(['aps','as','a','s','ab','holding','group','inc','llc','ltd','limited','gmbh','plc','company','co']);
+ const tokens=target.split(/\s+/).filter(token=>token.length>=4&&!legalForms.has(token));
  const contentTokens=content.split(/\s+/);
  const matches=tokens.filter(token=>contentTokens.includes(token)).length;
  if(target&&content.includes(target))return true;
- if(tokens.length===1)return matches===1;
- return tokens.length>1&&matches>=Math.min(2,tokens.length);
+ // A distinctive brand-name token is enough after an exact, company-targeted source search.
+ return matches>0;
 }
 function companySourceHost(source){
  const url=safeHttpUrl(source&&source.url);
@@ -617,7 +618,8 @@ async function updateOpportunityDistance(item,facts){
  const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
  if(jobLocation)candidates.push({value:jobLocation,kind:'job'});
  if(sourceLocation&&!candidates.some(candidate=>normalizeInsightText(candidate.value)===normalizeInsightText(sourceLocation)))candidates.push({value:sourceLocation,kind:'job'});
- const usable=candidates.filter((candidate,index)=>candidate.value&&!/^(?:denmark|danmark|dk|remote|remote jobs?)$/i.test(candidate.value)&&candidates.findIndex(other=>normalizeInsightText(other.value)===normalizeInsightText(candidate.value))===index);
+ const isGenericLocation=value=>/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark)|danmark\s*[·,-]\s*arbejdssted skal bekræftes|denmark\s*[·,-]\s*workplace to be confirmed)$/i.test(String(value||'').trim())||/(?:arbejdssted skal bekræftes|kontrollér arbejdssted|confirm workplace|location to be confirmed)/i.test(String(value||''));
+ const usable=candidates.filter((candidate,index)=>candidate.value&&!isGenericLocation(candidate.value)&&candidates.findIndex(other=>normalizeInsightText(other.value)===normalizeInsightText(candidate.value))===index);
  if(!usable.length){
   facts.distanceKm='';facts.distanceMessage='Arbejdssted/adresse mangler i de fundne kilder';
   facts.distanceOriginLabel=String(state.distanceOrigin||'').trim()?'din gemte placering':'Frederiksberg bymidte (standard)';
@@ -738,9 +740,9 @@ async function lookupCompanyInsights(indexOrItem){
   {id:'jobindex-dk',label:'Jobindex · virksomhedsprofil og jobtilfredshed',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' evalueringer stjerner jobglæde medarbejdere antal medarbejdere',fallbackQuery:'site:jobindex.dk/virksomhed '+q+' arbejdspladsvurdering medarbejderanmeldelser'},
   {id:'jobindex-reviews',label:'Jobindex · medarbejdervurderinger',targetSite:'jobindex.dk',query:'site:jobindex.dk/virksomhed '+q+' "evalueringer" "samlet vurdering"',fallbackQuery:'site:jobindex.dk '+q+' "jobglæde" OR "medarbejdertilfredshed"'},
   {id:'jobrate-dk',label:'Jobrate · arbejdspladsvurderinger',targetSite:'jobrate.dk',query:'site:jobrate.dk/arbejdsplads '+q+' medarbejdervurdering rating anmeldelser',fallbackQuery:'site:jobrate.dk '+q+' arbejdsgiver anmeldelser jobtilfredshed'},
-  {id:'glassdoor-reviews',label:'Glassdoor · medarbejderanmeldelser',targetSite:'glassdoor.com',query:'site:glassdoor.com/Reviews/ '+q+' employee reviews overall rating company culture',fallbackQuery:'site:glassdoor.com '+q+' employer reviews rating work culture'},
-  {id:'indeed-reviews',label:'Indeed · virksomheds- og medarbejderanmeldelser',targetSite:'indeed.com',query:'site:indeed.com/cmp/ '+q+' company reviews rating employees',fallbackQuery:'site:dk.indeed.com/cmp/ '+q+' reviews company rating'},
-  {id:'kununu-reviews',label:'Kununu · medarbejdervurderinger',targetSite:'kununu.com',query:'site:kununu.com '+q+' arbeitgeber bewertungen kununu score',fallbackQuery:'site:kununu.com '+q+' reviews employer rating'},
+  {id:'glassdoor-reviews',label:'Glassdoor · medarbejderanmeldelser',targetSite:'glassdoor.com',query:'site:glassdoor.com/Reviews/ '+q+' employee reviews overall rating company culture Denmark',fallbackQuery:'site:glassdoor.com '+q+' employer reviews rating work culture'},
+  {id:'indeed-reviews',label:'Indeed · virksomheds- og medarbejderanmeldelser',targetSite:'indeed.com',query:'site:indeed.com/cmp/ '+q+' company reviews rating employees Denmark',fallbackQuery:'site:dk.indeed.com/cmp/ '+q+' reviews company rating'},
+  {id:'kununu-reviews',label:'Kununu · medarbejdervurderinger',targetSite:'kununu.com',query:'site:kununu.com '+q+' arbeitgeber bewertungen kununu score Denmark',fallbackQuery:'site:kununu.com '+q+' reviews employer rating'},
   {id:'proff-dk',label:'Proff · CVR, branche og ansatte',targetSite:'proff.dk',query:'site:proff.dk '+q+' CVR antal ansatte adresse branche',fallbackQuery:'site:proff.dk '+q+' virksomhed CVR ansatte adresse'},
   {id:'estatistik-dk',label:'eStatistik · danske virksomhedsdata',targetSite:'estatistik.dk',query:'site:estatistik.dk/virksomhed '+q+' CVR ansatte adresse branche etableret',fallbackQuery:'site:estatistik.dk '+q+' CVR dansk virksomhed ansatte adresse'},
   {id:'cvr-virk-dk',label:'CVR/Virk · officielt virksomhedsregister',targetSite:'virk.dk',query:'site:datacvr.virk.dk '+q+' CVR adresse branche antal ansatte',fallbackQuery:'site:virk.dk '+q+' CVR adresse branche ansatte'},

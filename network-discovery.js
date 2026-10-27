@@ -746,7 +746,7 @@ function applyCompanySourceFacts(sources,prior){
   }
   if(workplace&&hostMatchesOne(companySourceHost(source),['jobindex.dk'])&&!f.employeeRating){
    // Jobindex may render the aggregate as a row of stars instead of a textual 4.2/5 value.
-   const explicitJobindexRating=text.match(/(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse|stjerner)\D{0,35}([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)?/i)
+   const explicitJobindexRating=text.match(/(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse|stjerner)\D{0,35}([1-5](?:[,.]\d)?)\b\s*(?:\/\s*5|af\s*5|ud af\s*5)?/i)
     ||text.match(/\b([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)\b/i);
    if(explicitJobindexRating){
     const value=Number(String(explicitJobindexRating[1]||explicitJobindexRating[2]).replace(',','.'));

@@ -774,7 +774,7 @@ function applyCompanySourceFacts(sources,prior){
     const starRows=[...text.matchAll(/[★⭐☆]{5}/g)];
     if(starRows.length){
      const row=starRows[0][0],filled=(row.match(/[★⭐]/g)||[]).length;
-     if(filled>0)fill('employeeRating',(filled).toLocaleString('da-DK',{maximumFractionDigits:1}),source);
+     if(filled>0)fill('employeeRating',row,source);
     }
    }
   }

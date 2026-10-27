@@ -492,7 +492,7 @@ function isOfficialDanishCompanySource(source){
  const host=companySourceHost(source);
  return !!host&&hostMatchesOne(host,['virk.dk','datacvr.virk.dk','cvr.dk']);
 }
-const JOBINDEX_LOOKUP_VERSION='3';
+const JOBINDEX_LOOKUP_VERSION='4';
 function curatedCompanyFacts(){return {}}
 function effectiveCompanyFacts(item){
  const stored=item&&item.companyFacts||{};
@@ -546,9 +546,9 @@ async function fetchJobindexEvaluationSource(company){
  const requestedSourceUrl=jobindexEvaluationUrl(company);
  let fallback={url:requestedSourceUrl,title:String(company||'Virksomhed')+' — evalueringer på Jobindex',domain:'jobindex.dk',sourceLabel:'Jobindex · medarbejdertilfredshed',sourceType:'jobindex-company-evaluation'};
  let responseData=null;
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),40000);
  try{
-  const response=await fetch('/api/jobindex-evaluations?company='+encodeURIComponent(String(company||'').trim()),{method:'GET',credentials:'same-origin',headers:{Accept:'application/json'},signal:controller.signal});
+  const response=await fetch('/api/jobindex-evaluations?company='+encodeURIComponent(String(company||'').trim()),{method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'},signal:controller.signal});
   const body=await response.json().catch(()=>null);
   responseData=body&&typeof body==='object'?body:{ok:false,status:'invalid_proxy_response',message:'Serveren returnerede ikke gyldige Jobindex-data.'};
   if(!response.ok){responseData.ok=false;responseData.status=responseData.status||'proxy_unavailable';}
@@ -569,11 +569,13 @@ async function fetchJobindexEvaluationSource(company){
   description:String(responseData&&responseData.message||'Jobindex’ virksomhedsoversigt.').slice(0,1000),
   jobindexFetchStatus:String(responseData&&responseData.status||'unknown'),
   jobindexFetchMessage:String(responseData&&responseData.message||''),
-  jobindexFetchedAt:new Date().toISOString(),
+  jobindexAttemptedAt:new Date().toISOString(),
+  jobindexFetchedAt:(responseData&&responseData.checkedAt&&/^found$|^no_public_evaluation_data$/.test(String(responseData.status||'')))?String(responseData.checkedAt):'',
   companyFacts:{
    employeeRating:displayRating,
    ratingLabel:starsLabel||ratingLabel,
-   ratingCount
+   ratingCount,
+   employeeRatingCheckedAt:(responseData&&responseData.checkedAt&&/^found$|^no_public_evaluation_data$/.test(String(responseData.status||'')))?String(responseData.checkedAt):''
   }
  };
  // If the live Jobindex request has no complete data, try the existing indexed-context fallback too.
@@ -935,7 +937,21 @@ async function lookupCompanyInsights(indexOrItem){
   const jobindexRead=await jobindexContextPromise;
   await earlyDistanceTask;
   const priorFacts=item.companyFacts||{};
-  const jobindexFacts=applyCompanySourceFacts([jobindexRead],{});
+  const jobindexFacts=applyCompanySourceFacts([jobindexRead],priorFacts);
+  const freshJobindexFacts=jobindexRead.companyFacts||{};
+  const freshJobindexSource=compactCompanySource(jobindexRead);
+  if(String(freshJobindexFacts.employeeRating||'').trim()){
+   jobindexFacts.employeeRating=String(freshJobindexFacts.employeeRating).trim();
+   jobindexFacts.factSources=jobindexFacts.factSources||{};
+   jobindexFacts.factSources.employeeRating=freshJobindexSource;
+  }
+  if(String(freshJobindexFacts.ratingCount||'').trim()){
+   jobindexFacts.ratingCount=String(freshJobindexFacts.ratingCount).trim();
+   jobindexFacts.factSources=jobindexFacts.factSources||{};
+   jobindexFacts.factSources.ratingCount=freshJobindexSource;
+  }
+  if(String(freshJobindexFacts.employeeRatingCheckedAt||'').trim())jobindexFacts.employeeRatingCheckedAt=freshJobindexFacts.employeeRatingCheckedAt;
+  jobindexFacts.employeeRatingAttemptedAt=String(jobindexRead.jobindexAttemptedAt||new Date().toISOString());
   for(const key of ['distanceKm','distanceMethod','distanceOriginLabel','distanceTargetLabel','distanceMessage','distanceDestinationDisplay']){
    if(priorFacts[key]!==undefined)jobindexFacts[key]=priorFacts[key];
   }
@@ -994,7 +1010,7 @@ async function lookupCompanyInsights(indexOrItem){
    if(target>=0)found[target]=enhanced;
   });
   const registrySources=found.filter(source=>isOfficialDanishCompanySource(source));
-  const nextFacts=applyCompanySourceFacts(found,{});
+  const nextFacts=applyCompanySourceFacts(found,priorFacts);
   // Keep the direct Jobindex evaluation as the authoritative source for rating and evaluation count.
   const directJobindexFacts=jobindexRead.companyFacts||{};
   const directJobindexSource=compactCompanySource(jobindexRead);
@@ -1003,6 +1019,8 @@ async function lookupCompanyInsights(indexOrItem){
    nextFacts.employeeRating=String(directJobindexFacts.employeeRating).trim();
    nextFacts.factSources.employeeRating=directJobindexSource;
   }
+  if(String(directJobindexFacts.employeeRatingCheckedAt||jobindexRead.jobindexFetchedAt||'').trim())nextFacts.employeeRatingCheckedAt=String(directJobindexFacts.employeeRatingCheckedAt||jobindexRead.jobindexFetchedAt);
+  nextFacts.employeeRatingAttemptedAt=String(jobindexRead.jobindexAttemptedAt||new Date().toISOString());
   if(String(directJobindexFacts.ratingCount||'').trim()){
    nextFacts.ratingCount=String(directJobindexFacts.ratingCount).trim();
    nextFacts.factSources.ratingCount=directJobindexSource;
@@ -1029,7 +1047,8 @@ async function lookupCompanyInsights(indexOrItem){
  }catch(error){
   const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
   const cached=state.companyFactsCache&&state.companyFactsCache[companyFactsCacheKey(company)];
-  const facts=cached?mergeReusableCompanyFacts(cached,{lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,220)}):{lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,220),sources:[],factSources:{}};
+  const prior=item.companyFacts||{};
+  const facts=cached?mergeReusableCompanyFacts(cached,{...prior,lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,220)}):mergeReusableCompanyFacts(prior,{lookupStatus:'error',lookupError:String(error&&error.message||error).slice(0,220),sources:[],factSources:{}});
   if(jobLocation&&!/^(?:denmark|danmark|dk|remote|remote jobs?)$/i.test(jobLocation)&&!facts.location){
    facts.location=jobLocation;facts.locationKind='job';
    facts.factSources.location={url:safeHttpUrl(item.url),title:String(item.jobTitle||item.title||'Originalt jobopslag'),domain:String(item.domain||''),description:String(item.description||'').slice(0,1000)};
@@ -1051,7 +1070,7 @@ async function autoLookupJobCompanyFacts(items){
   if(!grouped.has(norm))grouped.set(norm,{name,items:[]});
   grouped.get(norm).items.push(item);
  });
- const queue=[...grouped.values()].filter(group=>group.name!=='Arbejdsgiver ikke oplyst'&&!group.items.some(item=>{const facts=item.companyFacts||{};return facts.employeeRatingLookupVersion===JOBINDEX_LOOKUP_VERSION&&['done','loading','queued'].includes(facts.lookupStatus)}));
+ const queue=[...grouped.values()].filter(group=>group.name!=='Arbejdsgiver ikke oplyst'&&!group.items.some(item=>{const facts=item.companyFacts||{};return facts.lookupStatus==='loading'&&facts.employeeRatingLookupVersion===JOBINDEX_LOOKUP_VERSION||facts.lookupStatus==='queued'&&facts.employeeRatingLookupVersion===JOBINDEX_LOOKUP_VERSION}));
  if(!queue.length)return;
  queue.forEach(group=>group.items.forEach(item=>{
   item.companyFacts=item.companyFacts||{};
@@ -1067,7 +1086,6 @@ async function autoLookupJobCompanyFacts(items){
    if(!seed)continue;
    try{
     seed.companyFacts=seed.companyFacts||{};
-    if(seed.companyFacts.lookupStatus==='done')continue;
     await lookupCompanyInsights(seed);
     const facts=seed.companyFacts||{lookupStatus:'done',sources:[],factSources:{}};
     const siblingDistanceTasks=[];
@@ -1103,7 +1121,10 @@ function companyInsightBox(item,index){
  const industry=clean(f.industry)||'Ikke fundet',founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
  const tone=['mint','orange','purple','blue'][index%4],loading=f.lookupStatus==='loading'||f.lookupStatus==='queued',completed=f.lookupStatus==='done';
  const employeeIsRange=/\d\s*[-–]\s*\d/.test(employees)||/(?:ca\.?|cirka|estimat|omkring|~)/i.test(employees);
- const ratingEvidenceText=clean(f.ratingCount)?clean(f.ratingCount)+' evalueringer':(rating?'Antal evalueringer ikke aflæst':(clean(f.employeeRatingFetchStatus)==='found'?'Evalueringer fundet, men score ikke aflæst':(['no_public_evaluation_data','upstream_http_error','upstream_blocked','upstream_timeout','upstream_unavailable','proxy_unavailable','proxy_timeout','invalid_proxy_response','unknown'].includes(clean(f.employeeRatingFetchStatus))?'Jobindex kunne ikke aflæses automatisk':(loading?'Henter evalueringer fra Jobindex…':'Ikke fundet i de tilgængelige kilder'))));
+ const checkedDate=f.employeeRatingCheckedAt&&Number.isFinite(Date.parse(f.employeeRatingCheckedAt))?new Date(f.employeeRatingCheckedAt).toLocaleString('da-DK',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+ const ratingFetchFailed=['upstream_http_error','upstream_blocked','upstream_timeout','upstream_unavailable','proxy_unavailable','proxy_timeout','invalid_proxy_response'].includes(clean(f.employeeRatingFetchStatus));
+ const ratingEvidenceBase=clean(f.ratingCount)?clean(f.ratingCount)+' evalueringer':(rating?'Antal evalueringer ikke aflæst':(clean(f.employeeRatingFetchStatus)==='found'?'Evalueringer fundet, men score ikke aflæst':(ratingFetchFailed?'Seneste Jobindex-opslag mislykkedes':loading?'Henter evalueringer fra Jobindex…':'Ikke fundet i de tilgængelige kilder')));
+ const ratingEvidenceText=ratingEvidenceBase+(checkedDate?' · Jobindex kontrolleret '+checkedDate:'')+(rating&&ratingFetchFailed?' · Seneste opdatering fejlede':'');
  const qualityFields=[
   {key:'employeeCount',label:'medarbejderantal'},
   {key:'location',label:'adresse/placering'},

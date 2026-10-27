@@ -1431,7 +1431,7 @@ function normalizeCompanySourceRecord(source){
 function normalizeCompanyFacts(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return null;
  const out={};
- for(const key of ['employeeCount','location','distanceKm','distanceMethod','distanceOriginLabel','distanceTargetLabel','distanceMessage','distanceDestinationDisplay','locationKind','employeeRating','ratingCount','industry','foundedYear','companyType','companyHighlight','lookupError','lookupAt']){
+ for(const key of ['employeeCount','location','distanceKm','distanceMethod','distanceOriginLabel','distanceTargetLabel','distanceMessage','distanceDestinationDisplay','locationKind','employeeRating','ratingCount','industry','foundedYear','companyType','companyHighlight','lookupError','lookupAt','employeeRatingFetchStatus']){
   if(typeof raw[key]==='string')out[key]=raw[key].slice(0,1000);
  }
  out.lookupStatus=['waiting','queued','loading','done','error'].includes(raw.lookupStatus)?raw.lookupStatus:'waiting';

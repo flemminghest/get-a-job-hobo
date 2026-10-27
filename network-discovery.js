@@ -745,6 +745,18 @@ async function lookupCompanyInsights(indexOrItem){
  item.companyFacts=item.companyFacts||{};
  if(item.companyFacts.lookupStatus==='loading')return;
  item.companyFacts.lookupStatus='loading';persist();renderJobOpportunities();
+ // Calculate from the job's own location immediately while the more extensive employer lookup continues.
+ const earlyDistanceTask=(async()=>{
+  const facts=item.companyFacts;
+  const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
+  const generic=/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark))$/i.test(jobLocation);
+  if(jobLocation&&!generic&&(!facts.location||facts.locationKind==='job')){
+   facts.location=jobLocation;facts.locationKind='job';facts.factSources=facts.factSources||{};
+   facts.factSources.location={url:safeHttpUrl(item.url),title:String(item.jobTitle||item.title||'Originalt jobopslag'),domain:String(item.domain||''),description:String(item.description||'').slice(0,1000)};
+  }
+  await updateOpportunityDistance(item,facts);
+  persist();renderJobOpportunities();
+ })().catch(()=>false);
  const q='"'+company.replace(/"/g,' ')+'"';
  const queries=[
   {id:'krak-dk',label:'Krak · adresse og firmadata',targetSite:'krak.dk',query:'site:krak.dk/firma '+q+' adresse postnummer CVR branche ansatte',fallbackQuery:'site:krak.dk '+q+' firmaprofil adresse CVR virksomhed'},
@@ -762,6 +774,7 @@ async function lookupCompanyInsights(indexOrItem){
  ];
  try{
   const outcomes=await Promise.allSettled(queries.map(query=>queryIndex(query,[])));
+  await earlyDistanceTask;
   const found=[],sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
   outcomes.forEach((outcome,i)=>{
    if(outcome.status!=='fulfilled')return;

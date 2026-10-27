@@ -500,6 +500,9 @@ function effectiveCompanyFacts(item){
  const result={
   lookupStatus:stored.lookupStatus,lookupAt:stored.lookupAt,lookupError:stored.lookupError,
   employeeRatingFetchStatus:stored.employeeRatingFetchStatus||'',
+  employeeRatingCheckedAt:stored.employeeRatingCheckedAt||'',
+  employeeRatingAttemptedAt:stored.employeeRatingAttemptedAt||'',
+  employeeRatingLookupVersion:stored.employeeRatingLookupVersion||'',
   sources:allSources,danishCompanyConfirmed:!!stored.danishCompanyConfirmed,
   locationKind:stored.locationKind||'',distanceMethod:stored.distanceMethod||'',
   distanceOriginLabel:stored.distanceOriginLabel||'',distanceTargetLabel:stored.distanceTargetLabel||'',

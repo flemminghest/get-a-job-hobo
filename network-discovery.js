@@ -79,6 +79,7 @@ async function saveDistanceOrigin(){
  const input=el('distanceOriginInput'),button=el('saveDistanceOriginButton'),status=el('distanceOriginStatus');
  const value=String(input&&input.value||'').trim().slice(0,300);
  state.distanceOrigin=value;
+ if(value){try{localStorage.removeItem('gajh_company_geocode_'+normalizeInsightText(value))}catch(e){}}
  persist();
  if(button){button.disabled=true;button.textContent='Kontrollerer placering…'}
  if(status){status.className='distance-origin-status';status.textContent=value?'Kontrollerer adressen og opdaterer afstandene…':'Placeringen er ryddet. Der bruges Frederiksberg bymidte som standard.'}
@@ -576,7 +577,7 @@ function requestCompanyGeocode(url){
 async function geocodeDanishCompanyLocation(location){
  const query=String(location||'').trim();if(!query)return null;
  const key='gajh_company_geocode_'+normalizeInsightText(query);
- try{const cached=localStorage.getItem(key);if(cached){const parsed=JSON.parse(cached);if(Number.isFinite(parsed.lat)&&Number.isFinite(parsed.lon))return parsed}}catch(e){}
+ try{const cached=localStorage.getItem(key);if(cached){const parsed=JSON.parse(cached);if(Number.isFinite(parsed.lat)&&Number.isFinite(parsed.lon))return parsed;if(parsed.notFound===true&&Number(parsed.expiresAt)>Date.now())return null}}catch(e){}
  const candidates=[query];
  const parts=query.split(/[,;|]/).map(value=>value.trim()).filter(Boolean);
  if(parts.length>1){
@@ -598,6 +599,7 @@ async function geocodeDanishCompanyLocation(location){
    return value;
   }catch(e){/* Try a less-specific Danish address before giving up. */}
  }
+ try{localStorage.setItem(key,JSON.stringify({notFound:true,expiresAt:Date.now()+60*60*1000}))}catch(e){}
  return null;
 }
 async function resolveDistanceOrigin(){
@@ -614,11 +616,11 @@ async function updateOpportunityDistance(item,facts){
  const sourceLocation=String(facts.location||'').trim();
  const sourceLocationIsCompany=!!(sourceLocation&&facts.locationKind!=='job'&&facts.factSources&&facts.factSources.location&&isDanishCompanySource(facts.factSources.location));
  const candidates=[];
- if(sourceLocationIsCompany)candidates.push({value:sourceLocation,kind:'company'});
  const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
- if(jobLocation)candidates.push({value:jobLocation,kind:'job'});
- if(sourceLocation&&!candidates.some(candidate=>normalizeInsightText(candidate.value)===normalizeInsightText(sourceLocation)))candidates.push({value:sourceLocation,kind:'job'});
  const isGenericLocation=value=>/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark)|danmark\s*[·,-]\s*arbejdssted skal bekræftes|denmark\s*[·,-]\s*workplace to be confirmed)$/i.test(String(value||'').trim())||/(?:arbejdssted skal bekræftes|kontrollér arbejdssted|confirm workplace|location to be confirmed)/i.test(String(value||''));
+ if(jobLocation&&!isGenericLocation(jobLocation))candidates.push({value:jobLocation,kind:'job'});
+ if(sourceLocationIsCompany&&sourceLocation)candidates.push({value:sourceLocation,kind:'company'});
+ if(sourceLocation&&!candidates.some(candidate=>normalizeInsightText(candidate.value)===normalizeInsightText(sourceLocation)))candidates.push({value:sourceLocation,kind:'job'});
  const usable=candidates.filter((candidate,index)=>candidate.value&&!isGenericLocation(candidate.value)&&candidates.findIndex(other=>normalizeInsightText(other.value)===normalizeInsightText(candidate.value))===index);
  if(!usable.length){
   facts.distanceKm='';facts.distanceMessage='Arbejdssted/adresse mangler i de fundne kilder';

@@ -1076,7 +1076,7 @@ async function autoLookupJobCompanyFacts(items){
   if(!grouped.has(norm))grouped.set(norm,{name,items:[]});
   grouped.get(norm).items.push(item);
  });
- const queue=[...grouped.values()].filter(group=>group.name!=='Arbejdsgiver ikke oplyst'&&!group.items.some(item=>{const facts=item.companyFacts||{};return facts.lookupStatus==='loading'&&facts.employeeRatingLookupVersion===JOBINDEX_LOOKUP_VERSION||facts.lookupStatus==='queued'&&facts.employeeRatingLookupVersion===JOBINDEX_LOOKUP_VERSION}));
+ const queue=[...grouped.values()].filter(group=>group.name!=='Arbejdsgiver ikke oplyst'&&!group.items.some(item=>{const facts=item.companyFacts||{};return facts.lookupStatus==='loading'&&facts.employeeRatingLookupVersion===JOBINDEX_LOOKUP_VERSION||facts.lookupStatus==='queued'&&facts.employeeRatingLookupVersion===JOBINDEX_LOOKUP_VERSION})&&!group.items.every(item=>{const facts=item.companyFacts||{};const rating=String(facts.employeeRating||'').trim();const source=facts.factSources&&facts.factSources.employeeRating;return !!rating&&!!source&&!!safeHttpUrl(source.url)&&isWorkplaceReviewSource(source)}));
  if(!queue.length)return;
  queue.forEach(group=>group.items.forEach(item=>{
   item.companyFacts=item.companyFacts||{};

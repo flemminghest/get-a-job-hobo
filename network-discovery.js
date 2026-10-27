@@ -492,6 +492,7 @@ function isOfficialDanishCompanySource(source){
  const host=companySourceHost(source);
  return !!host&&hostMatchesOne(host,['virk.dk','datacvr.virk.dk','cvr.dk']);
 }
+const JOBINDEX_LOOKUP_VERSION='2';
 function curatedCompanyFacts(){return {}}
 function effectiveCompanyFacts(item){
  const stored=item&&item.companyFacts||{};
@@ -882,7 +883,8 @@ async function lookupCompanyInsights(indexOrItem){
  if(!item||!(state.jobOpportunities||[]).includes(item))return;
  const company=companyNameFromOpportunity(item);if(!company||company==='Virksomheden')return;
  item.companyFacts=item.companyFacts||{};
- if(item.companyFacts.lookupStatus==='loading')return;
+ if(item.companyFacts.lookupStatus==='loading'&&item.companyFacts.employeeRatingLookupVersion===JOBINDEX_LOOKUP_VERSION)return;
+ item.companyFacts.employeeRatingLookupVersion=JOBINDEX_LOOKUP_VERSION;
  item.companyFacts.lookupStatus='loading';persist();renderJobOpportunities();
  // Calculate from the job's own location immediately while the more extensive employer lookup continues.
  const earlyDistanceTask=(async()=>{
@@ -942,6 +944,7 @@ async function lookupCompanyInsights(indexOrItem){
   }
   jobindexFacts.lookupStatus='loading';
   jobindexFacts.employeeRatingFetchStatus=String(jobindexRead.jobindexFetchStatus||'unknown');
+  jobindexFacts.employeeRatingLookupVersion=JOBINDEX_LOOKUP_VERSION;
   jobindexFacts.sources=[compactCompanySource(jobindexRead)];
   jobindexFacts.danishCompanyConfirmed=false;
   item.companyFacts=jobindexFacts;
@@ -990,6 +993,7 @@ async function lookupCompanyInsights(indexOrItem){
   nextFacts.sources=found.slice(0,20).map(compactCompanySource);
   nextFacts.lookupStatus=(sourceErrors===queries.length&&!found.length)?'error':'done';
   nextFacts.employeeRatingFetchStatus=String(jobindexRead.jobindexFetchStatus||'unknown');
+  nextFacts.employeeRatingLookupVersion=JOBINDEX_LOOKUP_VERSION;
   nextFacts.lookupAt=new Date().toISOString();
   nextFacts.danishCompanyConfirmed=registrySources.length>0;
   // A job's published location is a useful fallback when a company office address cannot be found.
@@ -1027,10 +1031,11 @@ async function autoLookupJobCompanyFacts(items){
   if(!grouped.has(norm))grouped.set(norm,{name,items:[]});
   grouped.get(norm).items.push(item);
  });
- const queue=[...grouped.values()].filter(group=>group.name!=='Arbejdsgiver ikke oplyst'&&!group.items.some(item=>['done','loading','queued'].includes(item.companyFacts&&item.companyFacts.lookupStatus)));
+ const queue=[...grouped.values()].filter(group=>group.name!=='Arbejdsgiver ikke oplyst'&&!group.items.some(item=>{const facts=item.companyFacts||{};return facts.employeeRatingLookupVersion===JOBINDEX_LOOKUP_VERSION&&['done','loading','queued'].includes(facts.lookupStatus)}));
  if(!queue.length)return;
  queue.forEach(group=>group.items.forEach(item=>{
   item.companyFacts=item.companyFacts||{};
+  item.companyFacts.employeeRatingLookupVersion=JOBINDEX_LOOKUP_VERSION;
   item.companyFacts.lookupStatus='queued';
  }));
  persist();renderJobOpportunities();

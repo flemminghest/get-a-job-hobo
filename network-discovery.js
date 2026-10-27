@@ -558,6 +558,10 @@ async function fetchJobindexEvaluationSource(company){
  const rating=responseData&&responseData.rating;
  const ratingCount=String(responseData&&responseData.ratingCount||'').trim();
  const ratingLabel=String(responseData&&responseData.ratingLabel||'').trim();
+ const numericRating=Number(String(rating==null?'':rating).replace(',','.'));
+ const starsLabel=/^[★⭐☆]{5}$/.test(ratingLabel)?ratingLabel:
+  (Number.isInteger(numericRating)&&numericRating>=1&&numericRating<=5?'★'.repeat(numericRating)+'☆'.repeat(5-numericRating):'');
+ const displayRating=starsLabel||((rating!==undefined&&rating!==null)?String(rating):'');
  let source={
   ...fallback,
   title:String(responseData&&responseData.pageTitle||fallback.title).slice(0,500),
@@ -566,8 +570,8 @@ async function fetchJobindexEvaluationSource(company){
   jobindexFetchMessage:String(responseData&&responseData.message||''),
   jobindexFetchedAt:new Date().toISOString(),
   companyFacts:{
-   employeeRating:rating!==undefined&&rating!==null?String(rating):'',
-   ratingLabel,
+   employeeRating:displayRating,
+   ratingLabel:starsLabel||ratingLabel,
    ratingCount
   }
  };
@@ -823,8 +827,7 @@ function applyCompanySourceFacts(sources,prior){
    const structuredRating=structured.employeeRating||structured.employeeSatisfaction||structured.employee_satisfaction||structured.employee_rating||structured.ratingFromEmployees||structured.rating;
    const starsLabel=String(structured.ratingLabel||'').trim();
    if(starsLabel&&/^[★⭐☆]{5}$/.test(starsLabel)){
-    const filled=(starsLabel.match(/[★⭐]/g)||[]).length;
-    if(filled>0)fill('employeeRating',String(filled),source);
+    fill('employeeRating',starsLabel,source);
    }
    if(!f.employeeRating&&structuredRating!==undefined&&structuredRating!==null&&String(structuredRating).trim()!==''){
     const numeric=numericCompanyRating(structuredRating);
@@ -1076,7 +1079,8 @@ function companyInsightBox(item,index){
  const jobindexHref=jobindexEvaluationUrl(company);
  const jobindexRatingLink='<a class="job-company-fact-source" href="'+escapeHtml(jobindexHref)+'" target="_blank" rel="noopener noreferrer">Se evalueringer på Jobindex ↗</a>';
  const rating=clean(f.employeeRating),ratingNumber=Number(rating.replace(',','.'));
- const ratingDisplay=rating&&Number.isFinite(ratingNumber)&&ratingNumber>=0&&ratingNumber<=5?ratingNumber.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet';
+ const ratingIsStars=/^[★⭐☆]{5}$/.test(rating);
+ const ratingDisplay=ratingIsStars?rating:(rating&&Number.isFinite(ratingNumber)&&ratingNumber>=0&&ratingNumber<=5?ratingNumber.toLocaleString('da-DK',{maximumFractionDigits:1})+'/5':rating||'Ikke fundet');
  const employees=clean(f.employeeCount)||'Ikke oplyst',location=clean(f.location)||'Ikke fundet';
  const distance=clean(f.distanceKm),distanceDisplay=distance?distance+' km':clean(f.distanceMessage)||'Afventer afstand';
  const industry=clean(f.industry)||'Ikke fundet',founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
@@ -1114,7 +1118,7 @@ function companyInsightBox(item,index){
  out+='<div class="job-company-insight-stats">';
  out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong>'+(employeeIsRange?'<span class="job-company-employee-estimate">Interval / estimat</span>':'')+factSourceLink('employeeCount')+'</div></div>';
  out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>'+(f.locationKind==='job'?'Jobbets arbejdssted':'Virksomhedsadresse / placering')+'</small><strong>'+escapeHtml(location)+'</strong>'+(distance?'<strong class="job-insight-distance">'+escapeHtml(distanceDisplay)+'</strong>':'<span class="job-insight-sub">'+escapeHtml(distanceDisplay)+'</span>')+factSourceLink('location')+(distance?factSourceLink('distanceKm'):'')+'</div></div>';
- out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(ratingEvidenceText)+'</span>'+(factSources.employeeRating?factSourceLink('employeeRating'):jobindexRatingLink)+'</div></div>';
+ out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong'+(ratingIsStars?' class="jobindex-stars"':'')+'>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(ratingEvidenceText)+'</span>'+(factSources.employeeRating?factSourceLink('employeeRating'):jobindexRatingLink)+'</div></div>';
  out+='</div>';
  out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+factSourceLink('industry')+'</span><span><b>Etableret</b> '+escapeHtml(founded)+factSourceLink('foundedYear')+'</span><span><b>Type</b> '+escapeHtml(type)+factSourceLink('companyType')+'</span></div>';
  if(completed){

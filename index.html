@@ -1375,7 +1375,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',distanceOrigin:'',jobDistanceMaxKm:50,networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',distanceOrigin:'',jobDistanceMaxKm:50,companyFactsCache:{},networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
@@ -1513,6 +1513,14 @@ function normalizeState(raw){
  out.networkProspects=normalizeResearchRecords(raw.networkProspects,'person');
  out.networkCommunities=normalizeResearchRecords(raw.networkCommunities,'post');
  out.jobOpportunities=normalizeResearchRecords(raw.jobOpportunities,'job');
+ out.companyFactsCache={};
+ if(raw.companyFactsCache&&typeof raw.companyFactsCache==='object'&&!Array.isArray(raw.companyFactsCache)){
+  for(const [key,value] of Object.entries(raw.companyFactsCache).slice(0,400)){
+   const safeKey=typeof key==='string'?key.slice(0,200):'';
+   const facts=normalizeCompanyFacts(value);
+   if(safeKey&&facts)out.companyFactsCache[safeKey]=facts;
+  }
+ }
  out.followUps=normalizeFollowUpRecords(raw.followUps);
  out.networkLastSearch=typeof raw.networkLastSearch==='string'?raw.networkLastSearch.slice(0,50):'';
  out.jobLastSearch=typeof raw.jobLastSearch==='string'?raw.jobLastSearch.slice(0,50):'';

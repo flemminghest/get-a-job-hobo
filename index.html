@@ -1147,7 +1147,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
  <div class="card stack"><div><h2>Find stillinger med dine søgeord</h2><p class="muted">Skriv jobtitler, fagområder eller kompetencer, fx marketing, CRM eller marketing automation. Søgningen gennemgår jobportaler og viser konkrete opslag, der matcher dine kriterier.</p></div>
   <div class="formrow"><div><label for="jobSearchTerms">Hvad vil du søge efter?</label><input id="jobSearchTerms" placeholder="Marketing, CRM, marketing automation…" oninput="syncJobSearchPreferences()"><small>Adskil flere søgeord med komma. Du kan redigere dem, inden du søger.</small></div><div><label for="jobSearchLocation">Hvor vil du arbejde?</label><input id="jobSearchLocation" placeholder="Frederiksberg, København eller hele Danmark" oninput="syncJobSearchPreferences()"><small>Danske arbejdssteder og remote-job, hvor Danmark er en tilladt arbejdsplacering.</small></div></div>
   <div class="distance-origin-settings">
-   <div class="distance-origin-copy"><label for="distanceOriginInput">Din placering til afstandsberegning</label><input id="distanceOriginInput" type="text" autocomplete="street-address" maxlength="300" placeholder="Adresse, postnummer eller by — fx 1958 Frederiksberg C"><small>Gem din adresse eller dit postnummer én gang. Den gemmes lokalt i denne browser og bruges kun til afstandsberegning.</small></div>
+   <div class="distance-origin-copy"><label for="distanceOriginInput">Din placering til afstandsberegning</label><input id="distanceOriginInput" type="text" autocomplete="street-address" maxlength="300" placeholder="Adresse, postnummer eller by — fx 1958 Frederiksberg C"><small>Gem din adresse eller dit postnummer én gang. Den gemmes lokalt i denne browser. Adressen sendes til OpenStreetMap for at finde koordinater — ikke til jobsøgningen.</small></div>
    <button type="button" class="secondary" id="saveDistanceOriginButton" onclick="saveDistanceOrigin()">Gem min placering</button>
    <div id="distanceOriginStatus" class="distance-origin-status" role="status">Indtil du angiver din egen placering, vises en grov afstand fra Frederiksberg bymidte. For præcisere afstand skal appen kende din adresse, dit postnummer eller din by.</div>
   </div>
@@ -1414,7 +1414,7 @@ function normalizeCompanySourceRecord(source){
 function normalizeCompanyFacts(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return null;
  const out={};
- for(const key of ['employeeCount','location','distanceKm','distanceMethod','distanceOriginLabel','distanceTargetLabel','locationKind','employeeRating','ratingCount','industry','foundedYear','companyType','companyHighlight','lookupError','lookupAt']){
+ for(const key of ['employeeCount','location','distanceKm','distanceMethod','distanceOriginLabel','distanceTargetLabel','distanceMessage','distanceDestinationDisplay','locationKind','employeeRating','ratingCount','industry','foundedYear','companyType','companyHighlight','lookupError','lookupAt']){
   if(typeof raw[key]==='string')out[key]=raw[key].slice(0,1000);
  }
  out.lookupStatus=['waiting','queued','loading','done','error'].includes(raw.lookupStatus)?raw.lookupStatus:'waiting';

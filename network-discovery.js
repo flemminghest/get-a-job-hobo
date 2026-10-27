@@ -502,6 +502,7 @@ function effectiveCompanyFacts(item){
   employeeRatingFetchStatus:stored.employeeRatingFetchStatus||'',
   employeeRatingCheckedAt:stored.employeeRatingCheckedAt||'',
   employeeRatingAttemptedAt:stored.employeeRatingAttemptedAt||'',
+  jobindexCheckedAt:stored.jobindexCheckedAt||'',
   employeeRatingLookupVersion:stored.employeeRatingLookupVersion||'',
   sources:allSources,danishCompanyConfirmed:!!stored.danishCompanyConfirmed,
   locationKind:stored.locationKind||'',distanceMethod:stored.distanceMethod||'',
@@ -953,7 +954,8 @@ async function lookupCompanyInsights(indexOrItem){
    jobindexFacts.factSources=jobindexFacts.factSources||{};
    jobindexFacts.factSources.ratingCount=freshJobindexSource;
   }
-  if(String(freshJobindexFacts.employeeRatingCheckedAt||'').trim())jobindexFacts.employeeRatingCheckedAt=freshJobindexFacts.employeeRatingCheckedAt;
+  if((String(freshJobindexFacts.employeeRating||'').trim()||String(freshJobindexFacts.ratingCount||'').trim())&&String(freshJobindexFacts.employeeRatingCheckedAt||'').trim())jobindexFacts.employeeRatingCheckedAt=freshJobindexFacts.employeeRatingCheckedAt;
+  if(String(jobindexRead.jobindexFetchedAt||'').trim())jobindexFacts.jobindexCheckedAt=String(jobindexRead.jobindexFetchedAt);
   jobindexFacts.employeeRatingAttemptedAt=String(jobindexRead.jobindexAttemptedAt||new Date().toISOString());
   for(const key of ['distanceKm','distanceMethod','distanceOriginLabel','distanceTargetLabel','distanceMessage','distanceDestinationDisplay']){
    if(priorFacts[key]!==undefined)jobindexFacts[key]=priorFacts[key];
@@ -1022,7 +1024,8 @@ async function lookupCompanyInsights(indexOrItem){
    nextFacts.employeeRating=String(directJobindexFacts.employeeRating).trim();
    nextFacts.factSources.employeeRating=directJobindexSource;
   }
-  if(String(directJobindexFacts.employeeRatingCheckedAt||jobindexRead.jobindexFetchedAt||'').trim())nextFacts.employeeRatingCheckedAt=String(directJobindexFacts.employeeRatingCheckedAt||jobindexRead.jobindexFetchedAt);
+  if((String(directJobindexFacts.employeeRating||'').trim()||String(directJobindexFacts.ratingCount||'').trim())&&String(directJobindexFacts.employeeRatingCheckedAt||'').trim())nextFacts.employeeRatingCheckedAt=String(directJobindexFacts.employeeRatingCheckedAt);
+  if(String(jobindexRead.jobindexFetchedAt||'').trim())nextFacts.jobindexCheckedAt=String(jobindexRead.jobindexFetchedAt);
   nextFacts.employeeRatingAttemptedAt=String(jobindexRead.jobindexAttemptedAt||new Date().toISOString());
   if(String(directJobindexFacts.ratingCount||'').trim()){
    nextFacts.ratingCount=String(directJobindexFacts.ratingCount).trim();
@@ -1124,10 +1127,18 @@ function companyInsightBox(item,index){
  const industry=clean(f.industry)||'Ikke fundet',founded=clean(f.foundedYear)||'Ikke oplyst',type=clean(f.companyType)||'Ikke oplyst';
  const tone=['mint','orange','purple','blue'][index%4],loading=f.lookupStatus==='loading'||f.lookupStatus==='queued',completed=f.lookupStatus==='done';
  const employeeIsRange=/\d\s*[-–]\s*\d/.test(employees)||/(?:ca\.?|cirka|estimat|omkring|~)/i.test(employees);
- const checkedDate=f.employeeRatingCheckedAt&&Number.isFinite(Date.parse(f.employeeRatingCheckedAt))?new Date(f.employeeRatingCheckedAt).toLocaleString('da-DK',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+ const formatCheckDate=value=>value&&Number.isFinite(Date.parse(value))?new Date(value).toLocaleString('da-DK',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+ const checkedDate=formatCheckDate(f.employeeRatingCheckedAt);
+ const pageCheckedDate=formatCheckDate(f.jobindexCheckedAt);
+ const attemptedDate=formatCheckDate(f.employeeRatingAttemptedAt);
  const ratingFetchFailed=['upstream_http_error','upstream_blocked','upstream_timeout','upstream_unavailable','proxy_unavailable','proxy_timeout','invalid_proxy_response'].includes(clean(f.employeeRatingFetchStatus));
- const ratingEvidenceBase=clean(f.ratingCount)?clean(f.ratingCount)+' evalueringer':(rating?'Antal evalueringer ikke aflæst':(clean(f.employeeRatingFetchStatus)==='found'?'Evalueringer fundet, men score ikke aflæst':(ratingFetchFailed?'Seneste Jobindex-opslag mislykkedes':loading?'Henter evalueringer fra Jobindex…':'Ikke fundet i de tilgængelige kilder')));
- const ratingEvidenceText=ratingEvidenceBase+(checkedDate?' · Jobindex kontrolleret '+checkedDate:'')+(rating&&ratingFetchFailed?' · Seneste opdatering fejlede':'');
+ const ratingReadUnconfirmed=ratingFetchFailed||clean(f.employeeRatingFetchStatus)==='no_public_evaluation_data';
+ const ratingEvidenceBase=clean(f.ratingCount)?clean(f.ratingCount)+' evalueringer':(rating?'Antal evalueringer ikke aflæst':(clean(f.employeeRatingFetchStatus)==='found'?'Evalueringer fundet, men score ikke aflæst':(clean(f.employeeRatingFetchStatus)==='no_public_evaluation_data'?'Score kunne ikke aflæses på Jobindex':(ratingFetchFailed?'Jobindex kunne ikke aflæses automatisk':loading?'Henter evalueringer fra Jobindex…':'Ikke fundet i de tilgængelige kilder'))));
+ const ratingEvidenceText=ratingEvidenceBase
+  +(checkedDate?' · Vurdering senest verificeret '+checkedDate:'')
+  +(pageCheckedDate&&pageCheckedDate!==checkedDate?' · Jobindex kontrolleret '+pageCheckedDate:'')
+  +(rating&&ratingReadUnconfirmed?' · Seneste opslag kunne ikke bekræfte vurderingen'+(attemptedDate?' ('+attemptedDate+')':''):'')
+  +(!rating&&ratingFetchFailed&&attemptedDate?' · Forsøg '+attemptedDate:'');
  const qualityFields=[
   {key:'employeeCount',label:'medarbejderantal'},
   {key:'location',label:'adresse/placering'},

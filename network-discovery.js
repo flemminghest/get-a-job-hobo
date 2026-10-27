@@ -64,10 +64,42 @@ function searchProfile(){
 function syncOpportunityInputs(){
  if(el('jobSearchTerms'))el('jobSearchTerms').value=state.networkSearchTerms||profileTermsFromCV().join(', ');
  if(el('jobSearchLocation'))el('jobSearchLocation').value=state.networkSearchLocation||'Frederiksberg, København og omegn, Danmark';
+ if(el('distanceOriginInput'))el('distanceOriginInput').value=state.distanceOrigin||'';
  if(el('jobKeywordCount'))el('jobKeywordCount').textContent=parseTerms(state.networkSearchTerms).length;
  if(el('jobOpportunityCount'))el('jobOpportunityCount').textContent=(state.jobOpportunities||[]).length;
  if(el('jobTrackedCount'))el('jobTrackedCount').textContent=(state.followUps||[]).filter(item=>item.type==='job').length;
  if(el('jobLastSearchLabel'))el('jobLastSearchLabel').textContent=state.jobLastSearch?new Date(state.jobLastSearch).toLocaleDateString('da-DK'):'Ikke søgt';
+ const originStatus=el('distanceOriginStatus');
+ if(originStatus){
+  originStatus.className='distance-origin-status'+(state.distanceOrigin?' is-saved':'');
+  originStatus.textContent=state.distanceOrigin?'Din placering er gemt lokalt. Afstande beregnes fra denne adresse/by, når adressen og arbejdsstedet kan geokodes.':'Afstand vises altid, når arbejdsstedet kan placeres. Standard uden gemt placering: Frederiksberg bymidte. Indtast din egen adresse/postnummer/by for at bruge din bopæl.';
+ }
+}
+async function saveDistanceOrigin(){
+ const input=el('distanceOriginInput'),button=el('saveDistanceOriginButton'),status=el('distanceOriginStatus');
+ const value=String(input&&input.value||'').trim().slice(0,300);
+ state.distanceOrigin=value;
+ persist();
+ if(button){button.disabled=true;button.textContent='Kontrollerer placering…'}
+ if(status){status.className='distance-origin-status';status.textContent=value?'Kontrollerer adressen og opdaterer afstandene…':'Placeringen er ryddet. Der bruges Frederiksberg bymidte som standard.'}
+ try{
+  if(value){
+   const coords=await geocodeDanishCompanyLocation(value);
+   if(!coords){
+    if(status){status.className='distance-origin-status is-warning';status.textContent='Adressen kunne ikke geokodes. Den er gemt, men der bruges midlertidigt Frederiksberg bymidte som standard. Prøv evt. postnummer + by i stedet for fuld adresse.'}
+   }else if(status){status.className='distance-origin-status is-saved';status.textContent='Placering fundet: '+(coords.displayName||value)+'. Afstandene opdateres nu.'}
+  }
+  await refreshOpportunityDistances();
+  if(status&&value){
+   const usable=await geocodeDanishCompanyLocation(value);
+   if(usable){status.className='distance-origin-status is-saved';status.textContent='Din placering er gemt og fundet. Afstande vises som luftlinje fra denne placering.'}
+  }
+ }catch(error){
+  if(status){status.className='distance-origin-status is-warning';status.textContent='Placeringen er gemt, men geokodningen kunne ikke gennemføres. Standardafstanden fra Frederiksberg bruges foreløbigt.'}
+ }finally{
+  if(button){button.disabled=false;button.textContent='Gem min placering'}
+  persist();
+ }
 }
 function discoverQueries(kind,profile){
  const terms=profile.terms.slice(0,7).join(' '),loc=searchPhrase(profile.location||'København Danmark');
@@ -580,32 +612,40 @@ async function updateOpportunityDistance(item,facts){
  facts=facts||item.companyFacts||(item.companyFacts={});
  const sourceLocation=String(facts.location||'').trim();
  const sourceLocationIsCompany=!!(sourceLocation&&facts.locationKind!=='job'&&facts.factSources&&facts.factSources.location&&isDanishCompanySource(facts.factSources.location));
- let target=sourceLocationIsCompany?sourceLocation:'';
- let targetKind=target?'company':'job';
- if(!target){
-  target=String(item.jobLocation||item.location||item.city||'').trim();
-  if(!target&&sourceLocation){target=sourceLocation;targetKind='job'}
- }
- if(!target||/^(?:denmark|danmark|dk|remote|remote jobs?)$/i.test(target)){
-  facts.distanceKm='';facts.distanceMessage='Arbejdssted/adresse mangler i de fundne kilder';facts.distanceOriginLabel=String(state.distanceOrigin||'').trim()?'din gemte placering':'Frederiksberg bymidte (standard)';
+ const candidates=[];
+ if(sourceLocationIsCompany)candidates.push({value:sourceLocation,kind:'company'});
+ const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
+ if(jobLocation)candidates.push({value:jobLocation,kind:'job'});
+ if(sourceLocation&&!candidates.some(candidate=>normalizeInsightText(candidate.value)===normalizeInsightText(sourceLocation)))candidates.push({value:sourceLocation,kind:'job'});
+ const usable=candidates.filter((candidate,index)=>candidate.value&&!/^(?:denmark|danmark|dk|remote|remote jobs?)$/i.test(candidate.value)&&candidates.findIndex(other=>normalizeInsightText(other.value)===normalizeInsightText(candidate.value))===index);
+ if(!usable.length){
+  facts.distanceKm='';facts.distanceMessage='Arbejdssted/adresse mangler i de fundne kilder';
+  facts.distanceOriginLabel=String(state.distanceOrigin||'').trim()?'din gemte placering':'Frederiksberg bymidte (standard)';
   return false;
  }
  const origin=await resolveDistanceOrigin();
- const destination=await geocodeDanishCompanyLocation(target);
- if(!destination){
-  facts.distanceKm='';facts.distanceMessage='Arbejdsstedet blev fundet, men kunne ikke placeres sikkert på kortet';facts.distanceOriginLabel=origin.originLabel;
+ let resolved=null;
+ for(const candidate of usable){
+  const destination=await geocodeDanishCompanyLocation(candidate.value);
+  if(destination){resolved={candidate,destination};break}
+ }
+ if(!resolved){
+  facts.distanceKm='';
+  facts.distanceMessage='Arbejdsstedet blev fundet, men ingen af de fundne adresse-/stedangivelser kunne placeres sikkert på kortet';
+  facts.distanceOriginLabel=origin.originLabel;
   return false;
  }
+ const {candidate,destination}=resolved;
  facts.distanceKm=haversineDistanceKm(origin.lat,origin.lon,destination.lat,destination.lon).toLocaleString('da-DK',{maximumFractionDigits:1});
  facts.distanceMethod='Luftlinje';
  facts.distanceOriginLabel=origin.personalized?'din gemte placering':(origin.geocodeFailed?'Frederiksberg bymidte (standard · gemt placering kunne ikke geokodes)':'Frederiksberg bymidte (standard)');
- facts.distanceTargetLabel=targetKind==='company'?'virksomhedsadresse':'jobbets arbejdssted';
+ facts.distanceTargetLabel=candidate.kind==='company'?'virksomhedsadresse':'jobbets arbejdssted';
  facts.distanceMessage='';
- facts.distanceDestinationDisplay=destination.displayName||target;
+ facts.distanceDestinationDisplay=destination.displayName||candidate.value;
  facts.factSources=facts.factSources||{};
  facts.factSources.distanceKm={url:destination.sourceUrl||'https://www.openstreetmap.org/',title:'OpenStreetMap-geokodning',domain:'openstreetmap.org'};
- if(targetKind==='job'){
-  facts.location=target;facts.locationKind='job';
+ if(candidate.kind==='job'&&!sourceLocationIsCompany){
+  facts.location=candidate.value;facts.locationKind='job';
   facts.factSources.location={url:safeHttpUrl(item.url),title:String(item.jobTitle||item.title||'Originalt jobopslag'),domain:String(item.domain||''),description:String(item.description||'').slice(0,1000)};
  }
  return true;
@@ -842,7 +882,7 @@ function companyInsightBox(item,index){
  out+='<div class="job-company-insights-head"><span class="job-company-insights-icon">'+svg.building+'</span><div><strong>'+escapeHtml(company)+'</strong><small>Offentlige virksomheds- og arbejdspladskilder · afstand fra din gemte placering</small></div><span class="job-company-auto-status" data-company-state="'+escapeHtml(statusState)+'">'+escapeHtml(statusLabel)+'</span></div>';
  out+='<div class="job-company-insight-stats">';
  out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong>'+(employeeIsRange?'<span class="job-company-employee-estimate">Interval / estimat</span>':'')+factSourceLink('employeeCount')+'</div></div>';
- out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>Adresse/placering</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span>'+factSourceLink('location')+(distance?factSourceLink('distanceKm'):'')+'</div></div>';
+ out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>'+(f.locationKind==='job'?'Jobbets arbejdssted':'Virksomhedsadresse / placering')+'</small><strong>'+escapeHtml(location)+'</strong><span class="job-insight-sub">'+escapeHtml(distanceLine)+'</span>'+factSourceLink('location')+(distance?factSourceLink('distanceKm'):'')+'</div></div>';
  out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' medarbejderevalueringer/anmeldelser':'Ingen offentlig medarbejdervurdering fundet')+'</span>'+factSourceLink('employeeRating')+'</div></div>';
  out+='</div>';
  out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+factSourceLink('industry')+'</span><span><b>Etableret</b> '+escapeHtml(founded)+factSourceLink('foundedYear')+'</span><span><b>Type</b> '+escapeHtml(type)+factSourceLink('companyType')+'</span></div>';

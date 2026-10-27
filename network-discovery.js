@@ -492,7 +492,7 @@ function isOfficialDanishCompanySource(source){
  const host=companySourceHost(source);
  return !!host&&hostMatchesOne(host,['virk.dk','datacvr.virk.dk','cvr.dk']);
 }
-const JOBINDEX_LOOKUP_VERSION='2';
+const JOBINDEX_LOOKUP_VERSION='3';
 function curatedCompanyFacts(){return {}}
 function effectiveCompanyFacts(item){
  const stored=item&&item.companyFacts||{};
@@ -543,8 +543,8 @@ function jobindexEvaluationUrl(company){
  return 'https://www.jobindex.dk/virksomhedsoversigt/resultat?'+new URLSearchParams({company:name,evaluate_tab:'0'}).toString();
 }
 async function fetchJobindexEvaluationSource(company){
- const sourceUrl=jobindexEvaluationUrl(company);
- const fallback={url:sourceUrl,title:String(company||'Virksomhed')+' — evalueringer på Jobindex',domain:'jobindex.dk',sourceLabel:'Jobindex · medarbejdertilfredshed',sourceType:'jobindex-company-evaluation'};
+ const requestedSourceUrl=jobindexEvaluationUrl(company);
+ let fallback={url:requestedSourceUrl,title:String(company||'Virksomhed')+' — evalueringer på Jobindex',domain:'jobindex.dk',sourceLabel:'Jobindex · medarbejdertilfredshed',sourceType:'jobindex-company-evaluation'};
  let responseData=null;
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
  try{
@@ -555,6 +555,7 @@ async function fetchJobindexEvaluationSource(company){
  }catch(error){
   responseData={ok:false,status:error&&error.name==='AbortError'?'proxy_timeout':'proxy_unavailable',message:String(error&&error.message||error).slice(0,180)};
  }finally{clearTimeout(timer)}
+ if(responseData&&safeHttpUrl(responseData.sourceUrl))fallback={...fallback,url:safeHttpUrl(responseData.sourceUrl)};
  const rating=responseData&&responseData.rating;
  const ratingCount=String(responseData&&responseData.ratingCount||'').trim();
  const ratingLabel=String(responseData&&responseData.ratingLabel||'').trim();
@@ -993,6 +994,18 @@ async function lookupCompanyInsights(indexOrItem){
   });
   const registrySources=found.filter(source=>isOfficialDanishCompanySource(source));
   const nextFacts=applyCompanySourceFacts(found,{});
+  // Keep the direct Jobindex evaluation as the authoritative source for rating and evaluation count.
+  const directJobindexFacts=jobindexRead.companyFacts||{};
+  const directJobindexSource=compactCompanySource(jobindexRead);
+  nextFacts.factSources=nextFacts.factSources||{};
+  if(String(directJobindexFacts.employeeRating||'').trim()){
+   nextFacts.employeeRating=String(directJobindexFacts.employeeRating).trim();
+   nextFacts.factSources.employeeRating=directJobindexSource;
+  }
+  if(String(directJobindexFacts.ratingCount||'').trim()){
+   nextFacts.ratingCount=String(directJobindexFacts.ratingCount).trim();
+   nextFacts.factSources.ratingCount=directJobindexSource;
+  }
   nextFacts.sources=found.slice(0,20).map(compactCompanySource);
   nextFacts.lookupStatus=(sourceErrors===queries.length&&!found.length)?'error':'done';
   nextFacts.employeeRatingFetchStatus=String(jobindexRead.jobindexFetchStatus||'unknown');

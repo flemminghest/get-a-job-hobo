@@ -1351,6 +1351,12 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
      <p id="appPortraitStatus" class="app-pdf-help" aria-live="polite">Portrættet fra reference-PDF’en bruges automatisk. Hvis det ikke kan indlæses, vises en avatar i stedet.</p>
     </div>
     <div class="app-pdf-color-row">
+     <label for="appLinkedInUrl">Din LinkedIn-profil (klikbart link i PDF)</label>
+     <input id="appLinkedInUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://www.linkedin.com/in/..." onchange="saveApplicationLinkedInUrl(this.value)">
+     <p class="app-pdf-help">Telefonnummeret i PDF'en bliver automatisk klikbart. Indsæt din profiladresse her én gang; den gemmes lokalt og indlejres som et klikbart link i PDF'en.</p>
+     <p id="appLinkedInStatus" class="app-pdf-help" aria-live="polite"></p>
+    </div>
+    <div class="app-pdf-color-row">
      <label for="appGreetingHex">Baggrund: KÆRE + hilsenlinje</label>
      <input id="appGreetingHex" type="text" maxlength="7" value="#3E7099" autocomplete="off" spellcheck="false">
      <div id="appGreetingSwatch" class="app-pdf-color-preview" style="background:#3E7099"></div>
@@ -1375,9 +1381,48 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',distanceOrigin:'',jobDistanceMaxKm:50,companyFactsCache:{},networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationLinkedInUrl:'',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',distanceOrigin:'',jobDistanceMaxKm:50,companyFactsCache:{},networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
+function safeApplicationLinkedInUrl(raw){
+ let value=String(raw||'').trim().replace(/[)\]>,;.!]+$/,'');
+ if(!value)return '';
+ if(!/^https:\/\//i.test(value))value='https://'+value.replace(/^\/\//,'');
+ try{
+  const url=new URL(value);
+  if(url.protocol!=='https:'||!/(^|\.)linkedin\.com$/i.test(url.hostname)||!/^\/in\/[A-Za-z0-9_%.-]+(?:\/.*)?$/i.test(url.pathname))return '';
+  url.hash='';
+  url.search='';
+  return url.href;
+ }catch(e){return ''}
+}
+function extractApplicationLinkedInUrl(text){
+ const value=String(text||'');
+ const match=value.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9_%.-]+(?:\/[A-Za-z0-9_%./-]*)?/i);
+ if(!match)return '';
+ return safeApplicationLinkedInUrl(match[0]);
+}
+function getApplicationLinkedInUrl(){
+ const saved=safeApplicationLinkedInUrl(state.applicationLinkedInUrl);
+ if(saved)return saved;
+ return extractApplicationLinkedInUrl(state.cv)||extractApplicationLinkedInUrl(state.application)||'';
+}
+function saveApplicationLinkedInUrl(raw){
+ const value=String(raw||'').trim();
+ const url=safeApplicationLinkedInUrl(value);
+ const status=el('appLinkedInStatus');
+ if(value&&!url){
+  if(status)status.textContent='Indsæt en gyldig LinkedIn-profiladresse, fx https://www.linkedin.com/in/dit-navn/.';
+  return false;
+ }
+ state.applicationLinkedInUrl=url;
+ persist();
+ if(status)status.textContent=url?'LinkedIn-link gemt. Det indlejres som klikbart link i PDF’en.':'LinkedIn-link fjernet. Du kan stadig hente et profil-link fra CV-teksten, hvis det findes der.';
+ markApplicationPdfOutdated();
+ if(el('appPreviewModal')&&!el('appPreviewModal').hidden)renderApplicationPdfPreview(false);
+ return true;
+}
+
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
 function renderScoreMeter(value){
  const score=clampScore(value);
@@ -1489,6 +1534,7 @@ function normalizeState(raw){
  const normalizePdfColor=(value,fallback,legacy)=>{if(typeof value!=='string'||!/^#?[0-9a-fA-F]{6}$/.test(value))return fallback;const color='#'+value.replace(/^#/,'').toUpperCase();return legacy.includes(color)?fallback:color};
  out.applicationGreetingHex=normalizePdfColor(raw.applicationGreetingHex,'#3E7099',['#3F7897','#D94F3E']);
  out.applicationSignoffHex=normalizePdfColor(raw.applicationSignoffHex,'#1F325E',['#183755','#D94F3E']);
+ out.applicationLinkedInUrl=safeApplicationLinkedInUrl(raw.applicationLinkedInUrl)||'';
  out.applicationPortraitModeChosen=raw.applicationPortraitModeChosen===true;
  out.applicationPortraitMode=raw.applicationPortraitMode==='avatar'&&out.applicationPortraitModeChosen?'avatar':'photo';
  out.applicationPortraitDataUrl=typeof raw.applicationPortraitDataUrl==='string'&&/^data:image\/(?:jpeg|png);base64,/i.test(raw.applicationPortraitDataUrl)&&raw.applicationPortraitDataUrl.length<=700000?raw.applicationPortraitDataUrl:'';
@@ -2475,7 +2521,15 @@ function drawPdfHeader(doc,portraitDataUrl){
  doc.setFillColor(255,255,255);doc.circle(83,11.5,4.8,'F');
  doc.setFillColor(177,177,177);doc.circle(83,10.1,1.35,'F');doc.ellipse(83,13.2,2.7,1.7,'F');
  doc.setFontSize(8.5);doc.setTextColor(20,20,20);
- doc.text('mail@pferd.dk',82,27.8);doc.text('+45 2331 9975',82,35.2);doc.text('Min LinkedIn',82,42.4);
+ doc.text('mail@pferd.dk',82,27.8);
+ const phoneText='+45 2331 9975';
+ doc.text(phoneText,82,35.2);
+ // PDF link annotations make the printed contact information interactive in PDF readers.
+ doc.link(81.4,31.6,doc.getTextWidth(phoneText)+1.8,4.8,{url:'tel:+4523319975'});
+ const linkedInText='Min LinkedIn';
+ doc.text(linkedInText,82,42.4);
+ const linkedInUrl=getApplicationLinkedInUrl();
+ if(linkedInUrl)doc.link(81.4,38.8,doc.getTextWidth(linkedInText)+1.8,4.8,{url:linkedInUrl});
  // Diskret skygge under cirklen, hvid baggrund og tynd lys kant.
  doc.setFillColor(218,220,222);doc.circle(170.8,36.8,30.7,'F');
  doc.setFillColor(255,255,255);doc.circle(170,36,30.7,'F');
@@ -2634,6 +2688,8 @@ function openApplicationPdfModal(){
  if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3E7099';
  if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#1F325E';
  if(el('appPortraitMode'))el('appPortraitMode').value=state.applicationPortraitMode||'avatar';
+ if(el('appLinkedInUrl'))el('appLinkedInUrl').value=getApplicationLinkedInUrl();
+ if(el('appLinkedInStatus'))el('appLinkedInStatus').textContent=getApplicationLinkedInUrl()?'LinkedIn-link klar til PDF-eksport.':'Indsæt din LinkedIn-profiladresse for at gøre teksten i PDF’en klikbar.';
  if(el('appPortraitStatus'))el('appPortraitStatus').textContent=getApplicationPortraitStatusText();
  updateApplicationPdfSwatches();
  if(el('appPdfFilename'))el('appPdfFilename').textContent=applicationPdfFilename||getApplicationPdfFilename();

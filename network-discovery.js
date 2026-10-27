@@ -1435,8 +1435,9 @@ function mergeReusableCompanyFacts(baseRaw,nextRaw){
  merged.sources=[...sourceMap.values()].slice(-20);
  const hasVerifiedRating=!!(String(merged.employeeRating||'').trim()&&merged.factSources.employeeRating&&safeHttpUrl(merged.factSources.employeeRating.url));
  if(hasVerifiedRating){
+  // Keep a last-known-good rating, but never conceal the status of the latest live lookup.
   merged.lookupStatus='done';
-  merged.employeeRatingFetchStatus=merged.employeeRatingFetchStatus==='found'?'found':(base.employeeRatingFetchStatus||'found');
+  if(!String(merged.employeeRatingFetchStatus||'').trim())merged.employeeRatingFetchStatus=base.employeeRatingFetchStatus||'found';
   merged.employeeRatingLookupVersion=JOBINDEX_LOOKUP_VERSION;
  }
  return merged;

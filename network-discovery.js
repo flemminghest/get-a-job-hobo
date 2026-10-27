@@ -1218,19 +1218,23 @@ function jobDisplayLocation(item,scope){
  return 'Danmark · arbejdssted skal bekræftes';
 }
 
+let visibleJobOpportunityCount=10;
 function renderJobOpportunities(){
  const activeProfile=searchProfile(),all=(state.jobOpportunities||[]),distanceLimit=selectedJobDistanceLimit();
  const matchedResults=all.map(item=>({...item,matchedTerms:matchedJobTerms(item,activeProfile.terms)})).filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,activeProfile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
  const unknownDistanceCount=matchedResults.filter(item=>opportunityDistanceKm(item)===null).length;
  const measuredResults=matchedResults.filter(item=>opportunityDistanceKm(item)!==null);
  const outsideDistanceCount=measuredResults.filter(item=>opportunityDistanceKm(item)>distanceLimit).length;
- const results=measuredResults.filter(item=>opportunityDistanceKm(item)<=distanceLimit).sort((a,b)=>opportunityDistanceKm(a)-opportunityDistanceKm(b)||b.matchedTerms.length-a.matchedTerms.length);
+ const inRange=measuredResults.filter(item=>opportunityDistanceKm(item)<=distanceLimit).sort((a,b)=>opportunityDistanceKm(a)-opportunityDistanceKm(b)||b.matchedTerms.length-a.matchedTerms.length);
+ const pendingDistance=matchedResults.filter(item=>opportunityDistanceKm(item)===null);
+ const results=[...inRange,...pendingDistance.map(item=>({...item,distancePending:true}))];
+ const visibleResults=results.slice(0,visibleJobOpportunityCount);
  const emptyResultsHtml=!matchedResults.length
   ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen konkrete stillingsopslag blev fundet</strong><p>Prøv flere søgeord eller en bredere geografi.</p></div>'
   :unknownDistanceCount
    ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Afstande beregnes</strong><p>'+unknownDistanceCount+' relevante opslag afventer en beregnet afstand. De vises, så snart arbejdsstedet kan placeres. '+(outsideDistanceCount?outsideDistanceCount+' opslag ligger allerede uden for '+distanceLimit+' km.':'')+'</p></div>'
    :'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen opslag inden for '+distanceLimit+' km</strong><p>'+outsideDistanceCount+' relevante opslag ligger længere væk. Øg afstanden med slideren for at udvide området.</p></div>';
- if(el('jobOpportunitiesResults'))el('jobOpportunitiesResults').innerHTML=results.length?results.map((item,index)=>{
+ if(el('jobOpportunitiesResults'))el('jobOpportunitiesResults').innerHTML=visibleResults.length?visibleResults.map((item,index)=>{
   const stateIndex=all.findIndex(row=>canonicalSearchUrl(row.url)===canonicalSearchUrl(item.url)),url=safeHttpUrl(item.url),matched=item.matchedTerms||[];
   const tracked=url&&state.followUps.some(f=>f.url&&canonicalSearchUrl(f.url)===canonicalSearchUrl(url));
   const source=item.queryLabel||item.sourceLabel||item.domain||'Jobportal',scope=getDanishJobScope(item,activeProfile);
@@ -1239,6 +1243,7 @@ function renderJobOpportunities(){
   let html='<article class="discovery-card job-result-card">';
   html+='<div class="job-result-topline"><span class="discovery-source">'+escapeHtml(item.domain||source)+'</span><span class="chip job-location-match job-location-match-'+escapeHtml(scope.kind)+'">'+escapeHtml(scope.label)+'</span></div>';
   html+='<h3 class="job-result-title">'+escapeHtml(title)+'</h3>';
+  if(item.distancePending)html+='<p class="notice warnbox">Afstand afventer beregning — opslaget er ikke udelukket på grund af afstand.</p>';
   html+='<div class="job-result-employer"><span class="job-result-company-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/></svg></span><div><strong>'+escapeHtml(company)+'</strong><span>'+escapeHtml(location)+'</span></div></div>';
   const meta=[];if(date)meta.push('<span><b>Opslået</b> '+escapeHtml(date)+'</span>');if(type)meta.push('<span><b>Ansættelse</b> '+escapeHtml(type)+'</span>');if(workMode)meta.push('<span><b>Arbejdsform</b> '+escapeHtml(workMode)+'</span>');if(salary)meta.push('<span><b>Løn</b> '+escapeHtml(salary)+'</span>');
   if(item.verifiedSnapshot)meta.push('<span><b>Kilde kontrolleret</b> '+escapeHtml(item.sourceCheckedAt||'26.10.2026')+'</span>');
@@ -1253,6 +1258,10 @@ function renderJobOpportunities(){
   return html;
  }).join(''):emptyResultsHtml;
  if(el('jobOpportunityCount'))el('jobOpportunityCount').textContent=results.length;
+ const moreCount=Math.max(0,results.length-visibleJobOpportunityCount);
+ let moreButton=el('jobOpportunitiesLoadMore');
+ if(!moreButton&&el('jobOpportunitiesResults')){moreButton=document.createElement('button');moreButton.id='jobOpportunitiesLoadMore';moreButton.className='secondary';moreButton.type='button';el('jobOpportunitiesResults').insertAdjacentElement('afterend',moreButton);moreButton.addEventListener('click',()=>{visibleJobOpportunityCount+=10;renderJobOpportunities()})}
+ if(moreButton){moreButton.hidden=moreCount===0;moreButton.textContent='Indlæs flere ('+moreCount+' jobopslag)';}
  if(el('jobKeywordCount'))el('jobKeywordCount').textContent=searchProfile().terms.length;
  if(el('jobTrackedCount'))el('jobTrackedCount').textContent=(state.followUps||[]).filter(item=>item.type==='job').length;
  if(el('jobLastSearchLabel'))el('jobLastSearchLabel').textContent=state.jobLastSearch?new Date(state.jobLastSearch).toLocaleDateString('da-DK'):'Ikke søgt';
@@ -1506,9 +1515,9 @@ async function searchJobOpportunities(ignoreCvWarning=false){
   }
   state.jobSearchSourceMeta={liveCount:liveQualified.length,snapshotCount:snapshotAdded,snapshotCheckedAt:'26.10.2026'};
   rememberCurrentCompanyFacts();
-  const nextJobOpportunities=[...finalJobs.values()].sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length).slice(0,50);
+  const nextJobOpportunities=[...finalJobs.values()].sort((a,b)=>b.matchedTerms.length-a.matchedTerms.length);
   nextJobOpportunities.forEach(restoreCompanyFactsForJob);
-  state.jobOpportunities=nextJobOpportunities;
+  state.jobOpportunities=nextJobOpportunities;visibleJobOpportunityCount=10;
   state.jobLastSearch=new Date().toISOString();persist();renderJobOpportunities();
   // Calculate distance for every job first, including postings whose employer name is missing.
   autoCalculateJobDistances(state.jobOpportunities.slice());

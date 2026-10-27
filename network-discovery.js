@@ -548,7 +548,7 @@ async function fetchJobindexEvaluationSource(company){
  let responseData=null;
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
  try{
-  const response=await fetch('/api/jobindex-evaluations?company='+encodeURIComponent(String(company||'').trim()),{method:'GET',credentials:'omit',headers:{Accept:'application/json'},signal:controller.signal});
+  const response=await fetch('/api/jobindex-evaluations?company='+encodeURIComponent(String(company||'').trim()),{method:'GET',credentials:'same-origin',headers:{Accept:'application/json'},signal:controller.signal});
   const body=await response.json().catch(()=>null);
   responseData=body&&typeof body==='object'?body:{ok:false,status:'invalid_proxy_response',message:'Serveren returnerede ikke gyldige Jobindex-data.'};
   if(!response.ok){responseData.ok=false;responseData.status=responseData.status||'proxy_unavailable';}
@@ -1151,7 +1151,7 @@ function companyInsightBox(item,index){
   out+=sources.length?'<div class="job-company-evidence-list">'+sources.slice(0,6).map(source=>'<a class="job-company-evidence-item" href="'+escapeHtml(safeHttpUrl(source.url))+'" target="_blank" rel="noopener noreferrer"><span class="job-company-evidence-copy"><strong>'+escapeHtml(source.domain||source.sourceLabel||companySourceHost(source)||'Offentlig kilde')+'</strong><small>'+escapeHtml(source.title||'Virksomhedsoplysninger')+'</small><em>'+escapeHtml(String(source.description||source.pageContent||'').slice(0,220))+'</em></span><span class="job-company-evidence-arrow">↗</span></a>').join('')+'</div>':'<p class="job-company-evidence-empty">Ingen relevante profiler blev fundet i de offentlige søgeresultater.</p>';
   out+='</div>';
  }
- out+='<p class="job-company-insight-note">Medarbejdertilfredshed vises kun, når en kilde specifikt understøtter medarbejdervurderingen — kundetilfredshed bruges ikke som erstatning. Manglende data vises eksplicit. Afstand vises i luftlinje fra din gemte placering. Uden en gemt/genkendt placering bruges Frederiksberg bymidte som standard. Målet er virksomhedens adresse, eller jobopslagets arbejdssted hvis virksomhedsadressen mangler. Geokodning: OpenStreetMap.</p></section>';
+ out+='</section>';
  return out;
 }
 function jobDisplayTitle(item){

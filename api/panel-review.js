@@ -200,7 +200,8 @@ module.exports = async function handler(req, res) {
   // any other exact origins (comma-separated), but cannot remove these defaults.
   const knownOrigins = [
     "https://flemminghest.github.io",
-    "https://get-a-job-hobo.vercel.app"
+    "https://get-a-job-hobo.vercel.app",
+    "https://get-a-job-hobo-git-prototype-company-prof-f9409f-get-a-job-hobo.vercel.app"
   ];
   const additionalOrigins = String(process.env.FRONTEND_ORIGIN || "")
     .split(",").map((x) => x.trim()).filter(Boolean);

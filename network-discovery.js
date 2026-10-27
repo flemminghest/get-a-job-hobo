@@ -545,11 +545,15 @@ async function fetchJobindexEvaluationSource(company){
  const sourceUrl=jobindexEvaluationUrl(company);
  const fallback={url:sourceUrl,title:String(company||'Virksomhed')+' — evalueringer på Jobindex',domain:'jobindex.dk',sourceLabel:'Jobindex · medarbejdertilfredshed',sourceType:'jobindex-company-evaluation'};
  let responseData=null;
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
  try{
-  responseData=await fetchJsonTimeout('/api/jobindex-evaluations?company='+encodeURIComponent(String(company||'').trim()),15000);
+  const response=await fetch('/api/jobindex-evaluations?company='+encodeURIComponent(String(company||'').trim()),{method:'GET',credentials:'omit',headers:{Accept:'application/json'},signal:controller.signal});
+  const body=await response.json().catch(()=>null);
+  responseData=body&&typeof body==='object'?body:{ok:false,status:'invalid_proxy_response',message:'Serveren returnerede ikke gyldige Jobindex-data.'};
+  if(!response.ok){responseData.ok=false;responseData.status=responseData.status||'proxy_unavailable';}
  }catch(error){
-  responseData={ok:false,status:'proxy_unavailable',message:String(error&&error.message||error).slice(0,180)};
- }
+  responseData={ok:false,status:error&&error.name==='AbortError'?'proxy_timeout':'proxy_unavailable',message:String(error&&error.message||error).slice(0,180)};
+ }finally{clearTimeout(timer)}
  const rating=responseData&&responseData.rating;
  const ratingCount=String(responseData&&responseData.ratingCount||'').trim();
  const ratingLabel=String(responseData&&responseData.ratingLabel||'').trim();
@@ -1104,7 +1108,7 @@ function companyInsightBox(item,index){
  out+='<div class="job-company-insight-stats">';
  out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.people+'</span><div><small>Medarbejdere</small><strong>'+escapeHtml(employees)+'</strong>'+(employeeIsRange?'<span class="job-company-employee-estimate">Interval / estimat</span>':'')+factSourceLink('employeeCount')+'</div></div>';
  out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.pin+'</span><div><small>'+(f.locationKind==='job'?'Jobbets arbejdssted':'Virksomhedsadresse / placering')+'</small><strong>'+escapeHtml(location)+'</strong>'+(distance?'<strong class="job-insight-distance">'+escapeHtml(distanceDisplay)+'</strong>':'<span class="job-insight-sub">'+escapeHtml(distanceDisplay)+'</span>')+factSourceLink('location')+(distance?factSourceLink('distanceKm'):'')+'</div></div>';
- out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' evalueringer':(['upstream_http_error','upstream_blocked','upstream_timeout','upstream_unavailable','proxy_unavailable','unknown'].includes(clean(f.employeeRatingFetchStatus))?'Jobindex kunne ikke aflæses automatisk':'Ingen offentlig medarbejdervurdering fundet'))+'</span>'+(factSources.employeeRating?factSourceLink('employeeRating'):jobindexRatingLink)+'</div></div>';
+ out+='<div class="job-company-insight-stat"><span class="job-insight-icon">'+svg.smile+'</span><div><small>Jobtilfredshed</small><strong>'+escapeHtml(ratingDisplay)+'</strong><span class="job-insight-sub">'+escapeHtml(clean(f.ratingCount)?clean(f.ratingCount)+' evalueringer':(clean(f.employeeRatingFetchStatus)==='found'?'Evalueringer fundet, men score ikke aflæst':(['no_public_evaluation_data','upstream_http_error','upstream_blocked','upstream_timeout','upstream_unavailable','proxy_unavailable','proxy_timeout','invalid_proxy_response','unknown'].includes(clean(f.employeeRatingFetchStatus))?'Jobindex kunne ikke aflæses automatisk':(loading?'Henter evalueringer fra Jobindex…':'Ikke fundet i de tilgængelige kilder'))))+'</span>'+(factSources.employeeRating?factSourceLink('employeeRating'):jobindexRatingLink)+'</div></div>';
  out+='</div>';
  out+='<div class="job-company-insights-foot"><span><b>Branche/fokus</b> '+escapeHtml(industry)+factSourceLink('industry')+'</span><span><b>Etableret</b> '+escapeHtml(founded)+factSourceLink('foundedYear')+'</span><span><b>Type</b> '+escapeHtml(type)+factSourceLink('companyType')+'</span></div>';
  if(completed){

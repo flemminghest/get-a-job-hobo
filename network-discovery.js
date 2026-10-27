@@ -547,9 +547,12 @@ async function enrichCompanyPageContext(source){
  const host=companySourceHost(source),url=safeHttpUrl(source&&source.url);
  const isJobindex=host==='jobindex.dk'||host.endsWith('.jobindex.dk');
  const isKrak=host==='krak.dk'||host.endsWith('.krak.dk');
- if(!url||(!isJobindex&&!isKrak))return source;
+ const isWorkplace=isWorkplaceReviewSource(source);
+ const isReviewProfile=/\/Reviews?\/|\/cmp\/|\/company\/|\/certificerede-arbejdspladser\/|\/arbejdsplads\/|\/Overview\/|working-at-/i.test(String(url||''));
+ if(!url||(!isJobindex&&!isKrak&&!isWorkplace))return source;
  if(isJobindex&&!/\/virksomhed\//i.test(url))return source;
  if(isKrak&&!/firma|virksomhed/i.test(url))return source;
+ if(isWorkplace&&!isReviewProfile)return source;
  try{
   const endpoint=COMPANY_CONTEXT_API+'?'+new URLSearchParams({url}).toString();
   const ctx=await fetchJsonTimeout(endpoint,10000);
@@ -801,11 +804,22 @@ async function lookupCompanyInsights(indexOrItem){
     else if(!found[existing].sourceType)found[existing].sourceType=queries[i].id;
    });
   });
+  const contextRank=source=>{
+   const host=companySourceHost(source);
+   if(host==='greatplacetowork.dk'||host.endsWith('.greatplacetowork.dk'))return 0;
+   if(host==='jobindex.dk'||host.endsWith('.jobindex.dk'))return 1;
+   if(host.includes('glassdoor'))return 2;
+   if(host.includes('indeed'))return 3;
+   if(host.includes('kununu'))return 4;
+   if(host==='krak.dk'||host.endsWith('.krak.dk'))return 5;
+   return 6;
+  };
   const contextCandidates=found.filter(source=>{
    const host=companySourceHost(source),url=String(source.url||'');
    return ((host==='jobindex.dk'||host.endsWith('.jobindex.dk'))&&/\/virksomhed\//i.test(url))
-    ||((host==='krak.dk'||host.endsWith('.krak.dk'))&&/firma|virksomhed/i.test(url));
-  }).slice(0,5);
+    ||((host==='krak.dk'||host.endsWith('.krak.dk'))&&/firma|virksomhed/i.test(url))
+    ||(isWorkplaceReviewSource(source)&&/\/Reviews?\/|\/cmp\/|\/company\/|\/certificerede-arbejdspladser\/|\/arbejdsplads\/|\/Overview\/|working-at-/i.test(url));
+  }).sort((a,b)=>contextRank(a)-contextRank(b)).slice(0,8);
   const contextResults=await Promise.allSettled(contextCandidates.map(enrichCompanyPageContext));
   contextResults.forEach((result,i)=>{
    if(result.status!=='fulfilled')return;

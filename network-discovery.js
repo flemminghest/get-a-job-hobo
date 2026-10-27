@@ -563,9 +563,10 @@ async function enrichCompanyPageContext(source){
  try{
   const endpoint=COMPANY_CONTEXT_API+'?'+new URLSearchParams({url}).toString();
   const ctx=await fetchJsonTimeout(endpoint,10000);
-  const pageContent=String(ctx&&(ctx.content||ctx.summary||ctx.description)||'').replace(/\s+/g,' ').trim();
-  if(pageContent.length<60)return {...source,contextFetchStatus:'empty'};
-  return {...source,pageContent:pageContent.slice(0,16000),contextTitle:String(ctx.title||source.title||''),contextCoverage:String(ctx.coverage||'unknown'),contextFetchStatus:'ok'};
+  const pageContent=String(ctx&&(ctx.content||ctx.summary||ctx.description||ctx.text)||'').replace(/\s+/g,' ').trim();
+  const pageHtml=String(ctx&&(ctx.html||ctx.rawHtml||ctx.sourceHtml)||'').slice(0,30000);
+  if(pageContent.length<60&&!pageHtml.length)return {...source,contextFetchStatus:'empty'};
+  return {...source,pageContent:pageContent.slice(0,16000),pageHtml,contextTitle:String(ctx.title||source.title||''),contextCoverage:String(ctx.coverage||'unknown'),contextFetchStatus:'ok'};
  }catch(error){return {...source,contextFetchStatus:'failed',contextFetchError:String(error&&error.message||error).slice(0,180)}}
 }
 function haversineDistanceKm(lat1,lon1,lat2,lon2){
@@ -702,7 +703,7 @@ async function refreshOpportunityDistances(){
 }
 function applyCompanySourceFacts(sources,prior){
  const f={...(prior||{})},factSources={...(f.factSources||{})};
- const bodyOf=source=>String((source.title||'')+' '+(source.description||'')+' '+(source.pageContent||'')).replace(/\s+/g,' ');
+ const bodyOf=source=>String((source.title||'')+' '+(source.description||'')+' '+(source.pageContent||'')+' '+(source.pageHtml||'')).replace(/\s+/g,' ');
  const fill=(field,value,source)=>{if(!String(f[field]||'').trim()&&value!==undefined&&value!==null&&String(value).trim()!==''){f[field]=String(value).trim();factSources[field]=source}};
  const prioritised=[...(sources||[])].sort((a,b)=>{
   const rank=source=>companySourceHost(source).includes('jobindex.dk')?0:companySourceHost(source).includes('krak.dk')?1:isWorkplaceReviewSource(source)?2:3;
@@ -746,7 +747,8 @@ function applyCompanySourceFacts(sources,prior){
   }
   if(workplace&&hostMatchesOne(companySourceHost(source),['jobindex.dk'])&&!f.employeeRating){
    // Jobindex may render the aggregate as a row of stars instead of a textual 4.2/5 value.
-   const explicitJobindexRating=text.match(/(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse)\D{0,35}([1-5](?:[,.]\d)?)\b\s*(?:\/\s*5|af\s*5|ud af\s*5)?/i)
+   const htmlRating=String(source.pageHtml||'').match(/(?:itemprop=["']ratingValue["'][^>]*content=["']|content=["']([1-5](?:[,.]\d)?)["'][^>]*(?:ratingValue|rating))/i);
+   const explicitJobindexRating=(htmlRating&&htmlRating[1]?htmlRating:text.match(/(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse)\D{0,35}([1-5](?:[,.]\d)?)\b\s*(?:\/\s*5|af\s*5|ud af\s*5)?/i))
     ||text.match(/\b([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)\b/i)
     ||text.match(/\b([1-5])\s+stjerner\b/i);
    if(explicitJobindexRating){
@@ -754,6 +756,11 @@ function applyCompanySourceFacts(sources,prior){
     if(Number.isFinite(value)&&value>=1&&value<=5)fill('employeeRating',value.toLocaleString('da-DK',{maximumFractionDigits:1}),source);
    }
    if(!f.employeeRating){
+    const accessibleStars=String(source.pageHtml||'').match(/(?:aria-label|title)=["'][^"']*?([1-5](?:[,.]\d)?)\s*(?:out of 5|ud af 5|af 5|stars?|stjerner)[^"']*["']/i);
+    if(accessibleStars){
+     const value=Number(String(accessibleStars[1]).replace(',','.'));
+     if(Number.isFinite(value)&&value>=1&&value<=5)fill('employeeRating',value.toLocaleString('da-DK',{maximumFractionDigits:1}),source);
+    }
     const starRows=[...text.matchAll(/[★⭐☆]{5}/g)];
     if(starRows.length){
      const row=starRows[0][0],filled=(row.match(/[★⭐]/g)||[]).length;
@@ -853,11 +860,30 @@ async function lookupCompanyInsights(indexOrItem){
   description:'Virksomhedens egen Jobindex-side med evalueringer af arbejdspladsen.'
  };
  try{
-  // Start with Jobindex immediately. This page is the primary source for Danish employee satisfaction.
+  // Start Jobindex and the wider research at the same time, but surface Jobindex findings as soon as they return.
   const jobindexContextPromise=enrichCompanyPageContext(jobindexSource);
-  const outcomes=await Promise.allSettled(queries.map(query=>queryIndex(query,[])));
+  const queryOutcomesPromise=Promise.allSettled(queries.map(query=>queryIndex(query,[])));
+  const jobindexRead=await jobindexContextPromise;
   await earlyDistanceTask;
-  const found=[jobindexSource],sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
+  const priorFacts=item.companyFacts||{};
+  const jobindexFacts=applyCompanySourceFacts([jobindexRead],{});
+  for(const key of ['distanceKm','distanceMethod','distanceOriginLabel','distanceTargetLabel','distanceMessage','distanceDestinationDisplay']){
+   if(priorFacts[key]!==undefined)jobindexFacts[key]=priorFacts[key];
+  }
+  if(priorFacts.factSources&&priorFacts.factSources.distanceKm)jobindexFacts.factSources.distanceKm=priorFacts.factSources.distanceKm;
+  if(priorFacts.locationKind==='job'&&priorFacts.location){
+   jobindexFacts.location=priorFacts.location;
+   jobindexFacts.locationKind='job';
+   jobindexFacts.factSources=jobindexFacts.factSources||{};
+   if(priorFacts.factSources&&priorFacts.factSources.location)jobindexFacts.factSources.location=priorFacts.factSources.location;
+  }
+  jobindexFacts.lookupStatus='loading';
+  jobindexFacts.sources=[jobindexRead];
+  jobindexFacts.danishCompanyConfirmed=false;
+  item.companyFacts=jobindexFacts;
+  persist();renderJobOpportunities();
+  const outcomes=await queryOutcomesPromise;
+  const found=[jobindexRead],sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
   outcomes.forEach((outcome,i)=>{
    if(outcome.status!=='fulfilled')return;
    (outcome.value.results||[]).forEach(result=>{

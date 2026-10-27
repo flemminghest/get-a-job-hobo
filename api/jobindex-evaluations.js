@@ -176,7 +176,7 @@ function parseJobindexEvaluation(html) {
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Cache-Control", "no-store, max-age=0");
   res.setHeader("Vary", "Accept");
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -197,10 +197,10 @@ module.exports = async function handler(req, res) {
     const sourceUrl = "https://www.jobindex.dk/virksomhedsoversigt/resultat?company="
       + encodeURIComponent(candidate).replace(/%20/g, "+") + "&evaluate_tab=0";
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5_500);
+    const timeout = setTimeout(() => controller.abort(), 10_000);
     try {
       const response = await fetch(sourceUrl, {
-        method: "GET", redirect: "follow", signal: controller.signal,
+        method: "GET", redirect: "follow", signal: controller.signal, cache: "no-store",
         headers: {
           "Accept": "text/html,application/xhtml+xml",
           "Accept-Language": "da-DK,da;q=0.9,en;q=0.7",
@@ -234,9 +234,8 @@ module.exports = async function handler(req, res) {
   if (!best) return send(res, 502, { ok: false, status: "upstream_unavailable", company, message: "Jobindex returnerede ingen brugbare svar." });
   const extracted = best.extracted;
   const ok = !!(extracted && (extracted.hasRating || extracted.hasEvaluations));
-  if (ok) res.setHeader("Cache-Control", "public, s-maxage=1800, stale-while-revalidate=86400");
   return send(res, ok ? 200 : (best.status === "no_public_evaluation_data" ? 200 : 502), {
-    ok, status: best.status, company, queriedCompany: best.candidate, source: "Jobindex",
+    ok, status: best.status, checkedAt: extracted ? new Date().toISOString() : "", company, queriedCompany: best.candidate, source: "Jobindex",
     sourceUrl: best.sourceUrl, rating: extracted ? extracted.rating : null,
     ratingLabel: extracted ? extracted.ratingLabel : "", ratingCount: extracted ? extracted.ratingCount : "",
     pageTitle: extracted ? extracted.pageTitle : "", message: best.message || "Jobindex-data kunne ikke verificeres."

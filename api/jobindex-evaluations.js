@@ -100,6 +100,15 @@ function parseJobindexEvaluation(html) {
   let ratingLabel = rating !== null ? rating.toLocaleString("da-DK", { maximumFractionDigits: 1 }) + "/5" : "";
   let count = jsonLd.count || "";
 
+  const htmlDataRating = source.match(/(?:data-rating|data-score|itemprop=["']ratingValue["'][^>]*content)=["']([1-5](?:[,.]\d)?)["']/i)
+    || source.match(/content=["']([1-5](?:[,.]\d)?)["'][^>]*itemprop=["']ratingValue["']/i);
+  if (rating === null && htmlDataRating) {
+    const candidate = numericRating(htmlDataRating[1]);
+    if (candidate !== null) {
+      rating = candidate;
+      ratingLabel = candidate.toLocaleString("da-DK", { maximumFractionDigits: 1 }) + "/5";
+    }
+  }
   const ratingPatterns = [
     /(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse|vurdering)\D{0,45}([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)\b/i,
     /\b([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)\b/i
@@ -165,7 +174,7 @@ function parseJobindexEvaluation(html) {
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "public, s-maxage=1800, stale-while-revalidate=86400");
+  res.setHeader("Cache-Control", "no-store");
   res.setHeader("Vary", "Accept");
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -223,6 +232,7 @@ module.exports = async function handler(req, res) {
 
     const extracted = parseJobindexEvaluation(html);
     const ok = extracted.hasRating || extracted.hasEvaluations;
+    if(ok)res.setHeader("Cache-Control", "public, s-maxage=1800, stale-while-revalidate=86400");
     return send(res, 200, {
       ok,
       status: ok ? "found" : "no_public_evaluation_data",

@@ -938,6 +938,15 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 .distance-origin-status{grid-column:1/-1;font-size:11px;line-height:1.5;color:#61758c}
 .distance-origin-status.is-saved{color:#14744f}
 .distance-origin-status.is-warning{color:#8b671a}
+.job-distance-filter{margin-top:12px;padding:14px 15px;border:1px solid #dce7f3;border-radius:14px;background:#fff}
+.job-distance-filter-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.job-distance-filter-head label{font-size:13px;font-weight:800;color:#263e59}
+.job-distance-filter-head strong{font-size:20px;font-weight:850;color:#1b72e8;white-space:nowrap}
+.job-distance-slider{display:block;width:100%;margin:6px 0 0;accent-color:#2878ed;cursor:pointer}
+.job-distance-ticks{display:flex;justify-content:space-between;gap:4px;margin-top:7px;color:#71839a;font-size:10px}
+.job-distance-filter-status{margin:9px 0 0;color:#627790;font-size:11px;line-height:1.45}
+@media(max-width:640px){.job-distance-filter{padding:12px}.job-distance-ticks{font-size:9px;letter-spacing:-.2px}}
+
 @media(max-width:640px){.distance-origin-settings{grid-template-columns:1fr}.distance-origin-settings>button{width:100%}.distance-origin-status{grid-column:1}}
 
 .job-result-card:hover{border-color:#b8d1f1;box-shadow:0 10px 26px rgba(34,67,104,.08);transform:translateY(-1px)}
@@ -1153,6 +1162,12 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
    <button type="button" class="secondary" id="saveDistanceOriginButton" onclick="saveDistanceOrigin()">Gem min placering</button>
    <div id="distanceOriginStatus" class="distance-origin-status" role="status">Indtil du angiver din egen placering, vises en grov afstand fra Frederiksberg bymidte. For præcisere afstand skal appen kende din adresse, dit postnummer eller din by.</div>
   </div>
+  <div class="job-distance-filter">
+   <div class="job-distance-filter-head"><label for="jobDistanceSlider">Maksimal afstand fra din bopæl</label><strong id="jobDistanceValue">50 km</strong></div>
+   <input id="jobDistanceSlider" class="job-distance-slider" type="range" min="0" max="300" step="5" value="50" aria-label="Maksimal afstand fra din bopæl i kilometer" oninput="updateJobDistanceFilter(this.value)">
+   <div class="job-distance-ticks" aria-hidden="true"><span>0 km</span><span>50 km</span><span>100 km</span><span>150 km</span><span>200 km</span><span>250 km</span><span>300 km</span></div>
+   <p id="jobDistanceFilterStatus" class="job-distance-filter-status">Viser kun opslag med en beregnet afstand på højst 50 km. Nærmeste opslag vises først.</p>
+  </div>
   <div class="job-search-controls"><button class="secondary" id="restoreSearchTermsButton" onclick="restoreSearchTermsFromCV()">Gendan søgeord fra mit CV</button><button id="jobOpportunitiesSearchButton" onclick="searchJobOpportunities()">Søg stillinger</button></div>
   <div id="jobSearchStatus" class="notice">Søgningen viser konkrete danske stillingsopslag samt remote-roller, hvor Danmark er angivet som muligt arbejdsland. Generelle jobkategorisider filtreres fra.</div>
   <div class="job-source-links"><a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/jobs/">LinkedIn Jobs ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobindex.dk/">Jobindex ↗</a><a target="_blank" rel="noopener noreferrer" href="https://dk.indeed.com/">Indeed ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.hk.dk/karriere/jobsoegningen/find-dit-naeste-job/jobportal">HK Jobportal ↗</a><a target="_blank" rel="noopener noreferrer" href="https://job.jobnet.dk/">Jobnet ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.workindenmark.dk/">Workindenmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.stepstone.dk/">StepStone ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.ofir.dk/">Ofir ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobdanmark.dk/">Jobdanmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.it-jobbank.dk/">IT-Jobbank ↗</a><a target="_blank" rel="noopener noreferrer" href="https://thehub.io/jobs?countryCode=DK">The Hub ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.graduateland.com/">Graduateland ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobsearch.dk/">Jobsearch.dk ↗</a></div>
@@ -1358,7 +1373,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',distanceOrigin:'',networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',distanceOrigin:'',jobDistanceMaxKm:50,networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
@@ -1492,6 +1507,7 @@ function normalizeState(raw){
  out.networkSearchTerms=typeof raw.networkSearchTerms==='string'?raw.networkSearchTerms.slice(0,600):blank.networkSearchTerms;
  out.networkSearchLocation=typeof raw.networkSearchLocation==='string'?raw.networkSearchLocation.slice(0,300):blank.networkSearchLocation;
  out.distanceOrigin=typeof raw.distanceOrigin==='string'?raw.distanceOrigin.slice(0,300):'';
+ out.jobDistanceMaxKm=Number.isFinite(Number(raw.jobDistanceMaxKm))?Math.max(0,Math.min(300,Math.round(Number(raw.jobDistanceMaxKm)/5)*5)):50;
  out.networkProspects=normalizeResearchRecords(raw.networkProspects,'person');
  out.networkCommunities=normalizeResearchRecords(raw.networkCommunities,'post');
  out.jobOpportunities=normalizeResearchRecords(raw.jobOpportunities,'job');

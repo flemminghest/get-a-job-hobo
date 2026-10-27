@@ -746,8 +746,9 @@ function applyCompanySourceFacts(sources,prior){
   }
   if(workplace&&hostMatchesOne(companySourceHost(source),['jobindex.dk'])&&!f.employeeRating){
    // Jobindex may render the aggregate as a row of stars instead of a textual 4.2/5 value.
-   const explicitJobindexRating=text.match(/(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse|stjerner)\D{0,35}([1-5](?:[,.]\d)?)\b\s*(?:\/\s*5|af\s*5|ud af\s*5)?/i)
-    ||text.match(/\b([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)\b/i);
+   const explicitJobindexRating=text.match(/(?:samlet vurdering|gennemsnitlig vurdering|arbejdspladsvurdering|rating|bedømmelse)\D{0,35}([1-5](?:[,.]\d)?)\b\s*(?:\/\s*5|af\s*5|ud af\s*5)?/i)
+    ||text.match(/\b([1-5](?:[,.]\d)?)\s*(?:\/\s*5|af\s*5|ud af\s*5)\b/i)
+    ||text.match(/\b([1-5])\s+stjerner\b/i);
    if(explicitJobindexRating){
     const value=Number(String(explicitJobindexRating[1]||explicitJobindexRating[2]).replace(',','.'));
     if(Number.isFinite(value)&&value>=1&&value<=5)fill('employeeRating',value.toLocaleString('da-DK',{maximumFractionDigits:1}),source);
@@ -843,17 +844,19 @@ async function lookupCompanyInsights(indexOrItem){
   {id:'ownr-dk',label:'Ownr · danske virksomhedsoplysninger',targetSite:'ownr.dk',query:'site:ownr.dk '+q+' CVR antal ansatte adresse stiftet branche',fallbackQuery:'site:ownr.dk '+q+' dansk virksomhed CVR'},
   {id:'broad-workplace',label:'Bred søgning · medarbejderoplevelser',query:q+' medarbejderanmeldelser arbejdsplads jobtilfredshed employee reviews rating Denmark',fallbackQuery:q+' employee reviews employer rating jobs workplace Denmark'}
  ];
+ const jobindexSource={
+  url:jobindexEvaluationUrl(company),
+  title:company+' — evalueringer på Jobindex',
+  domain:'jobindex.dk',
+  sourceLabel:'Jobindex · medarbejdertilfredshed',
+  sourceType:'jobindex-company-evaluation',
+  description:'Virksomhedens egen Jobindex-side med evalueringer af arbejdspladsen.'
+ };
  try{
+  // Start with Jobindex immediately. This page is the primary source for Danish employee satisfaction.
+  const jobindexContextPromise=enrichCompanyPageContext(jobindexSource);
   const outcomes=await Promise.allSettled(queries.map(query=>queryIndex(query,[])));
   await earlyDistanceTask;
-  const jobindexSource={
-   url:jobindexEvaluationUrl(company),
-   title:company+' — evalueringer på Jobindex',
-   domain:'jobindex.dk',
-   sourceLabel:'Jobindex · medarbejdertilfredshed',
-   sourceType:'jobindex-company-evaluation',
-   description:'Virksomhedens egen Jobindex-side med evalueringer af arbejdspladsen.'
-  };
   const found=[jobindexSource],sourceErrors=outcomes.filter(outcome=>outcome.status==='rejected').length;
   outcomes.forEach((outcome,i)=>{
    if(outcome.status!=='fulfilled')return;
@@ -877,7 +880,7 @@ async function lookupCompanyInsights(indexOrItem){
   };
   const contextCandidates=found.filter(source=>{
    const host=companySourceHost(source),url=String(source.url||'');
-   return ((host==='jobindex.dk'||host.endsWith('.jobindex.dk'))&&(/\/virksomhed\//i.test(url)||/\/virksomhedsoversigt\/resultat/i.test(url)))
+   return ((host==='jobindex.dk'||host.endsWith('.jobindex.dk'))&&/\/virksomhed\//i.test(url))
     ||((host==='krak.dk'||host.endsWith('.krak.dk'))&&/firma|virksomhed/i.test(url))
     ||(isWorkplaceReviewSource(source)&&/\/Reviews?\/|\/cmp\/|\/company\/|\/certificerede-arbejdspladser\/|\/arbejdsplads\/|\/Overview\/|working-at-/i.test(url));
   }).sort((a,b)=>{
@@ -886,7 +889,7 @@ async function lookupCompanyInsights(indexOrItem){
    const bJobindex=/jobindex\.dk\/virksomhedsoversigt\/resultat/i.test(bu)?-1:contextRank(b);
    return aJobindex-bJobindex;
   }).slice(0,10);
-  const contextResults=await Promise.allSettled(contextCandidates.map(enrichCompanyPageContext));
+  const contextResults=await Promise.allSettled([jobindexContextPromise,...contextCandidates.map(enrichCompanyPageContext)]);
   contextResults.forEach((result,i)=>{
    if(result.status!=='fulfilled')return;
    const enhanced=result.value,target=found.findIndex(source=>canonicalSearchUrl(source.url)===canonicalSearchUrl(enhanced.url));

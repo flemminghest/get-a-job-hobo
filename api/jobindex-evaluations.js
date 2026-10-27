@@ -141,6 +141,8 @@ function parseJobindexEvaluation(html) {
     }
   }
 
+  const htmlCount = source.match(/(?:itemprop=["'](?:reviewCount|ratingCount)["'][^>]*content=["'](\d+)["'])|(?:content=["'](\d+)["'][^>]*itemprop=["'](?:reviewCount|ratingCount)["'])|(?:data-review-count=["'](\d+)["'])/i);
+  if (!count && htmlCount) count = String(htmlCount[1] || htmlCount[2] || htmlCount[3] || "");
   const countMatch =
     text.match(/\b([\d.,]{1,10})\s+evalueringer\b/i) ||
     text.match(/\b([\d.,]{1,10})\s+(?:anmeldelser|vurderinger|reviews|ratings)\b/i) ||

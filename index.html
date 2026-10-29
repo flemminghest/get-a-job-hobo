@@ -204,6 +204,10 @@ label{font-size:14px;font-weight:750}
 .app-pdf-filename{overflow-wrap:anywhere;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#314b62;font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
 .app-pdf-viewer{min-width:0;min-height:0;display:flex;flex-direction:column;background:#edf1f5;border:1px solid #dce5ef;border-radius:24px;overflow:hidden}
 .app-pdf-viewer-status{font-size:clamp(13px,1.35vw,19px);color:#536980;padding:13px 18px;background:#fff;border-bottom:1px solid var(--line);min-height:50px}
+.app-pdf-html-contact-links{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 14px;background:#f7faff;border-bottom:1px solid #dce5ef}
+.app-pdf-html-contact-links a{display:inline-flex;align-items:center;gap:6px;border:1px solid #d5e2f0;border-radius:999px;background:#fff;color:#244968;padding:7px 11px;font-size:12px;font-weight:750;text-decoration:underline;text-underline-offset:3px}
+.app-pdf-html-contact-links a:hover{background:#edf5ff;border-color:#a8c5e6}
+.app-pdf-html-contact-links a:focus-visible{outline:3px solid #b9d7ff;outline-offset:2px}
 .app-pdf-frame{display:block;width:100%;height:calc(94vh - 205px);min-height:430px;flex:1;border:0;background:#e9eef3}
 .app-pdf-actions{display:flex;gap:10px;flex-wrap:wrap}
 .app-pdf-actions button{width:100%;padding:13px 15px}
@@ -1466,9 +1470,9 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
      <p id="appPortraitStatus" class="app-pdf-help" aria-live="polite">Portrættet fra reference-PDF’en bruges automatisk. Hvis det ikke kan indlæses, vises en avatar i stedet.</p>
     </div>
     <div class="app-pdf-color-row">
-     <label for="appLinkedInUrl">Din LinkedIn-profil (klikbart link i PDF)</label>
-     <input id="appLinkedInUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://www.linkedin.com/in/..." onchange="saveApplicationLinkedInUrl(this.value)">
-     <p class="app-pdf-help">Telefonnummeret i PDF'en bliver automatisk klikbart. Indsæt din profiladresse her én gang; den gemmes lokalt og indlejres som et klikbart link i PDF'en.</p>
+     <label for="appLinkedInUrl">LinkedIn-profil (fast adresse)</label>
+     <input id="appLinkedInUrl" type="url" inputmode="url" autocomplete="url" value="https://www.linkedin.com/in/jacob-holm-blaehr/" readonly aria-readonly="true">
+     <p class="app-pdf-help">LinkedIn-adressen er fastsat præcist som angivet. Telefonnummeret i PDF’en har et tel-link; brug også de almindelige HTML-kontaktlinks over PDF-forhåndsvisningen, hvis PDF-læseren ikke åbner telefonlinks.</p>
      <p id="appLinkedInStatus" class="app-pdf-help" aria-live="polite"></p>
     </div>
     <div class="app-pdf-color-row">
@@ -1489,6 +1493,11 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
    </aside>
    <div class="app-pdf-viewer">
     <div id="appPdfViewerStatus" class="app-pdf-viewer-status" aria-live="polite">Klargør PDF…</div>
+    <div class="app-pdf-html-contact-links" aria-label="Klikbare kontaktlinks">
+     <a href="tel:+4523319975">Ring +45 2331 9975</a>
+     <a href="mailto:mail@pferd.dk">Send e-mail</a>
+     <a href="https://www.linkedin.com/in/jacob-holm-blaehr/" target="_blank" rel="noopener noreferrer">Min LinkedIn ↗</a>
+    </div>
     <iframe id="appPdfFrame" class="app-pdf-frame" title="Forhåndsvisning af PDF-ansøgning"></iframe>
    </div>
   </div>
@@ -1518,24 +1527,18 @@ function extractApplicationLinkedInUrl(text){
  return safeApplicationLinkedInUrl(match[0]);
 }
 function getApplicationLinkedInUrl(){
- const saved=safeApplicationLinkedInUrl(state.applicationLinkedInUrl);
- if(saved)return saved;
- const extracted=extractApplicationLinkedInUrl(state.cv)||extractApplicationLinkedInUrl(state.application)||'';
- if(extracted)return extracted;
- // Default from the supplied reference PDF; users can still replace it in PDF settings.
- return 'https://www.linkedin.com/in/jacob-holm-blaehr/';
+ // Fixed canonical profile URL: intentionally override a stale URL saved by older prototype versions.
+ const canonical='https://www.linkedin.com/in/jacob-holm-blaehr/';
+ if(state.applicationLinkedInUrl!==canonical){state.applicationLinkedInUrl=canonical;persist();}
+ return canonical;
 }
 function saveApplicationLinkedInUrl(raw){
- const value=String(raw||'').trim();
- const url=safeApplicationLinkedInUrl(value);
- const status=el('appLinkedInStatus');
- if(value&&!url){
-  if(status)status.textContent='Indsæt en gyldig LinkedIn-profiladresse, fx https://www.linkedin.com/in/dit-navn/.';
-  return false;
- }
- state.applicationLinkedInUrl=url;
+ const canonical='https://www.linkedin.com/in/jacob-holm-blaehr/';
+ state.applicationLinkedInUrl=canonical;
  persist();
- if(status)status.textContent=url?'LinkedIn-link gemt. Det indlejres som klikbart link i PDF’en.':'LinkedIn-link fjernet. Du kan stadig hente et profil-link fra CV-teksten, hvis det findes der.';
+ const input=el('appLinkedInUrl');if(input)input.value=canonical;
+ const status=el('appLinkedInStatus');
+ if(status)status.textContent='Fast profiladresse: '+canonical+' Den præcise adresse indlejres som klikbart link i PDF’en.';
  markApplicationPdfOutdated();
  if(el('appPreviewModal')&&!el('appPreviewModal').hidden)renderApplicationPdfPreview(false);
  return true;
@@ -2820,7 +2823,9 @@ function drawPdfHeader(doc,portraitDataUrl){
  const phoneText='+45 2331 9975';
  doc.text(phoneText,contactX,35.2);
  const phoneWidth=underline(phoneText,contactX,35.2);
- doc.link(contactX-1.4,32.3,phoneWidth+4.5,5.8,{url:'tel:+4523319975'});
+ // Standard telephone URI annotation — the PDF equivalent of <a href="tel:+4523319975">.
+ // Use a generous hit area over the printed number to make it easier to tap.
+ doc.link(contactX-2.2,31.2,phoneWidth+7.5,7.8,{url:'tel:+4523319975'});
  const linkedInText='Min LinkedIn';
  doc.text(linkedInText,contactX,42.4);
  const linkedInWidth=underline(linkedInText,contactX,42.4);

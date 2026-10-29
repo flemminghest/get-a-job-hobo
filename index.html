@@ -1472,7 +1472,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
     <div class="app-pdf-color-row">
      <label for="appLinkedInUrl">LinkedIn-profil (fast adresse)</label>
      <input id="appLinkedInUrl" type="url" inputmode="url" autocomplete="url" value="https://www.linkedin.com/in/jacob-holm-blaehr/" readonly aria-readonly="true">
-     <p class="app-pdf-help">LinkedIn-adressen er fastsat præcist som angivet. Telefonlinket bruger samme format som i din egen PDF: tel:23319975.</p>
+     <p class="app-pdf-help">LinkedIn-adressen er fastsat præcist som angivet. Telefonlinket i PDF’en er tel:23319975 som i din egen fil. Hvis den indlejrede forhåndsvisning blokerer opkald, skal du vælge “Åbn PDF separat” eller downloade filen.</p>
      <p id="appLinkedInStatus" class="app-pdf-help" aria-live="polite"></p>
     </div>
     <div class="app-pdf-color-row">
@@ -1488,7 +1488,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
     <button type="button" class="secondary" onclick="applyApplicationPdfColors()">Opdatér forhåndsvisning</button>
     <p id="appPdfColorError" class="app-pdf-color-error" hidden></p>
     <div><label>Ny fil</label><div id="appPdfFilename" class="app-pdf-filename">Virksomhed_YYYY-MM-DD.pdf</div></div>
-    <div class="app-pdf-actions"><button id="downloadPdfModalButton" type="button" onclick="downloadApplicationPdf()">Download PDF</button><button type="button" class="secondary" onclick="closeApplicationPdfModal()">Færdig</button></div>
+    <div class="app-pdf-actions"><button id="downloadPdfModalButton" type="button" onclick="downloadApplicationPdf()">Download PDF</button><button id="openPdfSeparateButton" type="button" class="secondary" onclick="openApplicationPdfSeparately()">Åbn PDF separat</button><button type="button" class="secondary" onclick="closeApplicationPdfModal()">Færdig</button></div>
     <small>“Gem ansøgning” gemmer teksten i appen og klargør en ny PDF-fil. Brug “Download PDF” for at gemme filen. Originalen overskrives ikke.</small>
    </aside>
    <div class="app-pdf-viewer">
@@ -2823,9 +2823,9 @@ function drawPdfHeader(doc,portraitDataUrl){
  const phoneText='+45 2331 9975';
  doc.text(phoneText,contactX,35.2);
  const phoneWidth=underline(phoneText,contactX,35.2);
- // Match the working phone-link format in the user's own CV PDF exactly.
- // Its PDF annotation is tel:23319975, without a +45 prefix.
- doc.link(contactX-2.2,31.2,phoneWidth+7.5,7.8,{url:'tel:23319975'});
+ // Match the working phone-link URI in the user's own CV PDF exactly.
+ // Keep the clickable rectangle aligned to the visible number (rather than a loose offset).
+ doc.link(contactX,32.3,phoneWidth+1.2,5.6,{url:'tel:23319975'});
  const linkedInText='Min LinkedIn';
  doc.text(linkedInText,contactX,42.4);
  const linkedInWidth=underline(linkedInText,contactX,42.4);
@@ -3078,6 +3078,21 @@ async function previewApplication(){
  if(!state.application.trim()){alert('Ansøgningen er blank. Vælg et forslag eller skriv teksten først.');return}
  persist();openApplicationPdfModal();
  await renderApplicationPdfPreview(false);
+}
+function openApplicationPdfSeparately(){
+ if(!applicationPdfBlob||applicationPdfDirty){
+  notify('proposalState','PDF’en er ikke opdateret. Klik “Opdatér forhåndsvisning” først, og åbn derefter PDF’en separat.','warnbox');
+  return false;
+ }
+ const url=applicationPdfObjectUrl||URL.createObjectURL(applicationPdfBlob);
+ // Open the same generated PDF in a top-level tab; embedded PDF viewers may block tel: URI actions.
+ const tab=window.open(url,'_blank');
+ if(tab){try{tab.opener=null}catch(e){}}
+ if(!tab){
+  notify('appPdfViewerStatus','Browseren blokerede den nye fane. Tillad pop op-vinduer for siden, eller brug “Download PDF”.','warnbox');
+  return false;
+ }
+ return true;
 }
 function downloadApplicationPdf(silent){
  if(!applicationPdfBlob||applicationPdfDirty){

@@ -3049,10 +3049,11 @@ async function finalizeApplicationPdfBlob(jsPdfBlob){
    if(uri.toLowerCase().startsWith('tel:'))annots.remove(i);
   }
   const pageHeight=page.getHeight();
-  const rect=ctx.obj([x0,pageHeight-bottomFromPage,x1,pageHeight-topFromPage]);
-  const action=ctx.obj({S:PDFName.of('URI'),URI:PDFString.of('tel:23319975'),IsMap:PDFBool.False});
-  const annotation=ctx.obj({Type:PDFName.of('Annot'),Subtype:PDFName.of('Link'),Rect:rect,Border:ctx.obj([0,0,0]),H:PDFName.of('N'),BS:ctx.obj({S:PDFName.of('S'),Type:PDFName.of('Border'),W:PDFNumber.of(0)}),A:action});
-  // Register as an indirect PDF object; this matches the annotation structure in the user's working CV PDF.
+  // Mirror the coordinate ordering used by the known-working link in the user's original PDF.
+  const rect=ctx.obj([x0,pageHeight-topFromPage,x1,pageHeight-bottomFromPage]);
+  // Both the action dictionary and the link annotation are indirect references, matching the original CV PDF.
+  const actionRef=ctx.register(ctx.obj({S:PDFName.of('URI'),URI:PDFString.of('tel:23319975'),IsMap:PDFBool.False}));
+  const annotation=ctx.obj({Type:PDFName.of('Annot'),Subtype:PDFName.of('Link'),Rect:rect,Border:ctx.obj([0,0,0]),H:PDFName.of('N'),BS:ctx.obj({S:PDFName.of('S'),Type:PDFName.of('Border'),W:PDFNumber.of(0)}),A:actionRef});
   annots.push(ctx.register(annotation));
  }
  const finalBytes=await pdfDoc.save({useObjectStreams:false,addDefaultPage:false});

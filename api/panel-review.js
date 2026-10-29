@@ -91,7 +91,7 @@ const applicationDraftInstructions = [
  "- Brug sammenhængende, relativt korte afsnit. Beskriv tidligere erfaring og samarbejde på en menneskelig måde frem for at opremse søgeord.",
  "- En smule personlighed er velkommen, men hold det professionelt. En varm, uformel afslutning som at se frem til at hilse på dem over en kop kaffe kan bruges, hvis den passer.",
  "- De tre forslag skal have forskellig vægt: (1) fagligt match og opgaver, (2) arbejdsform, samarbejde og hvad kandidaten bringer ind i teamet, (3) en mere personlig forklaring på interessen og det mulige bidrag.",
- "- Hvert forslag skal være cirka 160–230 danske ord. Det er længere og mere udfoldet end en kort skabelon, men kortere end en lang manuskriptagtig ansøgning.",
+ "- Hvis der ikke er angivet brugerindstillinger, skal hvert forslag være cirka 160–230 danske ord. Hvis inputtet indeholder applicationPreferences, skal de konkrete længdeinstruktioner herunder have forrang for denne standard.",
  "- Brug den medsendte greetingLine som første linje nøjagtigt. Afslut ALTID præcis med Mange hilsner på én linje og //Jacob på den næste. Skriv aldrig [Dit navn], dit navn eller et opdigtet navn.",
  "- Brug company præcist, hvis det er oplyst. Hvis det mangler, så undlad at gætte og skriv ikke Eksempelvirksomhed eller andre pladsholdere.",
  "- Opfind aldrig ansvar, resultater, tal, kunder, arbejdsgivere, uddannelse eller kompetencer. Brug kun oplysninger, der kan støttes af CV'et. Stillingsopslagets opgaver er et mål for relevans, ikke bevis for kandidatens erfaring.",

@@ -727,6 +727,10 @@ button.quick-card:hover:not(:disabled){background:#fff;border-color:#cddcf0;box-
 .job-company-insight-stat small{font-size:9px;line-height:1.3;font-weight:750;color:#687b8d}
 .job-company-insight-stat strong{font-size:12px;line-height:1.3;color:#1e344c;overflow-wrap:anywhere}
 .job-company-insight-stat .job-insight-sub{font-size:9px;line-height:1.35;color:#77889a;overflow-wrap:anywhere}
+.job-company-insight-stat strong.job-insight-distance{display:block;margin-top:4px;font-size:22px;line-height:1.15;font-weight:850;letter-spacing:-.025em;color:var(--insight);white-space:normal;overflow-wrap:anywhere}
+.job-company-insight-stat strong.jobindex-stars{display:block;color:#c41625;font-size:22px;line-height:1.15;letter-spacing:1.5px;font-weight:850;white-space:nowrap}
+
+
 .job-company-insights-foot{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin-top:1px;padding:8px 9px;border-radius:9px;background:rgba(255,255,255,.7)}
 .job-company-insights-foot span{font-size:10px;line-height:1.4;color:#617489}
 .job-company-insights-foot b{color:#334c65;margin-right:3px}
@@ -909,6 +913,16 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 .job-company-auto-status[data-company-state="loading"],.job-company-auto-status[data-company-state="queued"]{border-color:#cfe0ff;background:#f1f6ff;color:#2872d5}
 .job-company-auto-status[data-company-state="done"]{border-color:#cbead9;background:#effaf4;color:#16815b}
 .job-company-auto-status[data-company-state="error"]{border-color:#f1d6cf;background:#fff6f3;color:#b6533b}
+.job-company-auto-status[data-company-state="verified"]{border-color:#cbead9;background:#effaf4;color:#16815b}
+.job-company-auto-status[data-company-state="partial"]{border-color:#f0dfb6;background:#fff9e9;color:#8a6717}
+.job-company-auto-status[data-company-state="empty"]{border-color:#e1e7ee;background:#f5f7fa;color:#66788b}
+.job-company-fact-source{display:block;margin-top:4px;font-size:9px;line-height:1.35;font-weight:750;color:var(--insight);text-decoration:none;overflow-wrap:anywhere}
+.job-company-fact-source:hover{text-decoration:underline}
+.job-company-fact-source.is-missing{color:#7d8b9a;font-weight:500}
+.job-company-employee-estimate{display:inline-block;margin-top:3px;padding:2px 5px;border-radius:5px;background:#fff4dd;color:#805b11;font-size:9px;font-weight:750}
+.job-company-quality{display:flex;flex-direction:column;gap:3px;margin-top:9px;padding:9px 10px;border:1px dashed var(--insight-line);border-radius:9px;background:rgba(255,255,255,.72);font-size:10px;line-height:1.45;color:#64758b}
+.job-company-quality strong{color:#334c65;font-size:10px}
+.job-company-quality .is-incomplete{color:#8b671a}
 .job-company-lookup-error{margin-top:8px;padding:9px 11px;border-radius:9px;background:#fff6f3;border:1px solid #f1d6cf;color:#9f4e39;font-size:10px;line-height:1.5}
 @media(max-width:640px){.job-company-auto-status{max-width:120px;font-size:9px;padding:5px 7px}.job-company-insights-head>div{flex:1}}
 
@@ -919,6 +933,24 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 
 /* Job cards use one consistent layout: clear title, employer/location, match rationale and company insights */
 .job-result-card{gap:13px;padding:20px;border-radius:18px;border:1px solid #dbe6f3;background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);box-shadow:0 5px 18px rgba(34,67,104,.035)}
+.distance-origin-settings{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:end;margin-top:2px;padding:13px 14px;border:1px solid #dce7f3;border-radius:14px;background:#f8fbff}
+.distance-origin-copy{display:grid;gap:6px;min-width:0}
+.distance-origin-copy input{width:100%;box-sizing:border-box;min-height:42px;padding:10px 12px;border:1px solid #d5e1ef;border-radius:10px;background:#fff;color:#243b53;font:inherit}
+.distance-origin-copy small{font-size:11px;line-height:1.45;color:#687d94}
+.distance-origin-status{grid-column:1/-1;font-size:11px;line-height:1.5;color:#61758c}
+.distance-origin-status.is-saved{color:#14744f}
+.distance-origin-status.is-warning{color:#8b671a}
+.job-distance-filter{margin-top:12px;padding:14px 15px;border:1px solid #dce7f3;border-radius:14px;background:#fff}
+.job-distance-filter-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.job-distance-filter-head label{font-size:13px;font-weight:800;color:#263e59}
+.job-distance-filter-head strong{font-size:20px;font-weight:850;color:#1b72e8;white-space:nowrap}
+.job-distance-slider{display:block;width:100%;margin:6px 0 0;accent-color:#2878ed;cursor:pointer}
+.job-distance-ticks{display:flex;justify-content:space-between;gap:4px;margin-top:7px;color:#71839a;font-size:10px}
+.job-distance-filter-status{margin:9px 0 0;color:#627790;font-size:11px;line-height:1.45}
+@media(max-width:640px){.job-distance-filter{padding:12px}.job-distance-ticks{font-size:9px;letter-spacing:-.2px}}
+
+@media(max-width:640px){.distance-origin-settings{grid-template-columns:1fr}.distance-origin-settings>button{width:100%}.distance-origin-status{grid-column:1}}
+
 .job-result-card:hover{border-color:#b8d1f1;box-shadow:0 10px 26px rgba(34,67,104,.08);transform:translateY(-1px)}
 .job-result-topline{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .job-result-title{font-size:22px!important;line-height:1.3!important;letter-spacing:-.55px;font-weight:850;color:#172f50!important;margin:1px 0 0!important;overflow-wrap:anywhere}
@@ -958,6 +990,90 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 #apptext{font-family:"Roboto Slab",Georgia,serif;line-height:1.7;font-size:15px;letter-spacing:0;font-weight:400}
 #appPreview.output{font-family:"Roboto Slab",Georgia,serif;line-height:1.7;letter-spacing:0;font-weight:400}
 #apptext::placeholder{font-family:"Roboto Slab",Georgia,serif}
+
+/* AI-derived job themes and communication-weight sliders */
+.application-analysis-card{padding:clamp(17px,2.1vw,25px);gap:16px}
+.application-analysis-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.application-analysis-heading h2{font-size:21px;letter-spacing:-.65px;margin:4px 0 5px;color:#172f54}
+.application-analysis-heading p{font-size:12px;line-height:1.65;color:#637893;max-width:810px;margin:0}
+.application-analysis-refresh{white-space:nowrap;font-size:11px!important;padding:9px 12px!important}
+.application-analysis-status{font-size:11px;color:#7388a3;line-height:1.5}
+.application-analysis-status.is-loading{color:#286fcb}.application-analysis-status.is-ready{color:#197d5c}.application-analysis-status.is-error{color:#a65f25}
+.application-themes-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.application-theme-card{--theme:#287bf5;--theme-soft:#edf5ff;--theme-border:#dceaff;min-width:0;border:1px solid var(--theme-border);border-left:4px solid var(--theme);border-radius:15px;padding:16px 17px 13px;background:linear-gradient(140deg,var(--theme-soft),#fff 76%);display:flex;flex-direction:column;gap:12px}
+.application-theme-card.theme-green{--theme:#1a9a79;--theme-soft:#eaf9f2;--theme-border:#d3f0e3}.application-theme-card.theme-orange{--theme:#e58a38;--theme-soft:#fff4e9;--theme-border:#f7e2cc}.application-theme-card.theme-purple{--theme:#8663dd;--theme-soft:#f4efff;--theme-border:#e5dcff}.application-theme-card.theme-teal{--theme:#168a9c;--theme-soft:#eaf8fb;--theme-border:#d4edf2}.application-theme-card.theme-rose{--theme:#c85f80;--theme-soft:#fff0f4;--theme-border:#f6dce5}
+.application-theme-top{display:flex;align-items:flex-start;gap:12px;min-width:0}
+.application-theme-icon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--theme),white 90%);color:var(--theme);font-weight:900;font-size:17px}
+.application-theme-copy{min-width:0;flex:1}.application-theme-copy h3{font-size:14px;line-height:1.35;letter-spacing:-.25px;color:#1a3458;margin:0 0 5px}.application-theme-copy p{font-size:11px;line-height:1.55;color:#607590;margin:0}
+.application-theme-bullets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.application-theme-bullet{display:inline-flex;max-width:100%;padding:4px 7px;border:1px solid color-mix(in srgb,var(--theme),white 84%);border-radius:7px;background:rgba(255,255,255,.72);font-size:10px;line-height:1.35;color:#516b89}
+.application-theme-slider{border-top:1px solid color-mix(in srgb,var(--theme),white 85%);padding-top:10px;margin-top:auto}
+.application-theme-slider-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.application-theme-slider-head label{font-size:10px;font-weight:800;color:#405976;margin:0}
+.application-theme-value{display:inline-grid;place-items:center;min-width:27px;height:25px;border:1px solid color-mix(in srgb,var(--theme),white 70%);border-radius:8px;background:#fff;color:var(--theme);font-size:12px;font-weight:900}
+.application-theme-range{appearance:none;display:block;width:100%;height:20px;padding:0;margin:8px 0 2px;background:transparent;border:0;box-shadow:none;cursor:pointer;accent-color:var(--theme)}
+.application-theme-range:focus{outline:2px solid color-mix(in srgb,var(--theme),white 55%);outline-offset:3px;box-shadow:none}
+.application-theme-range::-webkit-slider-runnable-track{height:5px;border-radius:999px;background:linear-gradient(90deg,color-mix(in srgb,var(--theme),white 30%),#d9e2ee)}
+.application-theme-range::-moz-range-track{height:5px;border-radius:999px;background:linear-gradient(90deg,color-mix(in srgb,var(--theme),white 30%),#d9e2ee)}
+.application-theme-range::-webkit-slider-thumb{appearance:none;width:17px;height:17px;margin-top:-6px;border:3px solid #fff;border-radius:50%;background:var(--theme);box-shadow:0 0 0 1.5px var(--theme),0 2px 5px rgba(22,44,76,.16)}
+.application-theme-range::-moz-range-thumb{width:12px;height:12px;border:3px solid #fff;border-radius:50%;background:var(--theme);box-shadow:0 0 0 1.5px var(--theme),0 2px 5px rgba(22,44,76,.16)}
+.application-theme-scale{display:flex;justify-content:space-between;gap:8px;color:#8293a9;font-size:9px;line-height:1.35}.application-theme-scale span:last-child{color:var(--theme);font-weight:800}
+.application-analysis-placeholder{grid-column:1/-1;display:flex;align-items:center;gap:13px;padding:19px;border:1px dashed #d6e4f4;border-radius:13px;background:#f8fbff}
+.app-analysis-placeholder-icon{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:#e6f0ff;color:#3179df;font-size:22px}
+.application-analysis-placeholder strong{display:block;font-size:12px;color:#29466b}.application-analysis-placeholder p{margin:3px 0 0;font-size:11px;line-height:1.55;color:#71849d}
+.application-analysis-loading{display:flex;align-items:center;gap:11px;padding:17px;border:1px solid #e0eafb;border-radius:13px;background:#f8fbff;color:#537398;font-size:12px}
+.app-analysis-spinner{width:18px;height:18px;flex:0 0 18px;border:2px solid #d3e5fb;border-top-color:#287bf5;border-radius:50%;animation:appAnalysisSpin .8s linear infinite}
+@keyframes appAnalysisSpin{to{transform:rotate(360deg)}}
+.application-priority-footer{border-top:1px solid #e5edf6;padding-top:14px}.app-priority-status{display:flex;align-items:flex-start;gap:8px;font-size:11px;line-height:1.55;color:#657d9b}.app-priority-status>span{font-weight:900;color:#3b80df}.app-priority-status.has-changes{color:#71521c}.app-priority-status.has-changes>span{color:#ce812b}
+@media(max-width:950px){.application-themes-grid{grid-template-columns:1fr}.application-theme-card{padding:15px}.application-analysis-heading h2{font-size:19px}}
+
+/* Application length and paragraph controls — matches the existing light UI */
+.application-settings-card,.application-results-card{padding:clamp(17px,2.1vw,25px);gap:18px}
+.application-settings-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.application-settings-head h2{font-size:22px;letter-spacing:-.7px;margin:4px 0 6px;color:#172f54}
+.application-settings-head p{margin:0;color:#637893;font-size:13px;line-height:1.65;max-width:780px}
+.section-mini-label{color:#3175cb;font-size:10px;font-weight:900;letter-spacing:1.55px}
+.app-tone-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;background:#eef7ff;border:1px solid #dceafd;border-radius:99px;color:#31577f;font-size:11px;font-weight:800;white-space:nowrap}
+.app-tone-dot{width:7px;height:7px;border-radius:50%;background:#2781f5;box-shadow:0 0 0 4px rgba(39,123,241,.1)}
+.app-length-hint{margin:-5px 0 0;color:#7890ae;font-size:11px;line-height:1.45}
+.application-length-fieldset{border:0;padding:0;margin:0;min-width:0}
+.application-length-fieldset legend{font-size:15px;font-weight:850;color:#1a3355;margin-bottom:10px}
+.application-length-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.application-length-option{position:relative;display:flex;align-items:center;gap:13px;min-width:0;min-height:150px;text-align:left;padding:19px 18px;border:1px solid #dfe8f4!important;border-radius:16px!important;background:linear-gradient(140deg,#fff,#fbfdff)!important;color:#172f54!important;box-shadow:none!important;transform:none!important}
+.application-length-option:hover{border-color:#aacafa!important;background:#f8fbff!important;box-shadow:0 5px 15px rgba(39,123,241,.06)!important}
+.application-length-option.is-selected{border:2px solid #287bf5!important;padding:18px 17px;background:linear-gradient(140deg,#edf5ff,#fff)!important;box-shadow:0 5px 17px rgba(39,123,241,.08)!important}
+.app-length-check{position:absolute;right:13px;top:12px;display:grid;place-items:center;width:22px;height:22px;border:1.5px solid #becde0;border-radius:50%;color:transparent;font-size:13px}
+.application-length-option.is-selected .app-length-check{border-color:#287bf5;background:#287bf5;color:#fff}
+.app-document-icon{display:grid;place-items:center;flex:0 0 55px;width:55px;height:65px;border:1px solid #dce7f5;border-radius:10px;background:#fff;color:#6c93c7;box-shadow:0 2px 6px rgba(35,70,110,.025)}
+.app-document-icon svg{width:42px;height:50px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.app-length-copy{display:flex;flex-direction:column;gap:5px;min-width:0;padding-top:7px}
+.app-length-copy strong{font-size:17px;letter-spacing:-.35px;color:#172f54}
+.app-length-copy>span{font-size:12px;color:#607895;white-space:nowrap}
+.app-line-preview{display:flex;flex-direction:column;gap:4px;width:min(100%,165px);margin-top:4px}
+.app-line-preview b{display:block;height:5px;width:100%;border-radius:99px;background:#cad6e6}
+.app-line-preview b:nth-child(2n){width:96%}.app-line-preview b:nth-child(3n){width:89%}
+.application-length-option.is-selected .app-line-preview b:first-child{background:#4f98f4}
+.application-structure{border-top:1px solid #e5edf6;padding-top:17px}
+.app-structure-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.app-structure-heading strong{font-size:13px;color:#1e3b60}.app-structure-heading>span{font-size:11px;color:#7b8da5}
+.app-structure-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.app-structure-step{display:flex;align-items:flex-start;gap:9px;min-width:0;border:1px solid #e5edf6;border-radius:12px;background:#fbfdff;padding:11px 10px}
+.app-structure-step>span{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border-radius:8px;background:#e7f0ff;color:#2a76e8;font-weight:900;font-size:11px}
+.app-structure-step>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.app-structure-step strong{font-size:11px;color:#253e5d;line-height:1.4}.app-structure-step small{font-size:10px;line-height:1.4;color:#7b8ba0}
+.application-example-setting{border-top:1px solid #e5edf6;padding-top:16px;display:grid;gap:11px}
+.application-checkbox-label{display:flex;align-items:flex-start;gap:12px;margin:0;cursor:pointer}
+.application-checkbox-label input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.app-checkbox-custom{position:relative;display:grid;place-items:center;flex:0 0 23px;width:23px;height:23px;margin-top:1px;border:1.5px solid #bdcde0;border-radius:6px;background:#fff}
+.application-checkbox-label input:checked+.app-checkbox-custom{background:#287bf5;border-color:#287bf5;box-shadow:0 3px 8px rgba(39,123,241,.13)}
+.application-checkbox-label input:checked+.app-checkbox-custom:after{content:"";width:10px;height:6px;border-left:2px solid white;border-bottom:2px solid white;transform:translateY(-1px) rotate(-45deg)}
+.application-checkbox-label input:focus-visible+.app-checkbox-custom{outline:3px solid #b9d7ff;outline-offset:2px}
+.app-checkbox-copy{display:flex;flex-direction:column;gap:4px}.app-checkbox-copy strong{font-size:13px;color:#1c3558}
+.app-checkbox-copy small{font-size:11px;line-height:1.55;color:#6f829a;font-weight:500}
+.app-example-hint{display:flex;align-items:flex-start;gap:8px;color:#657d9b;font-size:11px;line-height:1.55}.app-example-hint>span{font-weight:900;color:#3b80df}
+.app-example-step.is-disabled{opacity:.48;background:#f7f9fc}
+@media(max-width:1120px){.app-structure-steps{grid-template-columns:repeat(3,minmax(0,1fr))}.application-length-option{padding:16px 13px;gap:9px}.application-length-option.is-selected{padding:15px 12px}.app-document-icon{flex-basis:45px;width:45px;height:58px}.app-document-icon svg{width:35px;height:43px}}
+@media(max-width:700px){.application-length-options{grid-template-columns:1fr;gap:9px}.application-length-option,.application-length-option.is-selected{min-height:110px;padding:13px 15px}.app-length-copy{padding-top:0}.app-line-preview{max-width:250px;flex-direction:row;flex-wrap:wrap}.app-line-preview b{width:22%!important;height:4px}.app-structure-steps{grid-template-columns:1fr 1fr}.app-structure-step:last-child{grid-column:1/-1}.application-settings-head h2{font-size:20px}}
+@media(max-width:440px){.app-structure-steps{grid-template-columns:1fr}.app-structure-step:last-child{grid-column:auto}.app-tone-pill{white-space:normal}}
+
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
@@ -1048,7 +1164,27 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 
 <section class="section" id="page-job"><div class="hero"><div class="eyebrow">JOBOPSLAG</div><h1>Undersøg dit match, før du søger.</h1><p>Indsæt en stilling og sammenlign den med dit CV. Ved analyse søger appen automatisk på nettet efter mulige kilder om virksomheden og rollen. Søgetjenesten modtager jobtitel og virksomhed — ikke dit CV eller dine LinkedIn-forbindelser. Scores er fortsat foreløbige og regelbaserede, ikke AI.</p><div class="actions"><button onclick="analyzeJob()">Analyser jobopslag →</button><button class="secondary" onclick="demoJob()">Indsæt demoopslag</button></div></div><div class="card stack"><div class="formrow"><div><label for="jobtitle">Jobtitel</label><input id="jobtitle" placeholder="Fx Digital Marketing Manager"></div><div><label for="company">Virksomhed</label><input id="company" placeholder="Virksomhedens navn"></div><div class="wide"><label for="jobtext">Jobopslagets tekst</label><textarea id="jobtext" rows="10" placeholder="Indsæt hele jobopslaget her…"></textarea></div></div><div class="formrow"><div><label for="sourcetitle">Kildetitel (valgfrit)</label><input id="sourcetitle" placeholder="Fx originalt jobopslag"></div><div><label for="sourceurl">Kilde-URL (valgfrit)</label><input id="sourceurl" placeholder="https://…"></div></div><div class="toolbar"><button onclick="analyzeJob()">Analyser job</button><button class="secondary" onclick="addSourceFromJob()">Tilføj jobkilde</button><button class="secondary" onclick="saveJobOnly()">Gem job uden analyse</button></div><div id="jobmsg" class="notice" hidden></div></div><div id="jobresult" class="card stack" style="margin-top:16px"><div class="empty">Indsæt et jobopslag og vælg “Analyser job” for at få et foreløbigt CV-match samt aktuelle webindeksresultater.</div></div><div class="card" style="margin-top:16px"><h2>Dine egne supplerende kilder</h2><p class="muted">Live-søgningen og dens kildeplan vises inde i analysen ovenfor. Her kan du tilføje egne supplerende links; de tælles adskilt fra websøgeresultaterne.</p><div class="formrow"><div><label for="srcname">Kildens navn</label><input id="srcname" placeholder="Titel på kilde"></div><div><label for="srcurl">URL</label><input id="srcurl" placeholder="https://example.com/artikel"></div></div><div class="toolbar" style="margin-top:10px"><button onclick="addSource()">Tilføj kilde</button><button class="secondary" onclick="sourceSummary()">Opdatér kildestatus</button></div><div id="sources" class="list" style="margin-top:12px"></div><div id="sourceStatus" class="notice warnbox" style="margin-top:12px">Ingen manuelle kilder registreret. Jobanalysen søger automatisk i et eksternt webindeks. Resultater og domænedækning vises i analysen; kilder er ikke direkte live-verificeret.</div></div></section>
 
-<section class="section" id="page-application"><div class="hero rose"><div class="eyebrow">MOTIVERET ANSØGNING</div><h1>Din ansøgning begynder med dit valg.</h1><p>Tre gennemarbejdede udkast i din direkte, personlige og let uformelle stil. Når AI er sat op under “Spørg panelet”, skrives forslagene med en sprogmodel ud fra dit CV og stillingsopslaget.</p><div class="actions"><button onclick="go('job')">Gå til jobanalyse →</button><button class="secondary" onclick="makeProposals()">Lav tre nye forslag</button><button class="secondary" onclick="previewApplication()">Forhåndsvisning</button></div></div><div class="card stack"><div id="proposalState" class="notice">Ingen forslag endnu. Analysér et job under Jobopslag først. Der bliver ikke indsat tekst automatisk.</div><div id="proposals" class="grid proposal-stack"><div class="empty">Tre forslag vises her, når du har analyseret et job.</div></div><div><label for="apptext">Motiveret ansøgning</label><textarea id="apptext" rows="15" placeholder="Ansøgningen er blank, indtil du vælger et forslag."></textarea></div><div class="toolbar"><button onclick="saveApplication()">Gem ansøgning</button><button class="secondary" onclick="previewApplication()">Vis forhåndsvisning</button><button id="downloadPdfButton" class="secondary" onclick="downloadApplicationPdf()" disabled>Download PDF</button><button class="warn" onclick="clearApplication()">Ryd ansøgning</button></div><div id="appPreview" class="output" hidden></div></div></section>
+<section class="section" id="page-application">
+<div class="hero rose"><div class="eyebrow"><span class="eyebrow-dot"></span>MOTIVERET ANSØGNING</div><h1>Din ansøgning begynder med dit valg.</h1><p>Vælg længden i linjer og om der skal være konkrete eksempler. Ansøgningen skrives i din direkte, personlige og let uformelle stil – med korte afsnit og én pointe ad gangen.</p><div class="actions"><button onclick="go('job')">Gå til jobanalyse →</button><button class="secondary" onclick="makeProposals()">Lav tre nye forslag</button><button class="secondary" onclick="previewApplication()">Forhåndsvisning</button></div></div>
+<div class="card stack application-settings-card">
+  <div class="application-settings-head"><div><div class="section-mini-label">FØR DU GENERERER</div><h2>Tilpas din ansøgning</h2><p>Vælg hvor meget plads du vil give din motivation og erfaring. Afsnittene holdes adskilt, så teksten ikke bliver rodet.</p></div><span class="app-tone-pill"><span class="app-tone-dot"></span>Din tone of voice</span></div>
+  <input type="hidden" id="applicationLength" value="short">
+  <fieldset class="application-length-fieldset"><legend>Længde på ansøgningen</legend><div class="application-length-options" role="group" aria-label="Vælg længde på ansøgningen">
+    <button type="button" class="application-length-option is-selected" data-app-length="short" aria-pressed="true" onclick="selectApplicationLength('short')"><span class="app-length-check">✓</span><span class="app-document-icon" aria-hidden="true"><svg viewBox="0 0 40 48"><path d="M7 2h18l9 9v34H7z"/><path d="M25 2v10h9M13 19h15M13 25h15M13 31h15M13 37h12"/></svg></span><span class="app-length-copy"><strong>Kort</strong><span>Ca. 6–8 linjer</span><i class="app-line-preview short-lines"><b></b><b></b><b></b><b></b></i></span></button>
+    <button type="button" class="application-length-option" data-app-length="medium" aria-pressed="false" onclick="selectApplicationLength('medium')"><span class="app-length-check">✓</span><span class="app-document-icon" aria-hidden="true"><svg viewBox="0 0 40 48"><path d="M7 2h18l9 9v34H7z"/><path d="M25 2v10h9M13 19h15M13 25h15M13 31h15M13 37h12"/></svg></span><span class="app-length-copy"><strong>Mellem</strong><span>Ca. 10–12 linjer</span><i class="app-line-preview medium-lines"><b></b><b></b><b></b><b></b><b></b><b></b></i></span></button>
+    <button type="button" class="application-length-option" data-app-length="long" aria-pressed="false" onclick="selectApplicationLength('long')"><span class="app-length-check">✓</span><span class="app-document-icon" aria-hidden="true"><svg viewBox="0 0 40 48"><path d="M7 2h18l9 9v34H7z"/><path d="M25 2v10h9M13 19h15M13 25h15M13 31h15M13 37h12"/></svg></span><span class="app-length-copy"><strong>Lang</strong><span>Ca. 14–16 linjer</span><i class="app-line-preview long-lines"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></i></span></button>
+  </div></fieldset>
+  <p class="app-length-hint" id="appLengthHint">Valgt: Kort · 6–8 linjer. Linjeantallet er vejledende og afhænger af layoutet.</p>
+  <div class="application-structure"><div class="app-structure-heading"><strong>Ansøgningen bygges op i denne rækkefølge</strong><span>Korte afsnit · én pointe ad gangen</span></div><div class="app-structure-steps"><div class="app-structure-step"><span>1</span><div><strong>Hvorfor jobbet?</strong><small>Det, der fanger din interesse</small></div></div><div class="app-structure-step"><span>2</span><div><strong>Det kan jeg bidrage med</strong><small>Relevant erfaring og opgaver</small></div></div><div class="app-structure-step app-example-step"><span>3</span><div><strong>Et konkret eksempel</strong><small>Kun hvis du slår det til</small></div></div><div class="app-structure-step"><span>4</span><div><strong>Sådan arbejder jeg</strong><small>Samarbejde og personlighed</small></div></div><div class="app-structure-step"><span>5</span><div><strong>En personlig afslutning</strong><small>Kort og naturlig</small></div></div></div></div>
+  <div class="application-example-setting"><label class="application-checkbox-label" for="appIncludeExamples"><input id="appIncludeExamples" type="checkbox" checked onchange="updateApplicationExampleSetting()"><span class="app-checkbox-custom" aria-hidden="true"></span><span class="app-checkbox-copy"><strong>Inkludér konkrete eksempler fra mit CV</strong><small>Kun erfaringer, der faktisk kan understøttes af dit CV. Ingen opfundne resultater eller tal.</small></span></label><div class="app-example-hint" id="appExampleHint"><span aria-hidden="true">ⓘ</span> Eksemplerne tilpasses den valgte længde og udelades, hvis der ikke findes et relevant belæg i dit CV.</div></div>
+</div>
+<div class="card stack application-analysis-card">
+  <div class="application-analysis-heading"><div><div class="section-mini-label">ANALYSE AF STILLINGSOPSLAGET</div><h2>Hvad lægger stillingen særligt vægt på?</h2><p>Sprogmodellen udleder de vigtigste krav og ønsker fra det konkrete opslag. Justér kun de temaer, du ønsker at fremhæve mere.</p></div><button class="secondary application-analysis-refresh" id="applicationAnalysisRefresh" onclick="ensureApplicationAnalysis(true)">Analyser igen</button></div>
+  <div class="application-analysis-status" id="applicationAnalysisStatus" role="status" aria-live="polite">Analysen afventer stillingsopslaget.</div>
+  <div id="applicationThemes" class="application-themes-grid"><div class="application-analysis-placeholder"><span class="app-analysis-placeholder-icon">✦</span><div><strong>Din analyse vises her</strong><p>Åbn Motiveret ansøgning med et aktivt jobopslag for at få 4–6 korte temaer fra sprogmodellen.</p></div></div></div>
+  <div class="application-priority-footer"><div class="app-priority-status" id="applicationPriorityStatus"><span>ⓘ</span> Når alle sliders står på 0, bruges standardvægtningen. Ændringer træder først i kraft, når du klikker “Lav tre nye forslag”.</div></div>
+</div>
+<div class="card stack application-results-card"><div id="proposalState" class="notice">Vælg længde og eksempelindstilling ovenfor. Analysér først et job under Jobopslag, og lav derefter dine forslag.</div><div id="proposals" class="grid proposal-stack"><div class="empty">Tre forslag vises her, når du har analyseret et job.</div></div><div><label for="apptext">Motiveret ansøgning</label><textarea id="apptext" rows="15" placeholder="Ansøgningen er blank, indtil du vælger et forslag."></textarea></div><div class="toolbar"><button onclick="saveApplication()">Gem ansøgning</button><button class="secondary" onclick="previewApplication()">Vis forhåndsvisning</button><button id="downloadPdfButton" class="secondary" onclick="downloadApplicationPdf()" disabled>Download PDF</button><button class="warn" onclick="clearApplication()">Ryd ansøgning</button></div><div id="appPreview" class="output" hidden></div></div></section>
 
 <section class="section" id="page-panel"><div class="hero purple"><div class="eyebrow">SPØRG PANELET</div><h1>Få en grundig vurdering af dit materiale.</h1><p>Vælg materialetype, og få en konkret vurdering fra Recruiter, Copywriter, CMO og CEO. Personaerne tilpasser deres kriterier til dokumentet og underbygger observationer med konkrete tekstuddrag og prioriterede forbedringer.</p></div><div class="card stack"><div class="formrow">
 <div class="wide"><label for="panelDocumentType">Hvad vil du have vurderet?</label><select id="panelDocumentType" onchange="updatePanelDocumentType()"><option value="cv">CV</option><option value="application">Jobansøgning</option><option value="article">Artikel / artikler</option><option value="email">E-mail</option><option value="other">Andet materiale</option></select><small>Valget bestemmer, hvilke kriterier og spørgsmål personaerne bruger.</small></div>
@@ -1127,6 +1263,17 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
  <div class="kpis"><div class="kpi"><label>Fundet</label><strong id="jobOpportunityCount">0</strong><span>Offentligt indekserede opslag</span></div><div class="kpi"><label>Søgeord</label><strong id="jobKeywordCount">0</strong><span>Ord til jobsøgningen</span></div><div class="kpi"><label>Gemte til opfølgning</label><strong id="jobTrackedCount">0</strong><span>Lokalt i denne browser</span></div><div class="kpi"><label>Sidste søgning</label><strong id="jobLastSearchLabel">Ikke søgt</strong><span>Kontrollér altid originalopslaget</span></div></div>
  <div class="card stack"><div><h2>Find stillinger med dine søgeord</h2><p class="muted">Skriv jobtitler, fagområder eller kompetencer, fx marketing, CRM eller marketing automation. Søgningen gennemgår jobportaler og viser konkrete opslag, der matcher dine kriterier.</p></div>
   <div class="formrow"><div><label for="jobSearchTerms">Hvad vil du søge efter?</label><input id="jobSearchTerms" placeholder="Marketing, CRM, marketing automation…" oninput="syncJobSearchPreferences()"><small>Adskil flere søgeord med komma. Du kan redigere dem, inden du søger.</small></div><div><label for="jobSearchLocation">Hvor vil du arbejde?</label><input id="jobSearchLocation" placeholder="Frederiksberg, København eller hele Danmark" oninput="syncJobSearchPreferences()"><small>Danske arbejdssteder og remote-job, hvor Danmark er en tilladt arbejdsplacering.</small></div></div>
+  <div class="distance-origin-settings">
+   <div class="distance-origin-copy"><label for="distanceOriginInput">Din placering til afstandsberegning</label><input id="distanceOriginInput" type="text" autocomplete="street-address" maxlength="300" placeholder="Adresse, postnummer eller by — fx 1958 Frederiksberg C"><small>Gem din adresse eller dit postnummer én gang. Den gemmes lokalt i denne browser. Adressen sendes til OpenStreetMap for at finde koordinater — ikke til jobsøgningen.</small></div>
+   <button type="button" class="secondary" id="saveDistanceOriginButton" onclick="saveDistanceOrigin()">Gem min placering</button>
+   <div id="distanceOriginStatus" class="distance-origin-status" role="status">Indtil du angiver din egen placering, vises en grov afstand fra Frederiksberg bymidte. For præcisere afstand skal appen kende din adresse, dit postnummer eller din by.</div>
+  </div>
+  <div class="job-distance-filter">
+   <div class="job-distance-filter-head"><label for="jobDistanceSlider">Maksimal afstand fra din bopæl</label><strong id="jobDistanceValue">50 km</strong></div>
+   <input id="jobDistanceSlider" class="job-distance-slider" type="range" min="0" max="300" step="5" value="50" aria-label="Maksimal afstand fra din bopæl i kilometer" oninput="updateJobDistanceFilter(this.value)">
+   <div class="job-distance-ticks" aria-hidden="true"><span>0 km</span><span>50 km</span><span>100 km</span><span>150 km</span><span>200 km</span><span>250 km</span><span>300 km</span></div>
+   <p id="jobDistanceFilterStatus" class="job-distance-filter-status">Viser kun opslag med en beregnet afstand på højst 50 km. Nærmeste opslag vises først.</p>
+  </div>
   <div class="job-search-controls"><button class="secondary" id="restoreSearchTermsButton" onclick="restoreSearchTermsFromCV()">Gendan søgeord fra mit CV</button><button id="jobOpportunitiesSearchButton" onclick="searchJobOpportunities()">Søg stillinger</button></div>
   <div id="jobSearchStatus" class="notice">Søgningen viser konkrete danske stillingsopslag samt remote-roller, hvor Danmark er angivet som muligt arbejdsland. Generelle jobkategorisider filtreres fra.</div>
   <div class="job-source-links"><a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/jobs/">LinkedIn Jobs ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobindex.dk/">Jobindex ↗</a><a target="_blank" rel="noopener noreferrer" href="https://dk.indeed.com/">Indeed ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.hk.dk/karriere/jobsoegningen/find-dit-naeste-job/jobportal">HK Jobportal ↗</a><a target="_blank" rel="noopener noreferrer" href="https://job.jobnet.dk/">Jobnet ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.workindenmark.dk/">Workindenmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.stepstone.dk/">StepStone ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.ofir.dk/">Ofir ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobdanmark.dk/">Jobdanmark ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.it-jobbank.dk/">IT-Jobbank ↗</a><a target="_blank" rel="noopener noreferrer" href="https://thehub.io/jobs?countryCode=DK">The Hub ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.graduateland.com/">Graduateland ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.jobsearch.dk/">Jobsearch.dk ↗</a></div>
@@ -1308,6 +1455,12 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
      <p id="appPortraitStatus" class="app-pdf-help" aria-live="polite">Portrættet fra reference-PDF’en bruges automatisk. Hvis det ikke kan indlæses, vises en avatar i stedet.</p>
     </div>
     <div class="app-pdf-color-row">
+     <label for="appLinkedInUrl">Din LinkedIn-profil (klikbart link i PDF)</label>
+     <input id="appLinkedInUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://www.linkedin.com/in/..." onchange="saveApplicationLinkedInUrl(this.value)">
+     <p class="app-pdf-help">Telefonnummeret i PDF'en bliver automatisk klikbart. Indsæt din profiladresse her én gang; den gemmes lokalt og indlejres som et klikbart link i PDF'en.</p>
+     <p id="appLinkedInStatus" class="app-pdf-help" aria-live="polite"></p>
+    </div>
+    <div class="app-pdf-color-row">
      <label for="appGreetingHex">Baggrund: KÆRE + hilsenlinje</label>
      <input id="appGreetingHex" type="text" maxlength="7" value="#3E7099" autocomplete="off" spellcheck="false">
      <div id="appGreetingSwatch" class="app-pdf-color-preview" style="background:#3E7099"></div>
@@ -1332,9 +1485,48 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 </div>
 <script>
 const KEY='gajh_demo_v18';
-const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
+const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',applicationThemes:[],applicationThemeWeights:{},applicationAnalysisJobKey:'',applicationAnalysisStatus:'idle',applicationAnalysisNotice:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationLinkedInUrl:'',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',distanceOrigin:'',jobDistanceMaxKm:50,companyFactsCache:{},networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
+function safeApplicationLinkedInUrl(raw){
+ let value=String(raw||'').trim().replace(/[)\]>,;.!]+$/,'');
+ if(!value)return '';
+ if(!/^https:\/\//i.test(value))value='https://'+value.replace(/^\/\//,'');
+ try{
+  const url=new URL(value);
+  if(url.protocol!=='https:'||!/(^|\.)linkedin\.com$/i.test(url.hostname)||!/^\/in\/[A-Za-z0-9_%.-]+(?:\/.*)?$/i.test(url.pathname))return '';
+  url.hash='';
+  url.search='';
+  return url.href;
+ }catch(e){return ''}
+}
+function extractApplicationLinkedInUrl(text){
+ const value=String(text||'');
+ const match=value.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9_%.-]+(?:\/[A-Za-z0-9_%./-]*)?/i);
+ if(!match)return '';
+ return safeApplicationLinkedInUrl(match[0]);
+}
+function getApplicationLinkedInUrl(){
+ const saved=safeApplicationLinkedInUrl(state.applicationLinkedInUrl);
+ if(saved)return saved;
+ return extractApplicationLinkedInUrl(state.cv)||extractApplicationLinkedInUrl(state.application)||'';
+}
+function saveApplicationLinkedInUrl(raw){
+ const value=String(raw||'').trim();
+ const url=safeApplicationLinkedInUrl(value);
+ const status=el('appLinkedInStatus');
+ if(value&&!url){
+  if(status)status.textContent='Indsæt en gyldig LinkedIn-profiladresse, fx https://www.linkedin.com/in/dit-navn/.';
+  return false;
+ }
+ state.applicationLinkedInUrl=url;
+ persist();
+ if(status)status.textContent=url?'LinkedIn-link gemt. Det indlejres som klikbart link i PDF’en.':'LinkedIn-link fjernet. Du kan stadig hente et profil-link fra CV-teksten, hvis det findes der.';
+ markApplicationPdfOutdated();
+ if(el('appPreviewModal')&&!el('appPreviewModal').hidden)renderApplicationPdfPreview(false);
+ return true;
+}
+
 function clampScore(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0}
 function renderScoreMeter(value){
  const score=clampScore(value);
@@ -1372,13 +1564,62 @@ function normalizeCompetencyAssessment(raw){
  const references=Array.isArray(raw.references)?raw.references.slice(0,8).filter(ref=>ref&&typeof ref==='object').map(ref=>({title:String(ref.title||'').slice(0,300),url:safeHttpUrl(ref.url),domain:String(ref.domain||'').slice(0,200),categoryId:String(ref.categoryId||'').slice(0,100),kind:String(ref.kind||'').slice(0,200),description:String(ref.description||'').slice(0,500),trust:String(ref.trust||'').slice(0,200),staticReference:!!ref.staticReference})):[];
  return {rows,requiredCount:rows.length,documentedCount:rows.filter(row=>row.status==='evidenced').length,mentionedCount:rows.filter(row=>row.status==='mentioned').length,missingCount:rows.filter(row=>row.status==='missing').length,coverageScore:raw.coverageScore==null?null:Math.max(0,Math.min(100,Number(raw.coverageScore)||0)),references,method:String(raw.method||'').slice(0,1000)};
 }
+function normalizeCompanySourceRecord(source){
+ if(!source||typeof source!=='object'||Array.isArray(source))return null;
+ const url=safeHttpUrl(source.url);if(!url)return null;
+ let host='';try{host=new URL(url).hostname.toLowerCase().replace(/^www\\./,'')}catch(e){}
+ return {
+  url,
+  title:typeof source.title==='string'?source.title.slice(0,500):host,
+  domain:typeof source.domain==='string'?source.domain.slice(0,200):host,
+  description:typeof source.description==='string'?source.description.slice(0,1200):'',
+  sourceLabel:typeof source.sourceLabel==='string'?source.sourceLabel.slice(0,200):'',
+  sourceType:typeof source.sourceType==='string'?source.sourceType.slice(0,100):'',
+  pageContent:typeof source.pageContent==='string'?source.pageContent.slice(0,10000):'',
+  contextTitle:typeof source.contextTitle==='string'?source.contextTitle.slice(0,500):''
+ };
+}
+function normalizeCompanyFacts(raw){
+ if(!raw||typeof raw!=='object'||Array.isArray(raw))return null;
+ const out={};
+ for(const key of ['employeeCount','location','distanceKm','distanceMethod','distanceOriginLabel','distanceTargetLabel','distanceMessage','distanceDestinationDisplay','locationKind','employeeRating','ratingCount','industry','foundedYear','companyType','companyHighlight','lookupError','lookupAt','employeeRatingFetchStatus','employeeRatingLookupVersion','employeeRatingCheckedAt','employeeRatingAttemptedAt','jobindexCheckedAt']){
+  if(typeof raw[key]==='string')out[key]=raw[key].slice(0,1000);
+ }
+ out.lookupStatus=['waiting','queued','loading','done','error'].includes(raw.lookupStatus)?raw.lookupStatus:'waiting';
+ out.danishCompanyConfirmed=raw.danishCompanyConfirmed===true;
+ out.sources=Array.isArray(raw.sources)?raw.sources.slice(0,20).map(normalizeCompanySourceRecord).filter(Boolean):[];
+ out.factSources={};
+ if(raw.factSources&&typeof raw.factSources==='object'&&!Array.isArray(raw.factSources)){
+  for(const [key,value] of Object.entries(raw.factSources)){
+   const safe=normalizeCompanySourceRecord(value);
+   if(safe)out.factSources[key]=safe;
+  }
+ }
+ return out;
+}
 function normalizeResearchRecords(raw,defaultType){
  if(!Array.isArray(raw))return [];
  return raw.slice(0,120).filter(x=>x&&typeof x==='object'&&!Array.isArray(x)).map((x,index)=>{
   const url=safeHttpUrl(x.url);if(!url)return null;
   let domain='';try{domain=new URL(url).hostname.replace(/^www\./i,'')}catch(e){}
   const type=typeof x.type==='string'&&/^(person|company|post|group|job|other)$/.test(x.type)?x.type:(defaultType||'other');
-  return {id:typeof x.id==='string'||typeof x.id==='number'?String(x.id):String(Date.now())+'-'+index,type,title:typeof x.title==='string'?x.title.slice(0,500):domain,company:typeof x.company==='string'?x.company.slice(0,300):'',url,domain:typeof x.domain==='string'?x.domain.slice(0,200):domain,description:typeof x.description==='string'?x.description.slice(0,1200):'',sourceLabel:typeof x.sourceLabel==='string'?x.sourceLabel.slice(0,120):domain,queryLabel:typeof x.queryLabel==='string'?x.queryLabel.slice(0,160):'',matchedTerms:Array.isArray(x.matchedTerms)?x.matchedTerms.slice(0,12).filter(v=>typeof v==='string').map(v=>v.slice(0,80)):[],createdAt:typeof x.createdAt==='string'?x.createdAt.slice(0,50):'',saved:!!x.saved};
+  return {id:typeof x.id==='string'||typeof x.id==='number'?String(x.id):String(Date.now())+'-'+index,type,title:typeof x.title==='string'?x.title.slice(0,500):domain,company:typeof x.company==='string'?x.company.slice(0,300):'',url,domain:typeof x.domain==='string'?x.domain.slice(0,200):domain,description:typeof x.description==='string'?x.description.slice(0,1200):'',sourceLabel:typeof x.sourceLabel==='string'?x.sourceLabel.slice(0,120):domain,queryLabel:typeof x.queryLabel==='string'?x.queryLabel.slice(0,160):'',matchedTerms:Array.isArray(x.matchedTerms)?x.matchedTerms.slice(0,12).filter(v=>typeof v==='string').map(v=>v.slice(0,80)):[],createdAt:typeof x.createdAt==='string'?x.createdAt.slice(0,50):'',saved:!!x.saved,companyFacts:normalizeCompanyFacts(x.companyFacts),
+  jobTitle:typeof x.jobTitle==='string'?x.jobTitle.slice(0,500):'',
+  companyName:typeof x.companyName==='string'?x.companyName.slice(0,500):'',
+  employer:typeof x.employer==='string'?x.employer.slice(0,500):'',
+  jobLocation:typeof x.jobLocation==='string'?x.jobLocation.slice(0,500):'',
+  location:typeof x.location==='string'?x.location.slice(0,500):'',
+  city:typeof x.city==='string'?x.city.slice(0,200):'',
+  country:typeof x.country==='string'?x.country.slice(0,100):'',
+  postedAt:typeof x.postedAt==='string'?x.postedAt.slice(0,100):'',
+  employmentType:typeof x.employmentType==='string'?x.employmentType.slice(0,150):'',
+  workMode:typeof x.workMode==='string'?x.workMode.slice(0,150):'',
+  salary:typeof x.salary==='string'?x.salary.slice(0,200):'',
+  matchScope:typeof x.matchScope==='string'?x.matchScope.slice(0,100):'',
+  matchScopeLabel:typeof x.matchScopeLabel==='string'?x.matchScopeLabel.slice(0,200):'',
+  verifiedSnapshot:x.verifiedSnapshot===true,
+  sourceCheckedAt:typeof x.sourceCheckedAt==='string'?x.sourceCheckedAt.slice(0,50):'',
+  queryId:typeof x.queryId==='string'?x.queryId.slice(0,100):''};
  }).filter(Boolean);
 }
 function normalizeFollowUpRecords(raw){
@@ -1397,11 +1638,20 @@ function normalizeState(raw){
  const normalizePdfColor=(value,fallback,legacy)=>{if(typeof value!=='string'||!/^#?[0-9a-fA-F]{6}$/.test(value))return fallback;const color='#'+value.replace(/^#/,'').toUpperCase();return legacy.includes(color)?fallback:color};
  out.applicationGreetingHex=normalizePdfColor(raw.applicationGreetingHex,'#3E7099',['#3F7897','#D94F3E']);
  out.applicationSignoffHex=normalizePdfColor(raw.applicationSignoffHex,'#1F325E',['#183755','#D94F3E']);
+ out.applicationLinkedInUrl=safeApplicationLinkedInUrl(raw.applicationLinkedInUrl)||'';
  out.applicationPortraitModeChosen=raw.applicationPortraitModeChosen===true;
  out.applicationPortraitMode=raw.applicationPortraitMode==='avatar'&&out.applicationPortraitModeChosen?'avatar':'photo';
  out.applicationPortraitDataUrl=typeof raw.applicationPortraitDataUrl==='string'&&/^data:image\/(?:jpeg|png);base64,/i.test(raw.applicationPortraitDataUrl)&&raw.applicationPortraitDataUrl.length<=700000?raw.applicationPortraitDataUrl:'';
  for(const key of Object.keys(limits))if(typeof raw[key]==='string')out[key]=raw[key].slice(0,limits[key]);
- out.proposalTexts=Array.isArray(raw.proposalTexts)?raw.proposalTexts.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,30000)):[];
+ out.applicationThemes=Array.isArray(raw.applicationThemes)?raw.applicationThemes.slice(0,6).filter(t=>t&&typeof t==='object'&&!Array.isArray(t)).map((t,i)=>({id:String(t.id||'theme-'+i).replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,80),title:String(t.title||'').slice(0,100),summary:String(t.summary||t.description||'').slice(0,260),bullets:Array.isArray(t.bullets)?t.bullets.slice(0,2).filter(v=>typeof v==='string').map(v=>v.slice(0,120)):[]})).filter(t=>t.id&&t.title&&t.summary):[];
+  out.applicationThemeWeights={};
+  if(raw.applicationThemeWeights&&typeof raw.applicationThemeWeights==='object'&&!Array.isArray(raw.applicationThemeWeights)){
+    for(const [key,value] of Object.entries(raw.applicationThemeWeights).slice(0,6))out.applicationThemeWeights[String(key).slice(0,80)]=Math.max(0,Math.min(10,Math.round(Number(value)||0)));
+  }
+  out.applicationAnalysisJobKey=typeof raw.applicationAnalysisJobKey==='string'?raw.applicationAnalysisJobKey.slice(0,120):'';
+  out.applicationAnalysisStatus=['idle','loading','ready','error'].includes(raw.applicationAnalysisStatus)?raw.applicationAnalysisStatus:'idle';
+  out.applicationAnalysisNotice=typeof raw.applicationAnalysisNotice==='string'?raw.applicationAnalysisNotice.slice(0,500):'';
+  out.proposalTexts=Array.isArray(raw.proposalTexts)?raw.proposalTexts.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,30000)):[];
  out.proposalTitles=Array.isArray(raw.proposalTitles)?raw.proposalTitles.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,100)):[];
  out.proposalFocuses=Array.isArray(raw.proposalFocuses)?raw.proposalFocuses.slice(0,3).filter(v=>typeof v==='string').map(v=>v.slice(0,300)):[];
  out.proposalMode=raw.proposalMode==='ai'?'ai':'local';
@@ -1416,9 +1666,19 @@ function normalizeState(raw){
  out.savedJobs=Array.isArray(raw.savedJobs)?raw.savedJobs.slice(0,10000).filter(j=>j&&typeof j==='object'&&!Array.isArray(j)).map(j=>({title:typeof j.title==='string'?j.title.slice(0,1000):'',company:typeof j.company==='string'?j.company.slice(0,1000):'',url:safeHttpUrl(j.url)})).filter(j=>j.title||j.company||j.url): [];
  out.networkSearchTerms=typeof raw.networkSearchTerms==='string'?raw.networkSearchTerms.slice(0,600):blank.networkSearchTerms;
  out.networkSearchLocation=typeof raw.networkSearchLocation==='string'?raw.networkSearchLocation.slice(0,300):blank.networkSearchLocation;
+ out.distanceOrigin=typeof raw.distanceOrigin==='string'?raw.distanceOrigin.slice(0,300):'';
+ out.jobDistanceMaxKm=Number.isFinite(Number(raw.jobDistanceMaxKm))?Math.max(0,Math.min(300,Math.round(Number(raw.jobDistanceMaxKm)/5)*5)):50;
  out.networkProspects=normalizeResearchRecords(raw.networkProspects,'person');
  out.networkCommunities=normalizeResearchRecords(raw.networkCommunities,'post');
  out.jobOpportunities=normalizeResearchRecords(raw.jobOpportunities,'job');
+ out.companyFactsCache={};
+ if(raw.companyFactsCache&&typeof raw.companyFactsCache==='object'&&!Array.isArray(raw.companyFactsCache)){
+  for(const [key,value] of Object.entries(raw.companyFactsCache).slice(0,400)){
+   const safeKey=typeof key==='string'?key.slice(0,200):'';
+   const facts=normalizeCompanyFacts(value);
+   if(safeKey&&facts)out.companyFactsCache[safeKey]=facts;
+  }
+ }
  out.followUps=normalizeFollowUpRecords(raw.followUps);
  out.networkLastSearch=typeof raw.networkLastSearch==='string'?raw.networkLastSearch.slice(0,50):'';
  out.jobLastSearch=typeof raw.jobLastSearch==='string'?raw.jobLastSearch.slice(0,50):'';
@@ -1485,7 +1745,7 @@ function go(name,bypassLowMatchWarning){
  const label={home:'Overblik',job:'Jobopslag',cv:'Mit CV',application:'Motiveret ansøgning',panel:'Spørg panelet',network:'LinkedIn & netværk',opportunities:'Jobmuligheder',followups:'Opfølgning',history:'Historik & backup'}[name]||name;
  el('crumb').textContent=label;
  if(name==='cv')el('cvtext').value=state.cv||'';
- if(name==='application')renderProposals();
+ if(name==='application'){renderProposals();renderApplicationAnalysis();ensureApplicationAnalysis();}
  if(name==='network'){renderNetwork();renderDiscoveryResults()}
  if(name==='opportunities'){syncOpportunityInputs();renderJobOpportunities()}
  if(name==='followups')renderFollowUps();
@@ -1879,8 +2139,128 @@ function joinDanish(items){
  if(clean.length===2)return clean[0]+' og '+clean[1];
  return clean.slice(0,-1).join(', ')+' og '+clean[clean.length-1];
 }
+let applicationAnalysisInFlight=false;
+function getApplicationJobForAnalysis(){
+ const active=state.activeJob&&typeof state.activeJob==='object'?state.activeJob:{};
+ return {title:String(active.title||state.jobtitle||'').trim(),company:String(active.company||state.company||'').trim(),job:String(active.job||state.jobtext||'').trim()};
+}
+function getApplicationAnalysisKey(){
+ const j=getApplicationJobForAnalysis();
+ const source=[j.title,j.company,j.job].join('|');
+ let hash=2166136261;
+ for(let i=0;i<source.length;i++){hash^=source.charCodeAt(i);hash=Math.imul(hash,16777619)}
+ return (hash>>>0).toString(36)+'-'+source.length.toString(36);
+}
+function updateApplicationPriorityStatus(){
+ const box=el('applicationPriorityStatus');if(!box)return;
+ const themes=Array.isArray(state.applicationThemes)?state.applicationThemes:[];
+ const weights=state.applicationThemeWeights&&typeof state.applicationThemeWeights==='object'?state.applicationThemeWeights:{};
+ const changed=themes.some(theme=>Number(weights[theme.id]||0)>0);
+ box.classList.toggle('has-changes',changed);
+ box.innerHTML=changed
+  ?'<span>↗</span> Dine vægtninger er valgt, men endnu ikke brugt. Klik på “Lav tre nye forslag” for at generere forslag med de nye prioriteringer.'
+  :'<span>ⓘ</span> Alle sliders står på 0. Ansøgningen følger standardprioriteringen, som den gør nu. Ændringer træder først i kraft, når du klikker “Lav tre nye forslag”.';
+}
+function setApplicationThemeWeight(themeId, rawValue){
+ const safeId=String(themeId||'');
+ if(!Array.isArray(state.applicationThemes)||!state.applicationThemes.some(t=>t.id===safeId))return;
+ const value=Math.max(0,Math.min(10,Math.round(Number(rawValue)||0)));
+ if(!state.applicationThemeWeights||typeof state.applicationThemeWeights!=='object')state.applicationThemeWeights={};
+ state.applicationThemeWeights[safeId]=value;
+ const output=el('applicationThemeWeightValue-'+safeId);if(output)output.textContent=String(value);
+ updateApplicationPriorityStatus();
+ persist();
+}
+function renderApplicationAnalysis(){
+ const root=el('applicationThemes'),status=el('applicationAnalysisStatus'),refresh=el('applicationAnalysisRefresh');
+ if(!root||!status)return;
+ const stage=state.applicationAnalysisStatus||'idle';
+ if(refresh){refresh.disabled=stage==='loading';refresh.textContent=stage==='loading'?'Analyserer…':'Analyser igen';}
+ status.className='application-analysis-status'+(stage==='loading'?' is-loading':stage==='ready'?' is-ready':stage==='error'?' is-error':'');
+ status.textContent=state.applicationAnalysisNotice||(stage==='ready'?'Temaerne er analyseret af sprogmodellen ud fra stillingsopslaget.':stage==='loading'?'Sprogmodellen læser stillingsopslaget og finder de vigtigste temaer…':'Analysen afventer stillingsopslaget.');
+ const themes=Array.isArray(state.applicationThemes)?state.applicationThemes:[];
+ const activeKey=getApplicationAnalysisKey();
+ if(stage==='loading'){
+  root.innerHTML='<div class="application-analysis-loading"><span class="app-analysis-spinner" aria-hidden="true"></span><div><strong>Analyserer stillingsopslaget</strong><div>Sprogmodellen finder 4–6 konkrete krav og ønsker fra opslaget.</div></div></div>';
+ }else if(stage==='ready'&&themes.length>=4&&state.applicationAnalysisJobKey===activeKey){
+  const palette=['theme-blue','theme-green','theme-orange','theme-purple','theme-teal','theme-rose'];
+  const icons=['◎','⌁','↔','◇','✳','✓'];
+  root.innerHTML=themes.map((theme,index)=>{
+   const id=String(theme.id||'theme-'+index).replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,80);
+   const weight=Math.max(0,Math.min(10,Math.round(Number(state.applicationThemeWeights&&state.applicationThemeWeights[id])||0)));
+   const bullets=Array.isArray(theme.bullets)&&theme.bullets.length?'<div class="application-theme-bullets">'+theme.bullets.slice(0,2).map(b=>'<span class="application-theme-bullet">'+escapeHtml(b)+'</span>').join('')+'</div>':'';
+   return '<article class="application-theme-card '+(palette[index]||'')+'"><div class="application-theme-top"><span class="application-theme-icon" aria-hidden="true">'+icons[index%icons.length]+'</span><div class="application-theme-copy"><h3>'+escapeHtml(theme.title)+'</h3><p>'+escapeHtml(theme.summary)+'</p>'+bullets+'</div></div><div class="application-theme-slider"><div class="application-theme-slider-head"><label for="applicationThemeWeight-'+escapeHtml(id)+'">Kommunikativ vægtning</label><output class="application-theme-value" id="applicationThemeWeightValue-'+escapeHtml(id)+'">'+weight+'</output></div><input class="application-theme-range" type="range" min="0" max="10" step="1" value="'+weight+'" id="applicationThemeWeight-'+escapeHtml(id)+'" aria-label="Vægtning for '+escapeHtml(theme.title)+' fra 0 til 10" oninput="setApplicationThemeWeight(\''+id+'\',this.value)"><div class="application-theme-scale"><span>0 · Standard</span><span>5 · Mere fokus</span><span>10 · Høj prioritet</span></div></div></article>';
+  }).join('');
+ }else{
+  const noJob=!getApplicationJobForAnalysis().job||getApplicationJobForAnalysis().job.length<30;
+  const message=stage==='error'?(state.applicationAnalysisNotice||'Analysen kunne ikke gennemføres. Prøv igen.'):(noJob?'Analysen kræver et aktivt jobopslag. Gå til Jobopslag, og analysér eller indsæt stillingen først.':'Klik “Analyser igen” for at udlede temaerne fra det aktive stillingsopslag.');
+  root.innerHTML='<div class="application-analysis-placeholder"><span class="app-analysis-placeholder-icon">✦</span><div><strong>'+(stage==='error'?'Analysen er ikke klar endnu':noJob?'Intet aktivt stillingsopslag':'Din analyse vises her')+'</strong><p>'+escapeHtml(message)+'</p></div></div>';
+ }
+ updateApplicationPriorityStatus();
+}
+async function ensureApplicationAnalysis(force){
+ const j=getApplicationJobForAnalysis(),key=getApplicationAnalysisKey();
+ if(!j.job||j.job.length<30){
+  state.applicationAnalysisStatus='idle';state.applicationAnalysisNotice='Indsæt eller analysér først et stillingsopslag under “Jobopslag”.';renderApplicationAnalysis();return false;
+ }
+ if(!force&&state.applicationAnalysisJobKey===key&&state.applicationAnalysisStatus==='ready'&&state.applicationThemes.length>=4){renderApplicationAnalysis();return true}
+ if(applicationAnalysisInFlight)return false;
+ const settings=getPanelAiSettings();
+ if(!settings.url||!settings.code){
+  state.applicationAnalysisStatus='error';state.applicationAnalysisNotice='AI-forbindelsen er ikke konfigureret. Gå til “Spørg panelet”, indtast adgangskoden og gem AI-indstillingerne.';renderApplicationAnalysis();return false;
+ }
+ const sameJob=state.applicationAnalysisJobKey===key;
+ if(!sameJob){state.applicationThemes=[];state.applicationThemeWeights={};}
+ state.applicationAnalysisJobKey=key;state.applicationAnalysisStatus='loading';state.applicationAnalysisNotice='Sprogmodellen læser stillingsopslaget og udleder de vigtigste krav og ønsker…';
+ applicationAnalysisInFlight=true;persist();renderApplicationAnalysis();
+ try{
+  const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-analysis',job:j.job,title:j.title,company:j.company})});
+  let data;try{data=await response.json()}catch(e){data=null}
+  if(!response.ok||!data||!Array.isArray(data.themes)||data.themes.length<4)throw new Error(data&&data.error?data.error:'AI-endpointet returnerede ikke en gyldig analyse.');
+  const clean=data.themes.slice(0,6).map((theme,index)=>({
+   id:String(theme.id||'theme-'+(index+1)).toLowerCase().replace(/[^a-z0-9_-]/g,'-').slice(0,80),
+   title:String(theme.title||'').trim().slice(0,100),
+   summary:String(theme.summary||theme.description||'').trim().slice(0,260),
+   bullets:Array.isArray(theme.bullets)?theme.bullets.slice(0,2).map(x=>String(x||'').trim().slice(0,120)).filter(Boolean):[]
+  })).filter(theme=>theme.id&&theme.title&&theme.summary);
+  if(clean.length<4)throw new Error('Analysen indeholdt færre end fire brugbare temaer.');
+  state.applicationThemes=clean;
+  if(!sameJob){state.applicationThemeWeights=Object.fromEntries(clean.map(theme=>[theme.id,0]))}
+  else{
+   const previous=state.applicationThemeWeights||{};
+   state.applicationThemeWeights=Object.fromEntries(clean.map(theme=>[theme.id,Math.max(0,Math.min(10,Math.round(Number(previous[theme.id])||0)))]));
+  }
+  state.applicationAnalysisJobKey=key;state.applicationAnalysisStatus='ready';state.applicationAnalysisNotice='Analyseret med sprogmodellen ud fra dit konkrete stillingsopslag.';
+  persist();renderApplicationAnalysis();
+  return true;
+ }catch(error){
+  state.applicationAnalysisStatus='error';state.applicationAnalysisNotice='AI-analysen fejlede: '+String(error&&error.message||'ukendt fejl').slice(0,250);
+  persist();renderApplicationAnalysis();return false;
+ }finally{
+  applicationAnalysisInFlight=false;
+  const refresh=el('applicationAnalysisRefresh');if(refresh){refresh.disabled=false;refresh.textContent='Analyser igen';} 
+ }
+}
+function getApplicationPreferences(){
+ const lengthKey=el('applicationLength')?String(el('applicationLength').value||'short'):'short';
+ const includeExamples=el('appIncludeExamples')?!!el('appIncludeExamples').checked:true;
+ const presets={short:{label:'Kort',lines:'6–8 linjer'},medium:{label:'Mellem',lines:'10–12 linjer'},long:{label:'Lang',lines:'14–16 linjer'}};
+ return {lengthKey:['short','medium','long'].includes(lengthKey)?lengthKey:'short',includeExamples,toneOfVoice:'Direkte, personlig og let uformel – baseret på Jacobs vedhæftede ansøgning',structure:['Motivation for jobbet','Relevant erfaring og bidrag','Konkrete CV-eksempler hvis valgt','Arbejdsform og samarbejde','Personlig afslutning'],themes:Array.isArray(state.applicationThemes)?state.applicationThemes:[],weights:state.applicationThemeWeights&&typeof state.applicationThemeWeights==='object'?state.applicationThemeWeights:{},...(presets[lengthKey]||presets.short)};
+}
+function selectApplicationLength(lengthKey){
+ if(!['short','medium','long'].includes(lengthKey))lengthKey='short';
+ const hidden=el('applicationLength');if(hidden)hidden.value=lengthKey;
+ document.querySelectorAll('[data-app-length]').forEach(button=>{const selected=button.getAttribute('data-app-length')===lengthKey;button.classList.toggle('is-selected',selected);button.setAttribute('aria-pressed',selected?'true':'false');});
+ const hint=el('appLengthHint');if(hint){const p=getApplicationPreferences();hint.textContent='Valgt: '+p.label+' · '+p.lines+'. Linjeantallet er vejledende og afhænger af layoutet.';}
+}
+function updateApplicationExampleSetting(){
+ const checked=el('appIncludeExamples')?el('appIncludeExamples').checked:true;
+ const step=document.querySelector('.app-example-step');if(step)step.classList.toggle('is-disabled',!checked);
+ const hint=el('appExampleHint');if(hint)hint.innerHTML=checked?'<span aria-hidden="true">ⓘ</span> Eksemplerne tilpasses den valgte længde og udelades, hvis der ikke findes et relevant belæg i dit CV.':'<span aria-hidden="true">ⓘ</span> Ansøgningen skrives uden særskilte eksempler fra CV’et.';
+}
 function buildLocalApplicationDrafts(job){
  const cv=String(state.cv||el('cvtext').value||'').trim();
+ const prefs=getApplicationPreferences();
  const assessment=job&&job.competencyAssessment||{};
  const company=getApplicationCompany(job);
  const contact=getApplicationContact(job);
@@ -1891,32 +2271,41 @@ function buildLocalApplicationDrafts(job){
  const taskPhrase=taskStarts.length?'at '+taskStarts[0]+(taskStarts[1]?' og at '+taskStarts[1]:''):'at arbejde med de centrale opgaver i stillingen';
  const evidence=extractApplicationCvEvidence(cv,assessment);
  const areas=joinDanish(evidence.areas.slice(0,3));
- const areaPhrase=areas?'arbejde med '+areas:'de erfaringer, jeg har opbygget i mine tidligere roller';
- const evidencePhrase=evidence.evidence[0]?'Et konkret eksempel fra mit CV er: “'+evidence.evidence[0]+'”.':'Jeg vil gerne uddybe de konkrete opgaver og resultater fra mine tidligere roller, som er mest relevante for jer.';
- const low=assessment.coverageScore!=null&&assessment.coverageScore<35;
  const employer=company?' hos '+company:'';
  const roleLine=title&&title!=='stillingen'?'stillingen som '+title:'stillingen';
- const firstOpening=low
-  ?'Jeg har læst '+roleLine+employer+', og jeg vil gerne være ærlig om, at mit CV ikke dokumenterer direkte erfaring med alle de faglige opgaver, I beskriver. Det der alligevel fanger min interesse, er muligheden for '+taskPhrase+'.'
-  :'Jeg har læst '+roleLine+employer+', og jeg er ret sikker på, at der kan være et godt match. Det der især fanger min interesse, er '+taskPhrase+'.';
- const commonExperience=areas
-  ?'I mine tidligere roller har jeg især arbejdet med '+areas+'. Den erfaring vil jeg gerne bringe i spil hos jer og uddybe med konkrete eksempler fra mit arbejde.'
-  :'Jeg vil gerne sætte mine tidligere erfaringer i spil hos jer og uddybe de konkrete eksempler, der passer bedst til rollen.';
+ const low=assessment.coverageScore!=null&&assessment.coverageScore<35;
+ const exampleText=prefs.includeExamples&&evidence.evidence&&evidence.evidence[0]?'Et konkret eksempel fra mit CV er: “'+String(evidence.evidence[0]).trim().replace(/^[-•*\s]+/,'').slice(0,360)+'”.':'';
  const collaboration=/samarbejd|team|bureau|kollega|tværfag|partner|stakeholder|inhouse/i.test(cv);
- const workStyle=collaboration
-  ?'Jeg har været vant til at samarbejde med andre fagligheder og få forskellige perspektiver med i arbejdet. Jeg synes, at det er vigtigt både at kunne tage ansvar for sine egne opgaver og få samarbejdet med kolleger og resten af organisationen til at fungere.'
-  :'Jeg lægger vægt på at forstå opgaven og de mennesker, der skal bruge resultatet. Når flere fagligheder er involveret, er det vigtigt for mig at få forventningerne afstemt og gøre det tydeligt, hvad der skal ske, og hvorfor.';
- const honestGap=low
-  ?'Jeg er samtidig opmærksom på, at der er faglige områder, jeg skal lære, før jeg kan løse alle opgaver selvstændigt. Hvis I er åbne for en kandidat, der kommer med overførbare erfaringer og vil gå seriøst ind i oplæringen, vil jeg gerne tale med jer om det.'
-  :'Jeg ved også, at et CV ikke kan fortælle hele historien. Jeg vil derfor gerne uddybe, hvor jeg har haft ansvaret, hvordan jeg arbejder i praksis, og hvilke resultater jeg kan stå inde for.';
- const closing='Selvom jeg har meget mere på hjerte, vil jeg begrænse mig her og se frem til at hilse på jer over en kop kaffe.';
- const signoff='Mange hilsner\n//Jacob';
- const drafts=[
-  {title:'Fagligt match og motivation',focus:'Hvorfor opgaverne tiltaler dig, og hvilken erfaring du kan bringe ind.',text:greeting+'\n\n'+firstOpening+'\n\n'+commonExperience+'\n\n'+evidencePhrase+' Jeg kan godt lide, når arbejdet kræver omtanke og ender i noget, der kan bruges i praksis. Jeg vil gerne bidrage og samtidig lære jeres måde at arbejde på.\n\n'+honestGap+'\n\n'+closing+'\n\n'+signoff},
-  {title:'Samarbejde og arbejdsform',focus:'Hvordan du løser opgaver sammen med andre og bidrager til teamet.',text:greeting+'\n\n'+(low?'Det der især interesserer mig ved '+roleLine+employer+', er muligheden for at lære opgaverne ordentligt at kende og blive en del af et team, hvor man hjælper hinanden med at få hverdagen til at fungere.':'Det der især interesserer mig ved '+roleLine+employer+', er både de konkrete arbejdsopgaver og samarbejdet med de mennesker, der er med til at få dem til at lykkes.')+'\n\n'+commonExperience+'\n\n'+workStyle+'\n\n'+evidencePhrase+' For mig handler godt arbejde både om at tage ansvar og forstå, hvordan ens indsats hænger sammen med resten af teamet.\n\n'+(low?'Jeg vil ikke påstå, at mit CV allerede dokumenterer alle de faglige krav. Til gengæld vil jeg gerne være åben om mit udgangspunkt og tale om, hvad der kan læres gennem oplæring.':'Jeg vil gerne bidrage med den erfaring, jeg har, og samtidig være nysgerrig på, hvor I gerne vil udvikle arbejdet yderligere.')+'\n\n'+closing+'\n\n'+signoff},
-  {title:'Personlig motivation og bidrag',focus:'En mere personlig og samtaleorienteret indgang til stillingen.',text:greeting+'\n\n'+(low?'Jeg har læst opslaget til '+roleLine+employer+', og jeg kan se, at det vil kræve, at jeg lærer nogle nye faglige opgaver. Det vil jeg hellere sige åbent end prøve at få mit CV til at lyde som noget, det ikke er.':'Jeg har læst opslaget til '+roleLine+employer+', og jeg kan sagtens se mig selv blive en del af det arbejde, I beskriver. Jeg bliver især nysgerrig på '+taskPhrase+'.')+'\n\n'+(areas?'Min baggrund er især præget af '+areas+'.':'Min baggrund rummer erfaringer, som jeg gerne vil sætte i spil og uddybe gennem konkrete eksempler.')+' Jeg kan godt lide at forstå, hvorfor en opgave er vigtig, og hvordan man får den løst på en måde, der giver mening for både kolleger, kunder og organisationen.'+'\n\n'+evidencePhrase+' Hvis vi taler sammen, vil jeg gerne fortælle mere om de valg, jeg har truffet i mit arbejde, hvad jeg har lært undervejs, og hvordan jeg kan bruge det hos jer.\n\n'+(low?'Hvis I vurderer, at min baggrund og motivation kan være relevant trods det faglige spring, vil jeg sætte pris på muligheden for at tale sammen.':'Jeg håber derfor, at I kan se en interessant profil i min erfaring, og at vi kan tage en samtale om, hvordan den kan passe ind hos jer.')+'\n\n'+closing+'\n\n'+signoff}
+ const workStyle=collaboration?'Jeg trives med at samarbejde med forskellige fagligheder, tage ansvar for mine egne opgaver og få tingene til at fungere med resten af teamet.':'Jeg lægger vægt på at forstå opgaven, tage ansvar og få forventningerne afstemt, så arbejdet giver mening for dem, der skal bruge resultatet.';
+ const openings=[
+  low?'Det, der især fanger min interesse ved '+roleLine+employer+', er muligheden for '+taskPhrase+'.':'Jeg har læst '+roleLine+employer+', og jeg synes især, at '+taskPhrase+' lyder spændende.',
+  'Jeg søger '+roleLine+employer+', fordi opgaverne med '+taskPhrase.replace(/^at /,'')+' tiltaler mig.',
+  'Jeg kan godt se mig selv i '+roleLine+employer+'. Det er især '+taskPhrase+', der gør stillingen interessant for mig.'
  ];
- return {drafts,company,contact,greeting};
+ const contributions=[
+  areas?'Jeg kan bidrage med min erfaring inden for '+areas+' og bruge den til at løse de opgaver, I beskriver.':'Jeg vil gerne bringe mine tidligere erfaringer i spil og lære de dele af arbejdet, som er nye for mig.',
+  areas?'Fra mine tidligere jobs har jeg erfaring med '+areas+'. Jeg kan især bidrage med en struktureret tilgang og blik for, hvad der skal til for at få opgaverne løst.':'Jeg er vant til at sætte mig ind i opgaver, koordinere mit arbejde og samarbejde om at få tingene helt i mål.',
+  areas?'Min baggrund inden for '+areas+' har lært mig at omsætte planer til konkret arbejde og samarbejde med de mennesker, der skal have det til at fungere.':'Jeg vil bidrage med nysgerrighed, ansvarlighed og en praktisk tilgang til de opgaver, stillingen rummer.'
+ ];
+ const closings=['Jeg ser frem til muligheden for at fortælle mere – gerne over en kop kaffe.','Jeg håber, vi kan mødes til en samtale og tale om, hvordan jeg kan bidrage hos jer.','Jeg vil gerne uddybe min erfaring og høre mere om jeres forventninger til rollen.'];
+ const signoff='Mange hilsner\n//Jacob';
+ const definitions=[
+  {title:'Faglig motivation og bidrag',focus:'Direkte åbning, relevant erfaring og en enkel afslutning.'},
+  {title:'Samarbejde og arbejdsform',focus:'Vægter din arbejdsform, samarbejde og det praktiske bidrag.'},
+  {title:'Personlig motivation',focus:'En lidt mere personlig indgang, stadig kort og konkret.'}
+ ];
+ const drafts=definitions.map((definition,i)=>{
+  const p=[greeting,openings[i],contributions[i]];
+  if(exampleText)p.push(exampleText);
+  if(prefs.lengthKey!=='short')p.push(workStyle);
+  if(prefs.lengthKey==='long'){
+   p.push(areas?'Jeg har også erfaring med '+areas+', og jeg vil gerne bruge den viden på en måde, der passer til jeres hverdag.':'Jeg vil først sætte mig grundigt ind i jeres arbejdsgange og derefter tage ansvar for de opgaver, jeg kan løse.');
+   if(!low)p.push('For mig handler det om at være grundig, holde en god dialog og få opgaverne videre uden at gøre tingene mere komplicerede end nødvendigt.');
+  }
+  p.push(closings[i],signoff);
+  return {...definition,text:p.filter(Boolean).join('\n\n')};
+ });
+ return {drafts,company,contact,greeting,preferences:prefs};
 }
 async function makeProposals(){
  const j=state.activeJob;if(!j){notify('proposalState','Analysér et job først, så forslagene kan målrettes det konkrete stillingsopslag.','warnbox');return}
@@ -1928,12 +2317,21 @@ async function makeProposals(){
  const contact=getApplicationContact(j);
  const greetingLine=getApplicationGreeting(j,company,contact);
  const settings=typeof getPanelAiSettings==='function'?getPanelAiSettings():{url:'',code:''};
+ if(settings.url&&settings.code&&(!Array.isArray(state.applicationThemes)||state.applicationThemes.length<4||state.applicationAnalysisJobKey!==getApplicationAnalysisKey())){
+  const analysisReady=await ensureApplicationAnalysis(state.applicationAnalysisJobKey!==getApplicationAnalysisKey());
+  if(!analysisReady){state.generatingProposals=false;notify('proposalState','Forslagene blev ikke genereret, fordi analysen af stillingsopslaget ikke lykkedes. Kontrollér AI-forbindelsen, og klik “Analyser igen”.','warnbox');return}
+ }
+ const currentPreferences=getApplicationPreferences();
+ const hasCustomThemeWeights=currentPreferences.themes.some(theme=>Number(currentPreferences.weights[theme.id]||0)>0);
+ if(hasCustomThemeWeights&&(!settings.url||!settings.code)){
+  notify('proposalState','Dine tema-vægtninger kræver en aktiv AI-forbindelse. Gå til “Spørg panelet”, og kontrollér AI-indstillingerne. Vægtningerne er gemt, men er ikke anvendt.','warnbox');return;
+ }
  if(settings.url&&settings.code){
-  state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.proposalMode='ai';state.proposalNotice='Sprogmodellen skriver tre udkast i din stil ud fra CV og stillingsopslag…';state.generatingProposals=true;
+  state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.proposalMode='ai';state.proposalNotice='Sprogmodellen skriver tre udkast i din stil med korte afsnit og efter dine længdevalg…';state.generatingProposals=true;
   persist();renderProposals();
   showAiThinkingModal('proposals');
   try{
-   const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-drafts',cv,job:jobText,title:j.title||state.jobtitle||'',company,contactName:contact,greetingLine,authorName:'Jacob'})});
+   const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-drafts',cv,job:jobText,title:j.title||state.jobtitle||'',company,contactName:contact,greetingLine,authorName:'Jacob',applicationPreferences:(()=>{const p=getApplicationPreferences();return {length:p.lengthKey,targetLines:p.lines,includeExamples:p.includeExamples,toneOfVoice:p.toneOfVoice,paragraphStructure:p.structure,themes:p.themes,weights:p.weights,instructions:"Skriv på dansk i Jacobs direkte, personlige og let uformelle stil. Hold afsnit korte og adskilte. Rækkefølge: motivation, bidrag/relevant erfaring, konkrete eksempler kun hvis valgt og CV’et understøtter dem, arbejdsform/samarbejde, naturlig afslutning. Undgå generiske salgspåstande og opfundne fakta."}})()})});
    let data;try{data=await response.json()}catch(e){data=null}
    if(response.ok&&data&&Array.isArray(data.drafts)&&data.drafts.length>=3){
     setDraftModalProgress(95,'Kontrollerer de tre forslag','Svaret er modtaget. Jeg kontrollerer længde og eventuelle pladsholdere.',2,false);
@@ -1943,7 +2341,7 @@ async function makeProposals(){
    state.proposalTexts=data.drafts.slice(0,3).map(x=>String(x.text||''));
    state.proposalTitles=data.drafts.slice(0,3).map(x=>String(x.title||''));
    state.proposalFocuses=data.drafts.slice(0,3).map(x=>String(x.focus||''));
-   if(state.proposalTexts.some(t=>t.length<450||/\[Dit navn\]|Eksempelvirksomhed/i.test(t)))throw new Error('Et forslag var for kort eller indeholdt en pladsholder.');
+   if(state.proposalTexts.some(t=>t.length<160||/\[Dit navn\]|Eksempelvirksomhed/i.test(t)))throw new Error('Et forslag var for kort eller indeholdt en pladsholder.');
    state.proposalMode='ai';state.proposalNotice='AI-udkast fra sprogmodellen. Gennemgå altid fakta og formuleringer, før du bruger teksten.';state.generatingProposals=false;
    try{
     const now=new Date().toISOString();
@@ -1961,6 +2359,14 @@ async function makeProposals(){
   }catch(error){
    hideAiThinkingModal();
    state.generatingProposals=false;
+   const currentPrefsForFailure=getApplicationPreferences();
+   const customWeightsNow=currentPrefsForFailure.themes.some(theme=>Number(currentPrefsForFailure.weights[theme.id]||0)>0);
+   if(customWeightsNow){
+    try{const now=new Date().toISOString();sessionStorage.setItem('gajh_ai_last_error',now);sessionStorage.setItem('gajh_ai_application_error',now)}catch(e){}
+    state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.proposalMode='local';
+    state.proposalNotice='AI-genereringen fejlede ('+String(error&&error.message||'ukendt fejl').slice(0,150)+'). De valgte vægtninger er ikke anvendt. Ret fejlen, og klik “Lav tre nye forslag” igen.';
+    state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');updateModelIntegrationStatus();return;
+   }
    try{
     const now=new Date().toISOString();
     sessionStorage.setItem('gajh_ai_last_error',now);sessionStorage.setItem('gajh_ai_application_error',now);
@@ -1974,7 +2380,7 @@ async function makeProposals(){
  }
  const fallback=buildLocalApplicationDrafts(j);
  state.proposalTexts=fallback.drafts.map(d=>d.text);state.proposalTitles=fallback.drafts.map(d=>d.title);state.proposalFocuses=fallback.drafts.map(d=>d.focus);state.proposalMode='local';state.generatingProposals=false;
- state.proposalNotice='Lokale, stiltilpassede udkast. For at få sprogmodellen til at skrive dem, skal AI-endpoint og adgangskode først sættes op under “Spørg panelet”.';
+ state.proposalNotice='Lokale, stiltilpassede udkast med korte afsnit. For at få sprogmodellen til at skrive dem, skal AI-endpoint og adgangskode først sættes op under “Spørg panelet”.';
  state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');
 }
 
@@ -2075,6 +2481,17 @@ const COMPETENCY_LIBRARY=[
  {id:'craft-construction',label:'Fagligt håndværk og byggearbejde',aliases:['håndværksmæssig erfaring','håndværk','byggearbejde','tømrerarbejde','murerarbejde','elinstallation','vvs','construction work','carpentry','masonry','plumbing','electrical installation'],baseWeight:4.8,critical:true},
  {id:'machinery-operation',label:'Betjening af maskiner og værktøj',aliases:['maskinbetjening','maskinoperatør','betjening af maskiner','elværktøj','håndværktøj','power tools','machinery operation','machine operation','operating machinery'],baseWeight:3.5,critical:true},
  {id:'quality-control',label:'Kvalitetskontrol og systematisk inspektion',aliases:['kvalitetskontrol','kvalitetssikring','inspektion','quality control','quality assurance','quality inspection'],baseWeight:2.2}
+
+, {id:'sexton-church-preparation',label:'Klargøring af kirke og lokaler',aliases:['klargøring af kirken','klargøring af kirke','klargøre kirken','klargøre kirke','forberede kirken','forberedelse af kirken','klargøring af lokaler','forberedelse af lokaler','prepare the church','prepare church','prepare rooms','set up the church','church preparation'],baseWeight:4.5,critical:true},
+ {id:'sexton-services-ceremonies',label:'Praktisk bistand ved gudstjenester og ceremonier',aliases:['gudstjeneste','gudstjenester','kirkelige handlinger','kirkelig handling','ceremonier','bisættelser','begravelse','bryllupper','assistere ved gudstjenester','bistå ved gudstjenester','assistere ved kirkelige handlinger','assist at services','church services','religious ceremonies'],baseWeight:4.5,critical:true},
+ {id:'sexton-cleaning',label:'Rengøring og vedligehold af kirke og lokaler',aliases:['rengøring af kirken','rengøring af kirke','rengøring af lokaler','rengøring','renholdelse','cleaning','cleaning duties','cleaning church','maintain church premises'],baseWeight:3.7,critical:true},
+ {id:'sexton-hospitality-events',label:'Forplejning og praktisk hjælp ved arrangementer',aliases:['kaffe','servering','forplejning','dække bord','dække op','rydde af','opvask','indkøb','arrangementer','menighedsarrangementer','mødeopdækning','hospitality','catering','event setup','serve refreshments','wash dishes'],baseWeight:3.2,critical:true},
+ {id:'sexton-practical-technical',label:'Praktiske tekniske opgaver og sikkerhed',aliases:['av-udstyr','av udstyr','lyd og billede','teknisk udstyr','klokkeringning','ringning med klokker','brand sikkerhed','brandsikkerhed','brandtilsyn','teknisk håndtering','praktiske opgaver','technical equipment','audio visual equipment','fire safety','bell ringing'],baseWeight:3.2,critical:true},
+ {id:'sexton-careful-handling',label:'Omhyggelig håndtering af inventar og historiske genstande',aliases:['historiske genstande','historisk inventar','kirkeinventar','inventar','omhyggelig','omhyggeligt','forsigtig håndtering','detaljeorienteret','detailorienteret','careful handling','historic objects','attention to detail'],baseWeight:2.4,critical:true},
+ {id:'sexton-service-minded',label:'Værtskab, imødekommenhed og service',aliases:['serviceminded','service-minded','imødekommende','imødekommenhed','venlig','venligt værtskab','tage imod gæster','gæstfrihed','welcoming','welcoming guests','hospitality','customer service'],baseWeight:1.6},
+ {id:'sexton-teamwork-structure',label:'Samarbejde, selvstændighed og struktur',aliases:['samarbejde med medarbejdere','samarbejde med frivillige','samarbejde','selvstændig','selvstændigt','struktureret','struktur','løsningsorienteret','godt humør','teamwork','work independently','organised','organized','solution-oriented'],baseWeight:1.5},
+ {id:'sexton-danish',label:'Dansk til tydelig kommunikation',aliases:['forståeligt dansk','dansk i skrift og tale','dansk','danish language','clear danish','communicate in danish'],baseWeight:2.2,critical:true},
+ {id:'sexton-training',label:'Kirketjeneruddannelse eller villighed til oplæring',aliases:['kirketjeneruddannelse','kirketjener uddannelse','kirketjenerkursus','kirketjenerkursus','kirketjener','sexton training','church caretaker training'],baseWeight:2.5,critical:true},
 ];
 
 const COMPETENCY_DOMAIN_PROFILES=[
@@ -2084,7 +2501,8 @@ const COMPETENCY_DOMAIN_PROFILES=[
  {id:'healthcare-care',label:'pleje og sundhed',detectTitle:/sygeplejerske|sosu|sundhedsassistent|social.*sundhed|nurse|care assistant|healthcare/i,detectJob:/patientpleje|medicinhåndtering|sygepleje|patient care/i,coreSkillIds:['patient-care'],scoreCap:35},
  {id:'craft-construction',label:'håndværk og byggeri',detectTitle:/tømrer|murer|elektriker|vvs|håndværker|byggeplads|construction worker|carpenter|plumber/i,detectJob:/håndværksmæssig erfaring|byggearbejde|tømrerarbejde|murerarbejde|construction work/i,coreSkillIds:['craft-construction','machinery-operation'],scoreCap:35},
  {id:'finance-accounting',label:'regnskab og finans',detectTitle:/bogholder|revisor|financial analyst|finance analyst|accountant|accounting manager/i,detectJob:/bogføring|regnskabsaflæggelse|finansiel analyse|financial reporting|financial analysis/i,coreSkillIds:['financial-analysis','accounting-bookkeeping'],scoreCap:40},
- {id:'teaching-education',label:'undervisning',detectTitle:/lærer|underviser|teacher|educator|lecturer/i,detectJob:/undervisning|didaktik|lesson planning|classroom management/i,coreSkillIds:['teaching'],scoreCap:40}
+ {id:'teaching-education',label:'undervisning',detectTitle:/lærer|underviser|teacher|educator|lecturer/i,detectJob:/undervisning|didaktik|lesson planning|classroom management/i,coreSkillIds:['teaching'],scoreCap:40},
+ {id:'church-sexton',label:'kirketjener og kirkelig service',detectTitle:/kirketjener|kirke.?tjener|church caretaker|sexton|church attendant/i,detectJob:/kirketjener|kirke.?tjener|klargøring af kirken|gudstjenester|kirkelige handlinger|menighedsarrangementer|church caretaker|church services/i,coreSkillIds:['sexton-church-preparation','sexton-services-ceremonies','sexton-cleaning','sexton-hospitality-events','sexton-practical-technical','sexton-careful-handling','sexton-danish','sexton-training'],scoreCap:25}
 ];
 
 function hasCompetencyTerm(text,term){const hay=' '+normalizeSearchText(text)+' ',needle=' '+normalizeSearchText(term)+' ';return !!needle.trim()&&hay.includes(needle)}
@@ -2108,16 +2526,16 @@ function competencyPriority(text,aliases){
 function buildCompetencyAssessment(jobText,cvText,title,research){
  const job=String(jobText||''),cv=String(cvText||''),titleText=String(title||'');
  const combinedJob=job+' '+titleText;
- const profile=COMPETENCY_DOMAIN_PROFILES.find(p=>p.detectTitle.test(titleText)||p.detectJob.test(combinedJob))||null;
+ const profile=COMPETENCY_DOMAIN_PROFILES.find(p=>p.detectJob.test(job))||COMPETENCY_DOMAIN_PROFILES.find(p=>p.detectTitle.test(titleText))||null;
  const rows=[];
  for(const skill of COMPETENCY_LIBRARY){
-  const jobAliases=skill.aliases.filter(alias=>hasCompetencyTerm(combinedJob,alias));
+  const jobAliases=skill.aliases.filter(alias=>hasCompetencyTerm(job,alias));
   if(!jobAliases.length)continue;
   const cvAliases=skill.aliases.filter(alias=>hasCompetencyTerm(cv,alias));
-  const jobEvidence=extractSkillSnippet(combinedJob,jobAliases);
+  const jobEvidence=extractSkillSnippet(job,jobAliases);
   const cvEvidence=extractSkillSnippet(cv,cvAliases);
   const priority=competencyPriority(jobEvidence||jobAliases.join(', '),jobAliases);
-  const specificEvidence=cvEvidence&&/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|experience with|performed|operated|handled|repaired|installed|ansvarlig|arbejdede med|erfaring med|erfaring inden for|udførte|betjente|reparerede|monterede|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\\b\\d+\\s?%|\\bled to\\s+\\d{3,}\\b|\\b\\d{1,3}(?:,\\d{3})+\\b)/i.test(cvEvidence);
+  const specificEvidence=cvEvidence&&/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|experience with|performed|operated|handled|repaired|installed|prepared|cleaned|served|assisted|coordinated|maintained|ansvarlig|arbejdede med|erfaring med|erfaring inden for|klargjorde|forberedte|rengjorde|serverede|assisterede|koordinerede|vedligeholdt|udførte|betjente|reparerede|monterede|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\\b\\d+\\s?%|\\bled to\\s+\\d{3,}\\b|\\b\\d{1,3}(?:,\\d{3})+\\b)/i.test(cvEvidence);
   const status=cvAliases.length?(specificEvidence?'evidenced':'mentioned'):'missing';
   const isCore=!!(profile&&profile.coreSkillIds.includes(skill.id))||!!skill.critical;
   const weight=(Number(skill.baseWeight)||1)*priority.weight;
@@ -2333,10 +2751,10 @@ function applicationFontBufferToBase64(buffer){
 async function getApplicationPdfFontData(){
  if(!applicationPdfFontDataPromise){
   const specs=[
-   {file:'Roboto-Regular.ttf',family:'Roboto',style:'normal',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/roboto/static/Roboto-Regular.ttf'},
-   {file:'Roboto-Bold.ttf',family:'Roboto',style:'bold',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/roboto/static/Roboto-Bold.ttf'},
-   {file:'RobotoSlab-Regular.ttf',family:'RobotoSlab',style:'normal',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/robotoslab/static/RobotoSlab-Regular.ttf'},
-   {file:'RobotoSlab-Bold.ttf',family:'RobotoSlab',style:'bold',url:'https://raw.githubusercontent.com/google/fonts-with-static/main/apache/robotoslab/static/RobotoSlab-Bold.ttf'}
+   {file:'Roboto-Regular.ttf',family:'Roboto',style:'normal',url:'https://raw.githubusercontent.com/google/fonts/113bac0943d5b85dcc6c2c01b48fae88d4b5c52a/ofl/roboto/static/Roboto-Regular.ttf'},
+   {file:'Roboto-Bold.ttf',family:'Roboto',style:'bold',url:'https://raw.githubusercontent.com/google/fonts/113bac0943d5b85dcc6c2c01b48fae88d4b5c52a/ofl/roboto/static/Roboto-Bold.ttf'},
+   {file:'RobotoSlab-Regular.ttf',family:'RobotoSlab',style:'normal',url:'https://raw.githubusercontent.com/google/fonts/9ed5d84ef7fe6f83ba80af048f52cccc594b79b2/apache/robotoslab/static/RobotoSlab-Regular.ttf'},
+   {file:'RobotoSlab-Bold.ttf',family:'RobotoSlab',style:'bold',url:'https://raw.githubusercontent.com/google/fonts/9ed5d84ef7fe6f83ba80af048f52cccc594b79b2/apache/robotoslab/static/RobotoSlab-Bold.ttf'}
   ];
   applicationPdfFontDataPromise=Promise.all(specs.map(async spec=>{
    const response=await fetch(spec.url,{mode:'cors',cache:'force-cache'});
@@ -2373,7 +2791,15 @@ function drawPdfHeader(doc,portraitDataUrl){
  doc.setFillColor(255,255,255);doc.circle(83,11.5,4.8,'F');
  doc.setFillColor(177,177,177);doc.circle(83,10.1,1.35,'F');doc.ellipse(83,13.2,2.7,1.7,'F');
  doc.setFontSize(8.5);doc.setTextColor(20,20,20);
- doc.text('mail@pferd.dk',82,27.8);doc.text('+45 2331 9975',82,35.2);doc.text('Min LinkedIn',82,42.4);
+ doc.text('mail@pferd.dk',82,27.8);
+ const phoneText='+45 2331 9975';
+ doc.text(phoneText,82,35.2);
+ // PDF link annotations make the printed contact information interactive in PDF readers.
+ doc.link(81.4,31.6,doc.getTextWidth(phoneText)+1.8,4.8,{url:'tel:+4523319975'});
+ const linkedInText='Min LinkedIn';
+ doc.text(linkedInText,82,42.4);
+ const linkedInUrl=getApplicationLinkedInUrl();
+ if(linkedInUrl)doc.link(81.4,38.8,doc.getTextWidth(linkedInText)+1.8,4.8,{url:linkedInUrl});
  // Diskret skygge under cirklen, hvid baggrund og tynd lys kant.
  doc.setFillColor(218,220,222);doc.circle(170.8,36.8,30.7,'F');
  doc.setFillColor(255,255,255);doc.circle(170,36,30.7,'F');
@@ -2532,6 +2958,8 @@ function openApplicationPdfModal(){
  if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3E7099';
  if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#1F325E';
  if(el('appPortraitMode'))el('appPortraitMode').value=state.applicationPortraitMode||'avatar';
+ if(el('appLinkedInUrl'))el('appLinkedInUrl').value=getApplicationLinkedInUrl();
+ if(el('appLinkedInStatus'))el('appLinkedInStatus').textContent=getApplicationLinkedInUrl()?'LinkedIn-link klar til PDF-eksport.':'Indsæt din LinkedIn-profiladresse for at gøre teksten i PDF’en klikbar.';
  if(el('appPortraitStatus'))el('appPortraitStatus').textContent=getApplicationPortraitStatusText();
  updateApplicationPdfSwatches();
  if(el('appPdfFilename'))el('appPdfFilename').textContent=applicationPdfFilename||getApplicationPdfFilename();
@@ -2751,21 +3179,20 @@ function panelFacts(text,job){
 }
 function getPanelAiSettings(){
  let url='',code='';
- // Persistent settings are local to this browser/device, never embedded in public Git.
+ // The shared production endpoint owns the configured server-side secrets. The prototype calls it for AI tasks too.
  try{
   url=localStorage.getItem('gajh_ai_endpoint')||'';
   code=localStorage.getItem('gajh_ai_access_code')||'';
  }catch(e){}
- // Migrate settings from older versions that used sessionStorage, if they still exist.
  try{
   const legacyUrl=sessionStorage.getItem('gajh_ai_endpoint')||'';
   const legacyCode=sessionStorage.getItem('gajh_ai_access_code')||'';
-  if(!url&&legacyUrl){url=legacyUrl;try{localStorage.setItem('gajh_ai_endpoint',url)}catch(e){}}
   if(!code&&legacyCode){code=legacyCode;try{localStorage.setItem('gajh_ai_access_code',code)}catch(e){}}
  }catch(e){}
- // Use the repository's known production API endpoint as the default on each frontend origin.
- // The user must still supply APP_ACCESS_CODE; secrets are never committed to GitHub.
- if(!url)url='https://get-a-job-hobo.vercel.app/api/panel-review';
+ const productionEndpoint='https://get-a-job-hobo.vercel.app/api/panel-review';
+ // Redirect only the prototype's previously auto-selected preview endpoint to the working shared endpoint.
+ const previewEndpoint='https://get-a-job-hobo-git-prototype-company-prof-f9409f-get-a-job-hobo.vercel.app/api/panel-review';
+ if(!url||url.replace(/\/$/,'')===previewEndpoint)url=productionEndpoint;
  return {url,code};
 }
 function loadPanelAiSettings(){
@@ -3228,6 +3655,9 @@ function hydrate(){el('cvtext').value=state.cv||'';el('jobtitle').value=state.jo
 el('apptext').addEventListener('input',()=>{state.application=el('apptext').value;markApplicationPdfOutdated();persist();updateOverview()});
 el('jobtitle').addEventListener('input',()=>{state.jobtitle=el('jobtitle').value;persist()});el('company').addEventListener('input',()=>{state.company=el('company').value;persist()});el('jobtext').addEventListener('input',()=>{state.jobtext=el('jobtext').value;persist()});
 hydrate();
+selectApplicationLength('short');
+updateApplicationExampleSetting();
+renderApplicationAnalysis();
 loadPanelAiSettings();
 updateModelIntegrationStatus();
 if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3E7099';

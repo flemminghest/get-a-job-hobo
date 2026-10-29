@@ -1472,7 +1472,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
     <div class="app-pdf-color-row">
      <label for="appLinkedInUrl">LinkedIn-profil (fast adresse)</label>
      <input id="appLinkedInUrl" type="url" inputmode="url" autocomplete="url" value="https://www.linkedin.com/in/jacob-holm-blaehr/" readonly aria-readonly="true">
-     <p class="app-pdf-help">LinkedIn-adressen er fastsat præcist som angivet. Klik på telefonnummeret i PDF’en for at åbne en kontakt-side med et almindeligt HTML-“Ring”-link; nogle PDF-læsere ignorerer direkte tel:-links.</p>
+     <p class="app-pdf-help">LinkedIn-adressen er fastsat præcist som angivet. Telefonlinket bruger samme format som i din egen PDF: tel:23319975.</p>
      <p id="appLinkedInStatus" class="app-pdf-help" aria-live="polite"></p>
     </div>
     <div class="app-pdf-color-row">
@@ -1494,7 +1494,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
    <div class="app-pdf-viewer">
     <div id="appPdfViewerStatus" class="app-pdf-viewer-status" aria-live="polite">Klargør PDF…</div>
     <div class="app-pdf-html-contact-links" aria-label="Klikbare kontaktlinks">
-     <a href="tel:+4523319975" target="_top" aria-label="Ring til Jacob på +45 2331 9975">Ring +45 2331 9975</a>
+     <a href="tel:23319975" aria-label="Ring til Jacob på +45 2331 9975">Ring +45 2331 9975</a>
      <a href="mailto:mail@pferd.dk">Send e-mail</a>
      <a href="https://www.linkedin.com/in/jacob-holm-blaehr/" target="_blank" rel="noopener noreferrer">Min LinkedIn ↗</a>
     </div>
@@ -2823,10 +2823,9 @@ function drawPdfHeader(doc,portraitDataUrl){
  const phoneText='+45 2331 9975';
  doc.text(phoneText,contactX,35.2);
  const phoneWidth=underline(phoneText,contactX,35.2);
- // PDF viewers often ignore tel: URI actions. Link the printed number to an HTTPS contact page;
- // that page provides a normal HTML <a href="tel:+4523319975">Ring</a> link.
- const phoneContactUrl=new URL('./contact.html',document.baseURI).href;
- doc.link(contactX-2.2,31.2,phoneWidth+7.5,7.8,{url:phoneContactUrl});
+ // Match the working phone-link format in the user's own CV PDF exactly.
+ // Its PDF annotation is tel:23319975, without a +45 prefix.
+ doc.link(contactX-2.2,31.2,phoneWidth+7.5,7.8,{url:'tel:23319975'});
  const linkedInText='Min LinkedIn';
  doc.text(linkedInText,contactX,42.4);
  const linkedInWidth=underline(linkedInText,contactX,42.4);

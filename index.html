@@ -992,9 +992,15 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 #apptext::placeholder{font-family:"Roboto Slab",Georgia,serif}
 
 /* AI-derived job themes and communication-weight sliders */
-.application-priority-actions{display:flex;justify-content:flex-end;margin-top:14px}
-.application-priority-actions button{min-width:205px}
-@media(max-width:600px){.application-priority-actions{justify-content:stretch}.application-priority-actions button{width:100%}}
+.application-priority-actions{display:flex;justify-content:flex-start;align-items:center;margin-top:16px}
+.application-priority-actions .application-generate-button{display:inline-flex;align-items:center;justify-content:center;gap:11px;min-width:252px;min-height:49px;padding:13px 19px;border:1px solid #d96f45;border-radius:13px;background:linear-gradient(135deg,#ee8a5c 0%,#d96e49 100%);color:#fff;font-size:14px;font-weight:800;letter-spacing:-.15px;box-shadow:0 7px 16px rgba(209,105,68,.19),inset 0 1px 0 rgba(255,255,255,.28);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+.application-priority-actions .application-generate-button:hover{filter:saturate(1.06) brightness(1.025);transform:translateY(-1px);box-shadow:0 10px 21px rgba(209,105,68,.24),inset 0 1px 0 rgba(255,255,255,.3)}
+.application-priority-actions .application-generate-button:active{transform:translateY(0);box-shadow:0 3px 8px rgba(209,105,68,.18)}
+.application-priority-actions .application-generate-button:focus-visible{outline:3px solid #f6c8b5;outline-offset:3px}
+.application-generate-icon{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:8px;background:rgba(255,255,255,.18);font-size:17px;line-height:1}
+.application-generate-arrow{margin-left:5px;font-size:19px;line-height:1;transition:transform .15s ease}
+.application-priority-actions .application-generate-button:hover .application-generate-arrow{transform:translateX(3px)}
+@media(max-width:600px){.application-priority-actions{justify-content:stretch}.application-priority-actions .application-generate-button{width:100%;min-width:0}}
 
 .application-analysis-card{padding:clamp(17px,2.1vw,25px);gap:16px}
 .application-analysis-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
@@ -1187,7 +1193,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
   <div class="application-analysis-status" id="applicationAnalysisStatus" role="status" aria-live="polite">Analysen afventer stillingsopslaget.</div>
   <div id="applicationThemes" class="application-themes-grid"><div class="application-analysis-placeholder"><span class="app-analysis-placeholder-icon">✦</span><div><strong>Din analyse vises her</strong><p>Åbn Motiveret ansøgning med et aktivt jobopslag for at få 4–6 korte temaer fra sprogmodellen.</p></div></div></div>
   <div class="application-priority-footer"><div class="app-priority-status" id="applicationPriorityStatus"><span>ⓘ</span> Når alle sliders står på 0, bruges standardvægtningen. Ændringer træder først i kraft, når du klikker “Lav tre nye forslag”.</div></div>
-  <div class="application-priority-actions"><button type="button" class="secondary" id="applicationAnalysisGenerateButton" onclick="makeProposals()">Lav tre nye forslag</button></div>
+  <div class="application-priority-actions"><button type="button" class="application-generate-button" id="applicationAnalysisGenerateButton" onclick="makeProposals()"><span class="application-generate-icon" aria-hidden="true">✦</span><span>Lav tre nye forslag</span><span class="application-generate-arrow" aria-hidden="true">→</span></button></div>
 </div>
 <div class="card stack application-results-card"><div id="proposalState" class="notice">Vælg længde og eksempelindstilling ovenfor. Analysér først et job under Jobopslag, og lav derefter dine forslag.</div><div id="proposals" class="grid proposal-stack"><div class="empty">Tre forslag vises her, når du har analyseret et job.</div></div><div><label for="apptext">Motiveret ansøgning</label><textarea id="apptext" rows="15" placeholder="Ansøgningen er blank, indtil du vælger et forslag."></textarea></div><div class="toolbar"><button onclick="saveApplication()">Gem ansøgning</button><button class="secondary" onclick="previewApplication()">Vis forhåndsvisning</button><button id="downloadPdfButton" class="secondary" onclick="downloadApplicationPdf()" disabled>Download PDF</button><button class="warn" onclick="clearApplication()">Ryd ansøgning</button></div><div id="appPreview" class="output" hidden></div></div></section>
 

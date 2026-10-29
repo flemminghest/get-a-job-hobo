@@ -3191,9 +3191,14 @@ function getPanelAiSettings(){
   if(!url&&legacyUrl){url=legacyUrl;try{localStorage.setItem('gajh_ai_endpoint',url)}catch(e){}}
   if(!code&&legacyCode){code=legacyCode;try{localStorage.setItem('gajh_ai_access_code',code)}catch(e){}}
  }catch(e){}
- // Use the repository's known production API endpoint as the default on each frontend origin.
- // The user must still supply APP_ACCESS_CODE; secrets are never committed to GitHub.
- if(!url)url='https://get-a-job-hobo.vercel.app/api/panel-review';
+ // Keep preview UI and preview API on the same test deployment so newly added tasks are available before production is changed.
+ // Existing access codes remain browser-local; secrets are never committed to GitHub.
+ const productionEndpoint='https://get-a-job-hobo.vercel.app/api/panel-review';
+ const previewEndpoint='https://get-a-job-hobo-git-prototype-company-prof-f9409f-get-a-job-hobo.vercel.app/api/panel-review';
+ let isPrototypePreview=false;
+ try{isPrototypePreview=window.location.hostname==='get-a-job-hobo-git-prototype-company-prof-f9409f-get-a-job-hobo.vercel.app'}catch(e){}
+ if(isPrototypePreview&&(!url||url.replace(/\/$/,'')===productionEndpoint))url=previewEndpoint;
+ if(!url)url=productionEndpoint;
  return {url,code};
 }
 function loadPanelAiSettings(){

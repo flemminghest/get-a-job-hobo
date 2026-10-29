@@ -1465,14 +1465,14 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
      </select>
      <label for="appPortraitUpload">Vælg eller skift portrætfoto</label>
      <input id="appPortraitUpload" type="file" accept="image/png,image/jpeg,image/webp" onchange="handleApplicationPortraitUpload(this)">
-     <p class="app-pdf-help">Dit portræt bruges som standard og gemmes lokalt i denne browser. Hvis billedet ikke kan indlæses, vises en avatar automatisk.</p>
+     <p class="app-pdf-help">Dit portræt gemmes lokalt. For skarp PDF-kvalitet bevares op til 1400 px. Hvis du valgte foto før kvalitetsforbedringen, skal du vælge originalfotoet igen — eller klikke “Brug portrættet fra PDF igen”.</p>
      <button type="button" class="secondary app-pdf-small-button" onclick="clearApplicationPortrait()">Brug portrættet fra PDF igen</button>
      <p id="appPortraitStatus" class="app-pdf-help" aria-live="polite">Portrættet fra reference-PDF’en bruges automatisk. Hvis det ikke kan indlæses, vises en avatar i stedet.</p>
     </div>
     <div class="app-pdf-color-row">
      <label for="appLinkedInUrl">LinkedIn-profil (fast adresse)</label>
      <input id="appLinkedInUrl" type="url" inputmode="url" autocomplete="url" value="https://www.linkedin.com/in/jacob-holm-blaehr/" readonly aria-readonly="true">
-     <p class="app-pdf-help">LinkedIn-adressen er fastsat præcist som angivet. Nogle PDF-læsere blokerer opkaldslinks; brug den almindelige “Ring”-knap over PDF-forhåndsvisningen, hvis nummeret i selve PDF’en ikke åbner telefonappen.</p>
+     <p class="app-pdf-help">LinkedIn-adressen er fastsat præcist som angivet. Klik på telefonnummeret i PDF’en for at åbne en kontakt-side med et almindeligt HTML-“Ring”-link; nogle PDF-læsere ignorerer direkte tel:-links.</p>
      <p id="appLinkedInStatus" class="app-pdf-help" aria-live="polite"></p>
     </div>
     <div class="app-pdf-color-row">
@@ -2823,9 +2823,10 @@ function drawPdfHeader(doc,portraitDataUrl){
  const phoneText='+45 2331 9975';
  doc.text(phoneText,contactX,35.2);
  const phoneWidth=underline(phoneText,contactX,35.2);
- // Standard telephone URI annotation — the PDF equivalent of <a href="tel:+4523319975">.
- // Use a generous hit area over the printed number to make it easier to tap.
- doc.link(contactX-2.2,31.2,phoneWidth+7.5,7.8,{url:'tel:+4523319975'});
+ // PDF viewers often ignore tel: URI actions. Link the printed number to an HTTPS contact page;
+ // that page provides a normal HTML <a href="tel:+4523319975">Ring</a> link.
+ const phoneContactUrl=new URL('./contact.html',document.baseURI).href;
+ doc.link(contactX-2.2,31.2,phoneWidth+7.5,7.8,{url:phoneContactUrl});
  const linkedInText='Min LinkedIn';
  doc.text(linkedInText,contactX,42.4);
  const linkedInWidth=underline(linkedInText,contactX,42.4);

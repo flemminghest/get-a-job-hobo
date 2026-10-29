@@ -2,6 +2,7 @@
 <html lang="da"><head>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700;800&display=swap" rel="stylesheet"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=1"><meta name="theme-color" content="#1F325E"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><title>Get a Job Hobo</title><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <style>
 :root{--ink:#172b46;--muted:#64758b;--line:#e1e8f0;--bg:#f3f6fa;--paper:#fff;--teal:#078c91;--navy:#1F325E;--lav:#6457b7;--rose:#a84d71;--green:#14835f;--amber:#9d650e;--shadow:0 10px 28px #17324c0d}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0;border-radius:11px;padding:11px 15px;font-weight:700;background:#087f86;color:white}button.secondary{background:white;border:1px solid var(--line);color:var(--ink)}button.warn{background:#fff0ef;color:#a43b40;border:1px solid #f0cecb}button:disabled{opacity:.45;cursor:not-allowed}input,textarea,select{width:100%;border:1px solid #d8e1eb;border-radius:10px;padding:11px 12px;background:#fff;color:var(--ink);outline:none}input:focus,textarea:focus,select:focus{border-color:#078c91;box-shadow:0 0 0 3px #078c911c}textarea{min-height:128px;resize:vertical}label{display:block;font-weight:700;margin:0 0 6px}.hint,small,.muted{color:var(--muted)}small{font-size:12px}.shell{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:100vh}.side{background:#fff;border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh}.brand{font-weight:850;font-size:19px;letter-spacing:-.5px;padding:9px 12px 24px}.brand b{color:var(--teal)}.nav{display:grid;gap:5px}.nav button{background:transparent;color:#54647b;text-align:left;font-weight:650}.nav button.active{background:#eaf5f5;color:#076f76}.nav button:hover{background:#f0f5f8}.side-foot{position:absolute;bottom:16px;left:18px;right:18px;font-size:12px;color:var(--muted)}main{min-width:0;padding:25px clamp(16px,3vw,42px) 50px;max-width:1500px;width:100%;margin:auto}.topline{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:20px}.pill{font-size:12px;font-weight:750;border-radius:999px;padding:6px 10px;background:#e7f5ee;color:#147250}.hero{position:relative;overflow:hidden;border-radius:25px;padding:30px;color:white;background:linear-gradient(116deg,#1b2f50 0%,#194a62 59%,#0b8589 100%);margin-bottom:22px;box-shadow:var(--shadow)}.hero.purple{background:linear-gradient(116deg,#2d2a56,#6559b9 75%,#a5a1ea)}.hero.rose{background:linear-gradient(116deg,#493149,#93516c 75%,#d88b9e)}.hero.green{background:linear-gradient(116deg,#1c4548,#287c76 75%,#80bfb1)}.eyebrow{font-size:12px;letter-spacing:1.7px;font-weight:850;text-transform:uppercase;color:#9be3d8;margin-bottom:9px}.hero h1{font-size:clamp(28px,3vw,42px);line-height:1.1;letter-spacing:-1.4px;margin:0 0 12px;max-width:800px}.hero p{font-size:16px;color:#d9e9f1;max-width:810px;margin:0 0 20px}.hero .actions{display:flex;flex-wrap:wrap;gap:9px}.hero .actions button{background:#078e96}.hero .actions button.secondary{background:#ffffff;color:#17324c}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:22px}.kpi,.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);min-width:0}.kpi label{color:#6d7d92;text-transform:uppercase;letter-spacing:1px;font-size:11px}.kpi strong{display:block;font-size:30px;line-height:1.2;letter-spacing:-1px;margin:5px 0}.kpi span{font-size:12px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card h2{font-size:19px;letter-spacing:-.35px;margin:0 0 12px}.card h3{margin:0 0 8px;font-size:15px}.stack{display:grid;gap:13px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row .fit{flex:0 0 auto}.formrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}.formrow .wide{grid-column:1/-1}.section{display:none}.section.active{display:block;animation:fade .18s ease}@keyframes fade{from{opacity:.65;transform:translateY(3px)}to{opacity:1;transform:none}}.statline{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:10px 0}.statline:last-child{border:0}.notice{background:#edf6fa;border:1px solid #d5e8f0;border-radius:12px;padding:12px;color:#33556b;font-size:13px}.warnbox{background:#fff6e8;border-color:#f1dfbd;color:#735117}.goodbox{background:#eaf7f0;border-color:#cdebd8;color:#206243}.result{background:#f5f8fb;border:1px solid var(--line);padding:14px;border-radius:13px;margin-top:10px}.scoregrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.score{border-radius:15px;padding:16px;background:#eef7f6}.score strong{font-size:32px;display:block}.score.alt{background:#f1effb}.bar{height:7px;background:#dce5eb;border-radius:99px;overflow:hidden;margin-top:9px}.bar i{display:block;height:100%;background:var(--teal);border-radius:99px}.list{display:grid;gap:9px}.item{padding:12px;border:1px solid var(--line);border-radius:12px;background:white}.item h3{margin:0 0 3px}.item p{margin:3px 0;color:var(--muted);font-size:13px}.chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:750;background:#eef2f7;color:#53647a;margin:2px}.checkgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.checkline{display:flex;align-items:center;gap:8px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#fff}.checkline input{width:auto}.empty{padding:24px 12px;text-align:center;color:var(--muted);border:1px dashed #cfd9e5;border-radius:13px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar>*{flex:0 0 auto}.output{white-space:pre-wrap;line-height:1.7;font-family:Georgia,serif;background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px}.source-line{display:flex;align-items:center;gap:8px;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0}.source-line:last-child{border:0}.footnote{font-size:12px;color:var(--muted);margin-top:12px}.mobile-menu{display:none}
@@ -3020,7 +3021,42 @@ async function createApplicationPdfBlob(){
  }
  if(y+23>pageHeight-8){newPage()}
  drawPdfClosing(doc,signoffColor,y);
- return doc.output('blob');
+ return await finalizeApplicationPdfBlob(doc.output('blob'));
+}
+async function finalizeApplicationPdfBlob(jsPdfBlob){
+ if(!window.PDFLib||!window.PDFLib.PDFDocument)throw new Error('PDF-linkmodulet blev ikke indlæst. Genindlæs siden, og prøv igen.');
+ const lib=window.PDFLib;
+ const pdfDoc=await lib.PDFDocument.load(await jsPdfBlob.arrayBuffer(),{updateMetadata:false});
+ const ctx=pdfDoc.context;
+ const PDFName=lib.PDFName,PDFString=lib.PDFString,PDFNumber=lib.PDFNumber,PDFBool=lib.PDFBool,PDFArray=lib.PDFArray;
+ const mm=72/25.4;
+ // Rectangle covers the visible '+45 2331 9975' string in the header. PDF Rect uses bottom-left coordinates.
+ const x0=80.5*mm,x1=105.7*mm,topFromPage=31.6*mm,bottomFromPage=38.0*mm;
+ for(const page of pdfDoc.getPages()){
+  let annots;
+  try{annots=page.node.lookup(PDFName.of('Annots'),PDFArray)}catch(e){annots=null}
+  if(!annots){annots=ctx.obj([]);page.node.set(PDFName.of('Annots'),annots)}
+  // Remove jsPDF's direct telephone dictionaries. Some viewers ignore those entries because they are not indirect references.
+  for(let i=annots.size()-1;i>=0;i--){
+   let annot;
+   try{annot=ctx.lookup(annots.get(i))}catch(e){annot=annots.get(i)}
+   if(!annot||typeof annot.lookup!=='function')continue;
+   let action;
+   try{action=ctx.lookup(annot.lookup(PDFName.of('A')))}catch(e){action=null}
+   if(!action||typeof action.lookup!=='function')continue;
+   let uri='';
+   try{const uriObject=ctx.lookup(action.lookup(PDFName.of('URI')));uri=uriObject&&typeof uriObject.decodeText==='function'?uriObject.decodeText():String(uriObject||'')}catch(e){}
+   if(uri.toLowerCase().startsWith('tel:'))annots.remove(i);
+  }
+  const pageHeight=page.getHeight();
+  const rect=ctx.obj([x0,pageHeight-bottomFromPage,x1,pageHeight-topFromPage]);
+  const action=ctx.obj({S:PDFName.of('URI'),URI:PDFString.of('tel:23319975'),IsMap:PDFBool.False});
+  const annotation=ctx.obj({Type:PDFName.of('Annot'),Subtype:PDFName.of('Link'),Rect:rect,Border:ctx.obj([0,0,0]),H:PDFName.of('N'),BS:ctx.obj({S:PDFName.of('S'),Type:PDFName.of('Border'),W:PDFNumber.of(0)}),A:action});
+  // Register as an indirect PDF object; this matches the annotation structure in the user's working CV PDF.
+  annots.push(ctx.register(annotation));
+ }
+ const finalBytes=await pdfDoc.save({useObjectStreams:false,addDefaultPage:false});
+ return new Blob([finalBytes],{type:'application/pdf'});
 }
 function openApplicationPdfModal(){
  const modal=el('appPreviewModal');

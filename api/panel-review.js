@@ -100,6 +100,33 @@ const applicationDraftInstructions = [
  "- Inkludér ingen analyse, noter eller markdown uden for JSON."
 ].join("\n");
 
+function trimApplicationDraftToWordLimit(rawText, maxWords) {
+  const paragraphs = String(rawText || "").split(/\n\s*\n+/).map(part => part.trim()).filter(Boolean);
+  const kept = [];
+  let used = 0;
+  for (const paragraph of paragraphs) {
+    const words = paragraph.split(/\s+/).filter(Boolean);
+    const remaining = maxWords - used;
+    if (remaining <= 0) break;
+    if (words.length <= remaining) {
+      kept.push(paragraph);
+      used += words.length;
+      continue;
+    }
+    let finalPart = words.slice(0, remaining).join(" ");
+    // Prefer stopping at a complete sentence near the limit instead of cutting mid-sentence.
+    const lastStop = Math.max(finalPart.lastIndexOf(". "), finalPart.lastIndexOf("! "), finalPart.lastIndexOf("? "));
+    if (lastStop >= Math.floor(finalPart.length * 0.55)) {
+      finalPart = finalPart.slice(0, lastStop + 1).trim();
+    } else if (!/[.!?…]$/.test(finalPart)) {
+      finalPart = finalPart.replace(/[,;:–—-]+$/, "").trim() + ".";
+    }
+    if (finalPart) kept.push(finalPart);
+    break;
+  }
+  return kept.join("\n\n").trim();
+}
+
 function normalizeApplicationDrafts(raw, meta) {
   if (!raw || !Array.isArray(raw.drafts) || raw.drafts.length < 3) {
     throw new Error("Sprogmodellen returnerede ikke tre ansøgningsforslag.");
@@ -132,9 +159,14 @@ function normalizeApplicationDrafts(raw, meta) {
     if (/\b(?:dit navn|\[Jacob\]|Eksempelvirksomhed|Example Company)\b/i.test(text)) {
       throw new Error("Et ansøgningsforslag indeholdt en pladsholder, som ikke kunne rettes sikkert.");
     }
-    const wordCount = text.split(/\s+/).filter(Boolean).length;
-    if (wordCount < wordRange.min) throw new Error("Et af ansøgningsforslagene er for kort. Prøv igen.");
-    if (wordCount > wordRange.max) throw new Error("Et af ansøgningsforslagene blev for langt. Prøv igen.");
+    let wordCount = text.split(/\s+/).filter(Boolean).length;
+    if (wordCount > wordRange.max) {
+      // Length is a target, not a reason to throw away all three otherwise usable drafts.
+      // Trim at paragraph/sentence boundaries when the model slightly or substantially overshoots.
+      text = trimApplicationDraftToWordLimit(text, wordRange.max);
+      wordCount = text.split(/\s+/).filter(Boolean).length;
+    }
+    if (wordCount < wordRange.min) throw new Error("Et af ansøgningsforslagene er for kort til den valgte længde. Prøv igen.");
     return {
       title: titles[index],
       focus: String(draft && draft.focus || "").slice(0, 400),

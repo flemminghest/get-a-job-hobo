@@ -3179,26 +3179,20 @@ function panelFacts(text,job){
 }
 function getPanelAiSettings(){
  let url='',code='';
- // Persistent settings are local to this browser/device, never embedded in public Git.
+ // The shared production endpoint owns the configured server-side secrets. The prototype calls it for AI tasks too.
  try{
   url=localStorage.getItem('gajh_ai_endpoint')||'';
   code=localStorage.getItem('gajh_ai_access_code')||'';
  }catch(e){}
- // Migrate settings from older versions that used sessionStorage, if they still exist.
  try{
   const legacyUrl=sessionStorage.getItem('gajh_ai_endpoint')||'';
   const legacyCode=sessionStorage.getItem('gajh_ai_access_code')||'';
-  if(!url&&legacyUrl){url=legacyUrl;try{localStorage.setItem('gajh_ai_endpoint',url)}catch(e){}}
   if(!code&&legacyCode){code=legacyCode;try{localStorage.setItem('gajh_ai_access_code',code)}catch(e){}}
  }catch(e){}
- // Keep preview UI and preview API on the same test deployment so newly added tasks are available before production is changed.
- // Existing access codes remain browser-local; secrets are never committed to GitHub.
  const productionEndpoint='https://get-a-job-hobo.vercel.app/api/panel-review';
+ // Redirect only the prototype's previously auto-selected preview endpoint to the working shared endpoint.
  const previewEndpoint='https://get-a-job-hobo-git-prototype-company-prof-f9409f-get-a-job-hobo.vercel.app/api/panel-review';
- let isPrototypePreview=false;
- try{isPrototypePreview=window.location.hostname==='get-a-job-hobo-git-prototype-company-prof-f9409f-get-a-job-hobo.vercel.app'}catch(e){}
- if(isPrototypePreview&&(!url||url.replace(/\/$/,'')===productionEndpoint))url=previewEndpoint;
- if(!url)url=productionEndpoint;
+ if(!url||url.replace(/\/$/,'')===previewEndpoint)url=productionEndpoint;
  return {url,code};
 }
 function loadPanelAiSettings(){

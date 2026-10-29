@@ -2139,6 +2139,108 @@ function joinDanish(items){
  if(clean.length===2)return clean[0]+' og '+clean[1];
  return clean.slice(0,-1).join(', ')+' og '+clean[clean.length-1];
 }
+let applicationAnalysisInFlight=false;
+function getApplicationJobForAnalysis(){
+ const active=state.activeJob&&typeof state.activeJob==='object'?state.activeJob:{};
+ return {title:String(active.title||state.jobtitle||'').trim(),company:String(active.company||state.company||'').trim(),job:String(active.job||state.jobtext||'').trim()};
+}
+function getApplicationAnalysisKey(){
+ const j=getApplicationJobForAnalysis();
+ const source=[j.title,j.company,j.job].join('|');
+ let hash=2166136261;
+ for(let i=0;i<source.length;i++){hash^=source.charCodeAt(i);hash=Math.imul(hash,16777619)}
+ return (hash>>>0).toString(36)+'-'+source.length.toString(36);
+}
+function updateApplicationPriorityStatus(){
+ const box=el('applicationPriorityStatus');if(!box)return;
+ const themes=Array.isArray(state.applicationThemes)?state.applicationThemes:[];
+ const weights=state.applicationThemeWeights&&typeof state.applicationThemeWeights==='object'?state.applicationThemeWeights:{};
+ const changed=themes.some(theme=>Number(weights[theme.id]||0)>0);
+ box.classList.toggle('has-changes',changed);
+ box.innerHTML=changed
+  ?'<span>↗</span> Dine vægtninger er valgt, men endnu ikke brugt. Klik på “Lav tre nye forslag” for at generere forslag med de nye prioriteringer.'
+  :'<span>ⓘ</span> Alle sliders står på 0. Ansøgningen følger standardprioriteringen, som den gør nu. Ændringer træder først i kraft, når du klikker “Lav tre nye forslag”.';
+}
+function setApplicationThemeWeight(themeId, rawValue){
+ const safeId=String(themeId||'');
+ if(!Array.isArray(state.applicationThemes)||!state.applicationThemes.some(t=>t.id===safeId))return;
+ const value=Math.max(0,Math.min(10,Math.round(Number(rawValue)||0)));
+ if(!state.applicationThemeWeights||typeof state.applicationThemeWeights!=='object')state.applicationThemeWeights={};
+ state.applicationThemeWeights[safeId]=value;
+ const output=el('applicationThemeWeightValue-'+safeId);if(output)output.textContent=String(value);
+ updateApplicationPriorityStatus();
+ persist();
+}
+function renderApplicationAnalysis(){
+ const root=el('applicationThemes'),status=el('applicationAnalysisStatus'),refresh=el('applicationAnalysisRefresh');
+ if(!root||!status)return;
+ const stage=state.applicationAnalysisStatus||'idle';
+ if(refresh){refresh.disabled=stage==='loading';refresh.textContent=stage==='loading'?'Analyserer…':'Analyser igen';}
+ status.className='application-analysis-status'+(stage==='loading'?' is-loading':stage==='ready'?' is-ready':stage==='error'?' is-error':'');
+ status.textContent=state.applicationAnalysisNotice||(stage==='ready'?'Temaerne er analyseret af sprogmodellen ud fra stillingsopslaget.':stage==='loading'?'Sprogmodellen læser stillingsopslaget og finder de vigtigste temaer…':'Analysen afventer stillingsopslaget.');
+ const themes=Array.isArray(state.applicationThemes)?state.applicationThemes:[];
+ const activeKey=getApplicationAnalysisKey();
+ if(stage==='loading'){
+  root.innerHTML='<div class="application-analysis-loading"><span class="app-analysis-spinner" aria-hidden="true"></span><div><strong>Analyserer stillingsopslaget</strong><div>Sprogmodellen finder 4–6 konkrete krav og ønsker fra opslaget.</div></div></div>';
+ }else if(stage==='ready'&&themes.length>=4&&state.applicationAnalysisJobKey===activeKey){
+  const palette=['theme-blue','theme-green','theme-orange','theme-purple','theme-teal','theme-rose'];
+  const icons=['◎','⌁','↔','◇','✳','✓'];
+  root.innerHTML=themes.map((theme,index)=>{
+   const id=String(theme.id||'theme-'+index).replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,80);
+   const weight=Math.max(0,Math.min(10,Math.round(Number(state.applicationThemeWeights&&state.applicationThemeWeights[id])||0)));
+   const bullets=Array.isArray(theme.bullets)&&theme.bullets.length?'<div class="application-theme-bullets">'+theme.bullets.slice(0,2).map(b=>'<span class="application-theme-bullet">'+escapeHtml(b)+'</span>').join('')+'</div>':'';
+   return '<article class="application-theme-card '+(palette[index]||'')+'"><div class="application-theme-top"><span class="application-theme-icon" aria-hidden="true">'+icons[index%icons.length]+'</span><div class="application-theme-copy"><h3>'+escapeHtml(theme.title)+'</h3><p>'+escapeHtml(theme.summary)+'</p>'+bullets+'</div></div><div class="application-theme-slider"><div class="application-theme-slider-head"><label for="applicationThemeWeight-'+escapeHtml(id)+'">Kommunikativ vægtning</label><output class="application-theme-value" id="applicationThemeWeightValue-'+escapeHtml(id)+'">'+weight+'</output></div><input class="application-theme-range" type="range" min="0" max="10" step="1" value="'+weight+'" id="applicationThemeWeight-'+escapeHtml(id)+'" aria-label="Vægtning for '+escapeHtml(theme.title)+' fra 0 til 10" oninput="setApplicationThemeWeight(\''+id+'\',this.value)"><div class="application-theme-scale"><span>0 · Standard</span><span>5 · Mere fokus</span><span>10 · Høj prioritet</span></div></div></article>';
+  }).join('');
+ }else{
+  const noJob=!getApplicationJobForAnalysis().job||getApplicationJobForAnalysis().job.length<30;
+  const message=stage==='error'?(state.applicationAnalysisNotice||'Analysen kunne ikke gennemføres. Prøv igen.'):(noJob?'Analysen kræver et aktivt jobopslag. Gå til Jobopslag, og analysér eller indsæt stillingen først.':'Klik “Analyser igen” for at udlede temaerne fra det aktive stillingsopslag.');
+  root.innerHTML='<div class="application-analysis-placeholder"><span class="app-analysis-placeholder-icon">✦</span><div><strong>'+(stage==='error'?'Analysen er ikke klar endnu':noJob?'Intet aktivt stillingsopslag':'Din analyse vises her')+'</strong><p>'+escapeHtml(message)+'</p></div></div>';
+ }
+ updateApplicationPriorityStatus();
+}
+async function ensureApplicationAnalysis(force){
+ const j=getApplicationJobForAnalysis(),key=getApplicationAnalysisKey();
+ if(!j.job||j.job.length<30){
+  state.applicationAnalysisStatus='idle';state.applicationAnalysisNotice='Indsæt eller analysér først et stillingsopslag under “Jobopslag”.';renderApplicationAnalysis();return false;
+ }
+ if(!force&&state.applicationAnalysisJobKey===key&&state.applicationAnalysisStatus==='ready'&&state.applicationThemes.length>=4){renderApplicationAnalysis();return true}
+ if(applicationAnalysisInFlight)return false;
+ const settings=getPanelAiSettings();
+ if(!settings.url||!settings.code){
+  state.applicationAnalysisStatus='error';state.applicationAnalysisNotice='AI-forbindelsen er ikke konfigureret. Gå til “Spørg panelet”, indtast adgangskoden og gem AI-indstillingerne.';renderApplicationAnalysis();return false;
+ }
+ const sameJob=state.applicationAnalysisJobKey===key;
+ if(!sameJob){state.applicationThemes=[];state.applicationThemeWeights={};}
+ state.applicationAnalysisJobKey=key;state.applicationAnalysisStatus='loading';state.applicationAnalysisNotice='Sprogmodellen læser stillingsopslaget og udleder de vigtigste krav og ønsker…';
+ applicationAnalysisInFlight=true;persist();renderApplicationAnalysis();
+ try{
+  const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-analysis',job:j.job,title:j.title,company:j.company})});
+  let data;try{data=await response.json()}catch(e){data=null}
+  if(!response.ok||!data||!Array.isArray(data.themes)||data.themes.length<4)throw new Error(data&&data.error?data.error:'AI-endpointet returnerede ikke en gyldig analyse.');
+  const clean=data.themes.slice(0,6).map((theme,index)=>({
+   id:String(theme.id||'theme-'+(index+1)).toLowerCase().replace(/[^a-z0-9_-]/g,'-').slice(0,80),
+   title:String(theme.title||'').trim().slice(0,100),
+   summary:String(theme.summary||theme.description||'').trim().slice(0,260),
+   bullets:Array.isArray(theme.bullets)?theme.bullets.slice(0,2).map(x=>String(x||'').trim().slice(0,120)).filter(Boolean):[]
+  })).filter(theme=>theme.id&&theme.title&&theme.summary);
+  if(clean.length<4)throw new Error('Analysen indeholdt færre end fire brugbare temaer.');
+  state.applicationThemes=clean;
+  if(!sameJob){state.applicationThemeWeights=Object.fromEntries(clean.map(theme=>[theme.id,0]))}
+  else{
+   const previous=state.applicationThemeWeights||{};
+   state.applicationThemeWeights=Object.fromEntries(clean.map(theme=>[theme.id,Math.max(0,Math.min(10,Math.round(Number(previous[theme.id])||0)))]));
+  }
+  state.applicationAnalysisJobKey=key;state.applicationAnalysisStatus='ready';state.applicationAnalysisNotice='Analyseret med sprogmodellen ud fra dit konkrete stillingsopslag.';
+  persist();renderApplicationAnalysis();
+  return true;
+ }catch(error){
+  state.applicationAnalysisStatus='error';state.applicationAnalysisNotice='AI-analysen fejlede: '+String(error&&error.message||'ukendt fejl').slice(0,250);
+  persist();renderApplicationAnalysis();return false;
+ }finally{
+  applicationAnalysisInFlight=false;
+  if(refreshApplicationAnalysisLabel){} 
+ }
+}
 function getApplicationPreferences(){
  const lengthKey=el('applicationLength')?String(el('applicationLength').value||'short'):'short';
  const includeExamples=el('appIncludeExamples')?!!el('appIncludeExamples').checked:true;

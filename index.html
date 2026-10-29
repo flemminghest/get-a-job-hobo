@@ -1447,7 +1447,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
  <div class="research-modal-backdrop" onclick="closeApplicationPdfModal()"></div>
  <section class="research-modal-card app-pdf-modal-card">
   <div class="app-pdf-modal-head">
-   <div><h2 id="appPdfTitle">Forhåndsvisning af ansøgning</h2><p id="appPdfDescription">Redigér ansøgningen i tekstfeltet, eller skift farverne her. Eksporten bruger dit brevpapir og gemmes som en ny PDF.</p></div>
+   <div><h2 id="appPdfTitle">Forhåndsvisning af ansøgning</h2><p id="appPdfDescription">Redigér ansøgningen i tekstfeltet, eller skift farverne her. Afsnit sættes tæt uden tomme linjer. Telefon, e-mail og LinkedIn er klikbare i PDF’en.</p></div>
    <button type="button" class="app-pdf-close" onclick="closeApplicationPdfModal()" aria-label="Luk forhåndsvisning" title="Luk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
   </div>
   <div class="app-pdf-layout">
@@ -1520,7 +1520,10 @@ function extractApplicationLinkedInUrl(text){
 function getApplicationLinkedInUrl(){
  const saved=safeApplicationLinkedInUrl(state.applicationLinkedInUrl);
  if(saved)return saved;
- return extractApplicationLinkedInUrl(state.cv)||extractApplicationLinkedInUrl(state.application)||'';
+ const extracted=extractApplicationLinkedInUrl(state.cv)||extractApplicationLinkedInUrl(state.application)||'';
+ if(extracted)return extracted;
+ // Default from the supplied reference PDF; users can still replace it in PDF settings.
+ return 'https://www.linkedin.com/in/jacob-holm-blaehr-a3a18946/';
 }
 function saveApplicationLinkedInUrl(raw){
  const value=String(raw||'').trim();
@@ -2801,16 +2804,28 @@ function drawPdfHeader(doc,portraitDataUrl){
  // Kontaktikon og kontaktoplysninger.
  doc.setFillColor(255,255,255);doc.circle(83,11.5,4.8,'F');
  doc.setFillColor(177,177,177);doc.circle(83,10.1,1.35,'F');doc.ellipse(83,13.2,2.7,1.7,'F');
- doc.setFontSize(8.5);doc.setTextColor(20,20,20);
- doc.text('mail@pferd.dk',82,27.8);
+ const contactX=82;
+ const linkColor=[20,39,65];
+ const underline=(label,x,baseline)=>{
+  const width=doc.getTextWidth(label);
+  doc.setDrawColor(linkColor[0],linkColor[1],linkColor[2]);doc.setLineWidth(0.18);
+  doc.line(x,baseline+0.8,x+width,baseline+0.8);
+  return width;
+ };
+ doc.setFont('Roboto','normal');doc.setFontSize(8.5);doc.setTextColor(linkColor[0],linkColor[1],linkColor[2]);
+ const emailText='mail@pferd.dk';
+ doc.text(emailText,contactX,27.8);
+ const emailWidth=underline(emailText,contactX,27.8);
+ doc.link(contactX-1.4,24.9,emailWidth+4.5,5.8,{url:'mailto:mail@pferd.dk'});
  const phoneText='+45 2331 9975';
- doc.text(phoneText,82,35.2);
- // PDF link annotations make the printed contact information interactive in PDF readers.
- doc.link(81.4,31.6,doc.getTextWidth(phoneText)+1.8,4.8,{url:'tel:+4523319975'});
+ doc.text(phoneText,contactX,35.2);
+ const phoneWidth=underline(phoneText,contactX,35.2);
+ doc.link(contactX-1.4,32.3,phoneWidth+4.5,5.8,{url:'tel:+4523319975'});
  const linkedInText='Min LinkedIn';
- doc.text(linkedInText,82,42.4);
+ doc.text(linkedInText,contactX,42.4);
+ const linkedInWidth=underline(linkedInText,contactX,42.4);
  const linkedInUrl=getApplicationLinkedInUrl();
- if(linkedInUrl)doc.link(81.4,38.8,doc.getTextWidth(linkedInText)+1.8,4.8,{url:linkedInUrl});
+ if(linkedInUrl)doc.link(contactX-1.4,39.5,linkedInWidth+4.5,5.8,{url:linkedInUrl});
  // Diskret skygge under cirklen, hvid baggrund og tynd lys kant.
  doc.setFillColor(218,220,222);doc.circle(170.8,36.8,30.7,'F');
  doc.setFillColor(255,255,255);doc.circle(170,36,30.7,'F');
@@ -2939,7 +2954,7 @@ async function createApplicationPdfBlob(){
  drawPdfHeader(doc,portraitDataUrl);
  let y=drawPdfGreeting(doc,parsed.greeting,greetingColor);
  doc.setFont('RobotoSlab','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
- const lineHeight=4.9,paragraphGap=4.0;
+ const lineHeight=4.9,paragraphGap=0.6;
  const paragraphs=parsed.body.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
  const newPage=()=>{
   doc.addPage('a4','portrait');

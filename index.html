@@ -2963,7 +2963,8 @@ async function createApplicationPdfBlob(){
   doc.setFont('RobotoSlab','normal');doc.setFontSize(11.3);doc.setTextColor(31,50,94);
  };
  for(const paragraph of paragraphs){
-  const paragraphLines=doc.splitTextToSize(paragraph,textWidth);
+  const paragraphText=paragraph.replace(/\\s*\\n\\s*/g,' ').replace(/\\s+/g,' ').trim();
+  const paragraphLines=doc.splitTextToSize(paragraphText,textWidth);
   for(const line of paragraphLines){
    if(y>pageHeight-31)newPage();
    doc.text(line,left,y);

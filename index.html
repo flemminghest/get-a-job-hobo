@@ -992,6 +992,10 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 #apptext::placeholder{font-family:"Roboto Slab",Georgia,serif}
 
 /* AI-derived job themes and communication-weight sliders */
+.application-priority-actions{display:flex;justify-content:flex-end;margin-top:14px}
+.application-priority-actions button{min-width:205px}
+@media(max-width:600px){.application-priority-actions{justify-content:stretch}.application-priority-actions button{width:100%}}
+
 .application-analysis-card{padding:clamp(17px,2.1vw,25px);gap:16px}
 .application-analysis-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .application-analysis-heading h2{font-size:21px;letter-spacing:-.65px;margin:4px 0 5px;color:#172f54}
@@ -1183,6 +1187,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
   <div class="application-analysis-status" id="applicationAnalysisStatus" role="status" aria-live="polite">Analysen afventer stillingsopslaget.</div>
   <div id="applicationThemes" class="application-themes-grid"><div class="application-analysis-placeholder"><span class="app-analysis-placeholder-icon">✦</span><div><strong>Din analyse vises her</strong><p>Åbn Motiveret ansøgning med et aktivt jobopslag for at få 4–6 korte temaer fra sprogmodellen.</p></div></div></div>
   <div class="application-priority-footer"><div class="app-priority-status" id="applicationPriorityStatus"><span>ⓘ</span> Når alle sliders står på 0, bruges standardvægtningen. Ændringer træder først i kraft, når du klikker “Lav tre nye forslag”.</div></div>
+  <div class="application-priority-actions"><button type="button" class="secondary" id="applicationAnalysisGenerateButton" onclick="makeProposals()">Lav tre nye forslag</button></div>
 </div>
 <div class="card stack application-results-card"><div id="proposalState" class="notice">Vælg længde og eksempelindstilling ovenfor. Analysér først et job under Jobopslag, og lav derefter dine forslag.</div><div id="proposals" class="grid proposal-stack"><div class="empty">Tre forslag vises her, når du har analyseret et job.</div></div><div><label for="apptext">Motiveret ansøgning</label><textarea id="apptext" rows="15" placeholder="Ansøgningen er blank, indtil du vælger et forslag."></textarea></div><div class="toolbar"><button onclick="saveApplication()">Gem ansøgning</button><button class="secondary" onclick="previewApplication()">Vis forhåndsvisning</button><button id="downloadPdfButton" class="secondary" onclick="downloadApplicationPdf()" disabled>Download PDF</button><button class="warn" onclick="clearApplication()">Ryd ansøgning</button></div><div id="appPreview" class="output" hidden></div></div></section>
 

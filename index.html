@@ -1472,7 +1472,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
     <div class="app-pdf-color-row">
      <label for="appLinkedInUrl">LinkedIn-profil (fast adresse)</label>
      <input id="appLinkedInUrl" type="url" inputmode="url" autocomplete="url" value="https://www.linkedin.com/in/jacob-holm-blaehr/" readonly aria-readonly="true">
-     <p class="app-pdf-help">LinkedIn-adressen er fastsat præcist som angivet. Telefonnummeret i PDF’en har et tel-link; brug også de almindelige HTML-kontaktlinks over PDF-forhåndsvisningen, hvis PDF-læseren ikke åbner telefonlinks.</p>
+     <p class="app-pdf-help">LinkedIn-adressen er fastsat præcist som angivet. Nogle PDF-læsere blokerer opkaldslinks; brug den almindelige “Ring”-knap over PDF-forhåndsvisningen, hvis nummeret i selve PDF’en ikke åbner telefonappen.</p>
      <p id="appLinkedInStatus" class="app-pdf-help" aria-live="polite"></p>
     </div>
     <div class="app-pdf-color-row">
@@ -1494,7 +1494,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
    <div class="app-pdf-viewer">
     <div id="appPdfViewerStatus" class="app-pdf-viewer-status" aria-live="polite">Klargør PDF…</div>
     <div class="app-pdf-html-contact-links" aria-label="Klikbare kontaktlinks">
-     <a href="tel:+4523319975">Ring +45 2331 9975</a>
+     <a href="tel:+4523319975" target="_top" aria-label="Ring til Jacob på +45 2331 9975">Ring +45 2331 9975</a>
      <a href="mailto:mail@pferd.dk">Send e-mail</a>
      <a href="https://www.linkedin.com/in/jacob-holm-blaehr/" target="_blank" rel="noopener noreferrer">Min LinkedIn ↗</a>
     </div>
@@ -2881,14 +2881,18 @@ async function getApplicationPortraitForPdf(){
  try{
   const portraitSource=state.applicationPortraitDataUrl||new URL('./portrait-jacob.png',document.baseURI).href;
   const image=await loadApplicationPortraitImage(portraitSource);
-  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
-  const ctx=canvas.getContext('2d');
-  if(!ctx)throw new Error('Browseren kunne ikke klargøre portrættet.');
   const width=image.naturalWidth||image.width,height=image.naturalHeight||image.height;
   if(!width||!height)throw new Error('Billedet har ingen gyldige dimensioner.');
-  const size=Math.min(width,height),sx=(width-size)/2,sy=(height-size)/2;
-  ctx.clearRect(0,0,512,512);ctx.save();ctx.beginPath();ctx.arc(256,256,256,0,Math.PI*2);ctx.clip();
-  ctx.drawImage(image,sx,sy,size,size,0,0,512,512);ctx.restore();
+  const size=Math.min(width,height);
+  // Keep the original portrait resolution instead of resampling every photo down to 512px.
+  const outputSize=Math.max(1,Math.min(size,1600));
+  const canvas=document.createElement('canvas');canvas.width=outputSize;canvas.height=outputSize;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw new Error('Browseren kunne ikke klargøre portrættet.');
+  const sx=(width-size)/2,sy=(height-size)/2;
+  ctx.clearRect(0,0,outputSize,outputSize);ctx.save();ctx.beginPath();ctx.arc(outputSize/2,outputSize/2,outputSize/2,0,Math.PI*2);ctx.clip();
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(image,sx,sy,size,size,0,0,outputSize,outputSize);ctx.restore();
   return canvas.toDataURL('image/png');
  }catch(error){
   updateApplicationPortraitStatus('Portrættet kunne ikke indlæses — en neutral avatar vises i cirklen i stedet.');
@@ -2923,13 +2927,15 @@ async function handleApplicationPortraitUpload(input){
   });
   const image=await loadApplicationPortraitImage(source);
   const originalWidth=image.naturalWidth||image.width,originalHeight=image.naturalHeight||image.height;
-  const scale=Math.min(1,640/Math.max(originalWidth,originalHeight));
+  // Preserve enough pixels for a crisp circular portrait when printed in the A4 PDF.
+  const scale=Math.min(1,1400/Math.max(originalWidth,originalHeight));
   const width=Math.max(1,Math.round(originalWidth*scale)),height=Math.max(1,Math.round(originalHeight*scale));
   const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
   const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Browseren kunne ikke behandle billedet.');
-  ctx.drawImage(image,0,0,width,height);
-  const compressed=canvas.toDataURL('image/jpeg',0.82);
-  if(compressed.length>700000)throw new Error('Billedet fylder for meget efter komprimering. Prøv et mindre foto.');
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(image,0,0,width,height);
+  let compressed=canvas.toDataURL('image/jpeg',0.92);
+  if(compressed.length>1200000)compressed=canvas.toDataURL('image/jpeg',0.88);
+  if(compressed.length>1500000)throw new Error('Billedet fylder stadig for meget efter komprimering. Vælg et mindre foto for at bevare den lokale lagring.');
   state.applicationPortraitDataUrl=compressed;state.applicationPortraitMode='photo';state.applicationPortraitModeChosen=true;persist();markApplicationPdfOutdated();
   if(el('appPortraitMode'))el('appPortraitMode').value='photo';
   updateApplicationPortraitStatus('Dit valgte portrætfoto er gemt lokalt og bruges i PDF’en.');

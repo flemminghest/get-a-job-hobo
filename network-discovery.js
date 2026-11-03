@@ -444,6 +444,33 @@ function isDanishRegistrySource(source){
  return ['krak.dk','jobindex.dk','jobrate.dk','proff.dk','estatistik.dk','ownr.dk','virk.dk','datacvr.virk.dk','cvr.dk'].some(domain=>host===domain||host.endsWith('.'+domain));
 }
 function curatedCompanyFacts(){return {}}
+const COMPANY_INSIGHT_CACHE_TTL=30*24*60*60*1000;
+function companyInsightCacheKey(company){return normalizeInsightText(company).slice(0,160)}
+function readCachedCompanyInsights(company,item){
+ const cache=state.companyInsightCache&&typeof state.companyInsightCache==='object'?state.companyInsightCache:{};
+ const entry=cache[companyInsightCacheKey(company)];
+ if(!entry||!entry.facts||!Array.isArray(entry.facts.sources)||!entry.facts.sources.length)return null;
+ const savedAt=Date.parse(entry.savedAt||'');
+ if(!Number.isFinite(savedAt)||Date.now()-savedAt>COMPANY_INSIGHT_CACHE_TTL)return null;
+ const relevant=entry.facts.sources.some(source=>companyResultRelevant(source,company,item));
+ if(!relevant)return null;
+ const facts=entry.facts;
+ if(!String(facts.employeeRating||'').trim())return null;
+ return {...facts,sources:facts.sources.slice(),factSources:{...(facts.factSources||{})},lookupStatus:'done',lookupAt:facts.lookupAt||entry.savedAt,cacheHit:true};
+}
+function cacheCompanyInsights(company,facts){
+ if(!company||!facts||!String(facts.employeeRating||'').trim()||!Array.isArray(facts.sources)||!facts.sources.length)return;
+ if(!facts.sources.some(source=>isDanishRegistrySource(source)))return;
+ const safeFacts={...facts,sources:facts.sources.filter(source=>isDanishCompanySource(source)&&safeHttpUrl(source.url)).slice(0,12),factSources:{...(facts.factSources||{})}};
+ if(!safeFacts.sources.length)return;
+ state.companyInsightCache=state.companyInsightCache&&typeof state.companyInsightCache==='object'?state.companyInsightCache:{};
+ state.companyInsightCache[companyInsightCacheKey(company)]={company:String(company).slice(0,120),savedAt:new Date().toISOString(),facts:safeFacts};
+ const keys=Object.keys(state.companyInsightCache);
+ if(keys.length>250){
+  keys.sort((a,b)=>String(state.companyInsightCache[a]?.savedAt||'').localeCompare(String(state.companyInsightCache[b]?.savedAt||'')));
+  keys.slice(0,keys.length-250).forEach(key=>delete state.companyInsightCache[key]);
+ }
+}
 function effectiveCompanyFacts(item){
  const stored=item&&item.companyFacts||{};
  const allSources=(Array.isArray(stored.sources)?stored.sources:[]).filter(source=>isDanishCompanySource(source));
@@ -632,6 +659,7 @@ async function lookupCompanyInsights(indexOrItem){
    }catch(e){}
   }
   item.companyFacts=nextFacts;
+  if(nextFacts.lookupStatus==='done')cacheCompanyInsights(company,nextFacts);
   persist();renderJobOpportunities();
   // Company enrichment is automatic and must not overwrite the job-search result status.
  }catch(error){
@@ -650,6 +678,13 @@ async function autoLookupJobCompanyFacts(items){
   if(!norm||['linkedin','jobindex','indeed','jobnet','stepstone','ofir','workindenmark','hk jobportal'].includes(norm))return;
   if(!grouped.has(norm))grouped.set(norm,{name,items:[]});
   grouped.get(norm).items.push(item);
+ });
+ grouped.forEach(group=>{
+  group.items.forEach(item=>{
+   if(item.companyFacts&&['done','loading','queued'].includes(item.companyFacts.lookupStatus))return;
+   const cached=readCachedCompanyInsights(group.name,item);
+   if(cached)item.companyFacts=cached;
+  });
  });
  const queue=[...grouped.values()].filter(group=>group.name!=='Arbejdsgiver ikke oplyst'&&!group.items.some(item=>['done','loading','queued'].includes(item.companyFacts&&item.companyFacts.lookupStatus)));
  if(!queue.length)return;

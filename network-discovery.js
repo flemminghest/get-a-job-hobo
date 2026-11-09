@@ -142,7 +142,7 @@ function directDanishLocation(value){
 }
 function explicitNonDanishLocation(value){
  const text=normalizeSearchText(value);
- return /\b(pakistan|islamabad|karachi|lahore|united kingdom|great britain|london|manchester|birmingham uk|united states|usa|new york|san francisco|california|texas|austin|canada|toronto|vancouver|india|mumbai|bangalore|australia|sydney|melbourne|singapore|dubai|uae|germany|berlin|munich|france|paris|netherlands|amsterdam|switzerland|zurich|poland|warsaw|spain|madrid|portugal|lisbon|italy|milan|sweden|stockholm|norway|oslo|finland|helsinki)\b/.test(text);
+ return /\b(south africa|cape town|johannesburg|new zealand|east tamaki|auckland|wellington|pakistan|islamabad|karachi|lahore|united kingdom|great britain|london|manchester|birmingham uk|united states|usa|new york|san francisco|california|texas|austin|canada|toronto|vancouver|india|mumbai|bangalore|australia|sydney|melbourne|singapore|dubai|uae|germany|berlin|munich|france|paris|netherlands|amsterdam|switzerland|zurich|poland|warsaw|spain|madrid|portugal|lisbon|italy|milan|sweden|stockholm|norway|oslo|finland|helsinki)\b/.test(text);
 }
 function getDanishJobScope(item,profile){
  const text=jobEvidenceText(item);
@@ -1249,12 +1249,12 @@ function renderJobOpportunities(){
  const outsideDistanceCount=measuredResults.filter(item=>opportunityDistanceKm(item)>distanceLimit).length;
  const inRange=measuredResults.filter(item=>opportunityDistanceKm(item)<=distanceLimit).sort((a,b)=>opportunityDistanceKm(a)-opportunityDistanceKm(b)||b.matchedTerms.length-a.matchedTerms.length);
  const pendingDistance=matchedResults.filter(item=>opportunityDistanceKm(item)===null);
- const results=[...inRange,...pendingDistance.map(item=>({...item,distancePending:true}))];
+ const results=inRange;
  const visibleResults=results.slice(0,visibleJobOpportunityCount);
  const emptyResultsHtml=!matchedResults.length
   ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen konkrete stillingsopslag blev fundet</strong><p>Prøv flere søgeord eller en bredere geografi.</p></div>'
   :unknownDistanceCount
-   ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Afstande beregnes</strong><p>'+unknownDistanceCount+' relevante opslag afventer en beregnet afstand. De vises, så snart arbejdsstedet kan placeres. '+(outsideDistanceCount?outsideDistanceCount+' opslag ligger allerede uden for '+distanceLimit+' km.':'')+'</p></div>'
+   ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen opslag med kendt afstand inden for '+distanceLimit+' km</strong><p>'+unknownDistanceCount+' relevante opslag er skjult, fordi jobbets destination endnu ikke kan placeres sikkert. '+(outsideDistanceCount?outsideDistanceCount+' opslag med kendt afstand ligger uden for radius.':'')+' Kun opslag med beregnet afstand vises her.</p></div>'
    :'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen opslag inden for '+distanceLimit+' km</strong><p>'+outsideDistanceCount+' relevante opslag ligger længere væk. Øg afstanden med slideren for at udvide området.</p></div>';
  if(el('jobOpportunitiesResults'))el('jobOpportunitiesResults').innerHTML=visibleResults.length?visibleResults.map((item,index)=>{
   const stateIndex=all.findIndex(row=>canonicalSearchUrl(row.url)===canonicalSearchUrl(item.url)),url=safeHttpUrl(item.url),matched=item.matchedSignals||[];
@@ -1287,9 +1287,9 @@ function renderJobOpportunities(){
  if(el('jobKeywordCount'))el('jobKeywordCount').textContent=searchProfile().terms.length;
  if(el('jobTrackedCount'))el('jobTrackedCount').textContent=(state.followUps||[]).filter(item=>item.type==='job').length;
  if(el('jobLastSearchLabel'))el('jobLastSearchLabel').textContent=state.jobLastSearch?new Date(state.jobLastSearch).toLocaleDateString('da-DK'):'Ikke søgt';
- if(el('jobOpportunitiesMeta'))el('jobOpportunitiesMeta').textContent=results.length+' inden for '+distanceLimit+' km';
+ if(el('jobOpportunitiesMeta'))el('jobOpportunitiesMeta').textContent=results.length+' med kendt afstand';
  const distanceFilterStatus=el('jobDistanceFilterStatus');
- if(distanceFilterStatus){distanceFilterStatus.textContent='Viser '+results.length+' opslag inden for '+distanceLimit+' km, sorteret med de nærmeste først.'+(unknownDistanceCount?' '+unknownDistanceCount+' opslag afventer en beregnet afstand og skjules, indtil den kendes.':'');}
+ if(distanceFilterStatus){distanceFilterStatus.textContent='Viser kun opslag med kendt afstand inden for '+distanceLimit+' km, sorteret nærmest din adresse først.'+(unknownDistanceCount?' '+unknownDistanceCount+' opslag uden beregnelig afstand er skjult.':'')+(outsideDistanceCount?' '+outsideDistanceCount+' opslag med kendt afstand ligger uden for radius.':'');}
 }
 let jobSearchProgressOriginalOverflow='';
 let jobSearchProgressQueries=[];

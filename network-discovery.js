@@ -1677,9 +1677,11 @@ function copyNetworkOutreach(collection,index){
  else window.prompt('Kopiér og tilpas teksten manuelt:',message);
 }
 function fullJobContextText(context){
+ if(typeof context==='string')return context.trim().slice(0,150000);
  if(!context||typeof context!=='object')return '';
- const candidates=[context.content,context.text,context.description,context.summary].filter(value=>typeof value==='string');
- const rawHtml=[context.html,context.rawHtml,context.sourceHtml].find(value=>typeof value==='string'&&value.length>0);
+ const candidates=[context.content,context.text,context.description,context.summary,context.pageContent,context.fullText,context.full_text,context.bodyText,context.markdown,context.extractedText].filter(value=>typeof value==='string');
+ for(const nested of [context.data,context.result,context.document])if(nested&&typeof nested==='object')candidates.push(fullJobContextText(nested));
+ const rawHtml=[context.html,context.rawHtml,context.sourceHtml,context.pageHtml].find(value=>typeof value==='string'&&value.length>0);
  if(rawHtml){
   try{
    const doc=new DOMParser().parseFromString(rawHtml,'text/html');
@@ -1687,7 +1689,16 @@ function fullJobContextText(context){
    candidates.push(doc.body?doc.body.innerText||doc.body.textContent||'':'');
   }catch(error){}
  }
- return candidates.map(value=>String(value).replace(/\s+/g,' ').trim()).sort((a,b)=>b.length-a.length)[0]?.slice(0,150000)||'';
+ return candidates.map(value=>String(value).replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim()).sort((x,y)=>y.length-x.length)[0]?.slice(0,150000)||'';
+}
+function cleanFullJobPostingText(text,item){
+ let value=String(text||'').trim();
+ const titles=[item&&item.jobTitle,item&&item.title].map(text=>String(text||'').trim()).filter(text=>text.length>8);
+ const lines=value.split(/\r?\n/),headingIndex=lines.findIndex(line=>/^#{1,3}\s+/.test(line)&&titles.some(title=>normalizeSearchText(line).includes(normalizeSearchText(title))));
+ if(headingIndex>=0)value=lines.slice(headingIndex).join('\n');
+ const footer=value.search(/\n(?:#{1,3}\s*)?(?:Masser af fordele med 3F|Kontakt\s*\n\s*Ring til os|Cookieindstillinger|Privacy policy)\b/i);
+ if(footer>500)value=value.slice(0,footer);
+ return value.trim().slice(0,90000);
 }
 function hasFullRelevantJobText(text,item,snippet){
  const body=normalizeSearchText(text),short=normalizeSearchText(snippet);
@@ -1704,31 +1715,38 @@ async function loadJobOpportunityInAnalyzer(index){
  const url=safeHttpUrl(item.url),snippet=String(item.description||'').trim();
  state.jobtitle=String(jobDisplayTitle(item)||item.jobTitle||item.title||'').slice(0,500);
  state.company=String(jobDisplayCompany(item)||item.companyName||item.company||item.employer||'').slice(0,500);
- state.jobtext=snippet;
+ state.jobtext='';
  state.activeJob=null;state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.selectedProposal=-1;state.proposalNotice='';state.application='';
  persist();
  if(el('jobtitle'))el('jobtitle').value=state.jobtitle;
  if(el('company'))el('company').value=state.company;
- if(el('jobtext'))el('jobtext').value=state.jobtext;
+ if(el('jobtext'))el('jobtext').value='';
  if(el('apptext'))el('apptext').value='';
  if(el('sourceurl'))el('sourceurl').value=url||'';
  go('job');renderJobResult();renderProposals();
- if(!url){notify('jobmsg','Originalopslagets URL mangler. Åbn opslaget manuelt, og indsæt hele teksten for at få en retvisende vurdering.','warnbox');return}
- notify('jobmsg','Henter hele teksten fra originalopslaget, før CV-matchen beregnes…','');
+ if(!url){notify('jobmsg','Originalopslagets URL mangler. Åbn originalopslaget, kopiér hele teksten ind her, og vælg derefter “Analyser job”.','warnbox');return}
+ notify('jobmsg','Henter hele teksten fra originalopslagets URL…','');
  let fullText='';
+ const contextEndpoint=COMPANY_CONTEXT_API+'?'+new URLSearchParams({url}).toString();
  try{
-  const endpoint=COMPANY_CONTEXT_API+'?'+new URLSearchParams({url}).toString();
-  const context=await fetchJsonTimeout(endpoint,18000);
-  const candidate=fullJobContextText(context);
+  const context=await fetchJsonTimeout(contextEndpoint,12000);
+  const candidate=cleanFullJobPostingText(fullJobContextText(context),item);
   if(candidate&&hasFullRelevantJobText(candidate,item,snippet))fullText=candidate;
  }catch(error){}
  if(!fullText){
-  state.jobtext=snippet;persist();if(el('jobtext'))el('jobtext').value=snippet;
-  notify('jobmsg','Kilden gav kun et kort uddrag — jeg har ikke beregnet en score på det. Åbn originalopslaget, kopiér hele jobteksten ind i feltet, og vælg derefter “Analyser job”.','warnbox');
+  try{
+   const reader=await fetchJsonTimeout('/api/job-context?'+new URLSearchParams({url}).toString(),32000);
+   const candidate=cleanFullJobPostingText(fullJobContextText(reader),item);
+   if(candidate&&hasFullRelevantJobText(candidate,item,snippet))fullText=candidate;
+  }catch(error){}
+ }
+ if(!fullText){
+  state.jobtext='';persist();if(el('jobtext'))el('jobtext').value='';
+  notify('jobmsg','Hele opslaget kunne ikke hentes fra URL’en. Jeg har derfor ikke analyseret det korte søgeresultat. Åbn originalopslaget, kopiér hele teksten ind her, og vælg derefter “Analyser job”.','warnbox');
   return;
  }
  state.jobtext=fullText;persist();if(el('jobtext'))el('jobtext').value=fullText;
- notify('jobmsg','Hele opslagsteksten blev hentet. CV-vurderingen beregnes nu ud fra den tekst.','goodbox');
+ notify('jobmsg','Hele opslaget blev hentet fra URL’en. CV-vurderingen beregnes nu ud fra den fulde tekst.','goodbox');
  await analyzeJob();
 }
 function followUpTypeName(type){return ({contact:'Person',company:'Virksomhed',post:'Opslag',group:'Faggruppe',job:'Job',other:'Andet'})[type]||'Andet'}

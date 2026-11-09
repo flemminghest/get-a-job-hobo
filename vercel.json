@@ -5,6 +5,9 @@
     },
     "api/jobindex-evaluations.js": {
       "maxDuration": 45
+    },
+    "api/job-context.js": {
+      "maxDuration": 35
     }
   },
   "headers": [

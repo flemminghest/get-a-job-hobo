@@ -421,7 +421,7 @@ async function queryIndex(query,terms,profile){
  }
  const searchVariants=[query.query,query.fallbackQuery,...(query.alternativeQueries||[])].filter((value,index,all)=>value&&all.indexOf(value)===index);
  const unique=new Map(),errors=[],attempts=[];
- let totalRaw=0,totalMapped=0,pageBudget=30;
+ let totalRaw=0,totalMapped=0,pageBudget=36;
  for(let i=0;i<searchVariants.length&&pageBudget>0;i++){
   const text=searchVariants[i];let rows=[];
   try{
@@ -1604,11 +1604,16 @@ async function searchJobOpportunities(ignoreCvWarning=false){
   if(el('jobSearchStatus')){
    const remoteCheck=state.jobOpportunities.filter(item=>item.matchScope==='remote-check'||item.matchScope==='query-location').length;
    const rawTotal=settled.reduce((total,result)=>total+(result.status==='fulfilled'&&result.value.diagnostics?Number(result.value.diagnostics.raw||0):0),0);
-   const portalSummary=settled.map((result,index)=>({label:queries[index].label,raw:result.status==='fulfilled'&&result.value.diagnostics?Number(result.value.diagnostics.raw||0):0,shown:result.status==='fulfilled'?result.value.results.length:0})).filter(x=>x.raw||x.shown).slice(0,5).map(x=>x.label+': '+x.raw+' rå / '+x.shown+' vist').join(' · ');
+   const portalSummary=settled.map((result,index)=>{
+    if(result.status!=='fulfilled')return null;
+    const diagnostics=result.value.diagnostics||{};
+    const pages=(diagnostics.attempts||[]).reduce((total,attempt)=>total+Number(attempt.pages||0),0);
+    return {label:queries[index].label,shown:(result.value.results||[]).length,pages};
+   }).filter(source=>source&&source.shown).map(source=>source.label+': '+source.shown+' opslag / '+source.pages+' resultatsider').join(' · ');
    const snapshotShown=state.jobOpportunities.filter(item=>item.verifiedSnapshot).length;
    const candidateCount=state.jobOpportunities.filter(item=>item.matchStatus==='candidate').length;
    let message=state.jobOpportunities.length
-    ?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete job-URL’er vist fra '+succeeded+' live-kildeområder.'+(candidateCount?' '+candidateCount+' har ukendt geografi og er markeret til kontrol.':'')+(snapshotShown?' Listen er suppleret med '+snapshotShown+' konkrete annoncer, kildekontrolleret 26.10.2026. Kontrollér altid originalopslaget. ':' ')+remoteCheck+' opslag har geografiske forbehold.'
+    ?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete job-URL’er fra '+succeeded+' søgeområder.'+(portalSummary?' Fund fordelt på kilder: '+portalSummary+'.':' Ingen portal returnerede et konkret opslag.')+(candidateCount?' '+candidateCount+' har ukendt geografi og er markeret til kontrol.':'')+(snapshotShown?' Listen er suppleret med '+snapshotShown+' konkrete annoncer, kildekontrolleret 09.11.2026. Kontrollér altid originalopslaget. ':' ')+remoteCheck+' opslag har geografiske forbehold.'
     :'Søgeindekset returnerede '+rawTotal+' rå resultater, men ingen kunne bekræftes som konkrete stillingsopslag, der matcher søgeordene. '+(portalSummary?'Kilder: '+portalSummary+'. ':'')+'Udvid søgeordene eller geografien.';
    el('jobSearchStatus').className='notice '+(state.jobOpportunities.length?'goodbox':'warnbox');
    el('jobSearchStatus').textContent=message+(errors.length?' Kildeproblemer: '+errors.join(' | '):'');

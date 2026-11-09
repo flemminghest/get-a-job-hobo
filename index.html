@@ -1855,6 +1855,21 @@ function continueToApplicationAnyway(){
  closeLowMatchModal();
  go('application',true);
 }
+function hasPendingClarificationSelection(){
+ return !!document.querySelector('#clarification-section input[type="radio"]:checked');
+}
+function openUpdatedApplicationProposals(){
+ if(hasPendingClarificationSelection()){
+  const target=document.getElementById('clarification-reassess-all');
+  if(target){
+   target.scrollIntoView({behavior:'smooth',block:'center'});
+   target.focus();
+  }
+  return;
+ }
+ const button=document.getElementById('makeJobProposals');
+ if(button&&!button.disabled)button.click();
+}
 function updateFixedProposalsBar(){
  const bar=document.getElementById('fixedProposalsBar');
  if(!bar)return;
@@ -1862,6 +1877,13 @@ function updateFixedProposalsBar(){
  const visible=!!(state.activeJob&&state.activeJob.competencyAssessment&&jobPage&&jobPage.classList.contains('active'));
  bar.hidden=!visible;
  document.body.classList.toggle('has-fixed-proposals',visible);
+ const button=bar.querySelector('.fixed-proposals-button');
+ if(button){
+  const clarified=!!(state.activeJob&&state.activeJob.competencyAssessment&&state.activeJob.competencyAssessment.rows&&state.activeJob.competencyAssessment.rows.some(row=>!!row.candidateAnswer));
+  const hasChanges=hasPendingClarificationSelection();
+  button.textContent=(hasChanges||clarified)?'Lav 3 nye ansøgningsforslag':'Lav 3 ansøgningsforslag';
+  button.title=hasChanges?'Klik på “Vurdér igen” for at medtage dine ændrede svar, før du laver nye forslag.':'';
+ }
 }
 function go(name,bypassLowMatchWarning){
  if(name==='application'&&!bypassLowMatchWarning){
@@ -2813,6 +2835,7 @@ function updateClarificationButton(){
  button.disabled=selected===0;
  const count=document.getElementById('clarification-selected-count');
  if(count)count.textContent=selected?selected+' svar valgt – klar til samlet vurdering':'Du kan svare på et eller flere spørgsmål.';
+ updateFixedProposalsBar();
 }
 function renderClarificationPanel(competence,embedded=false){
  const pending=competence.rows.map((row,index)=>({...row,index})).filter(row=>row.status==='mentioned'&&!row.candidateAnswer);
@@ -4068,7 +4091,7 @@ if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#
 </script><script src="./network-discovery.js"></script><div id="fixedProposalsBar" class="fixed-proposals-bar" hidden aria-label="Hurtig adgang til ansøgningsforslag">
  <div class="fixed-proposals-inner">
   <div class="fixed-proposals-copy"><strong>Din jobvurdering er klar</strong><span>Fortsæt direkte til en målrettet ansøgning</span></div>
-  <button class="fixed-proposals-button" type="button" onclick="document.getElementById('makeJobProposals').click()">Lav 3 ansøgningsforslag</button>
+  <button class="fixed-proposals-button" type="button" onclick="openUpdatedApplicationProposals()">Lav 3 ansøgningsforslag</button>
  </div>
 </div>
 </body></html>

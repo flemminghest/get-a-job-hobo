@@ -2517,6 +2517,8 @@ async function makeProposals(){
  const cv=String(state.cv||el('cvtext').value||'').trim();
  if(cv.length<80){notify('proposalState','Indsæt og gem dit CV under “Mit CV”, før du laver en motiveret ansøgning.','warnbox');return}
  const jobText=String(j.job||state.jobtext||'');
+ const confirmedClarifications=(j.competencyAssessment&&Array.isArray(j.competencyAssessment.rows)?j.competencyAssessment.rows:[]).filter(row=>row.candidateAnswer).map(row=>({requirement:row.jobEvidence||row.label,competence:row.label,answer:row.candidateAnswer,status:row.statusLabel}));
+ const draftCvContext=confirmedClarifications.length?cv+'\n\nSUPPLERENDE OPLYSNINGER BEKRÆFTET AF KANDIDATEN EFTER CV-VURDERING (ikke direkte CV-dokumentation):\n'+confirmedClarifications.map(row=>'- '+row.competence+': '+row.answer).join('\n'):cv;
  const company=getApplicationCompany(j);
  const contact=getApplicationContact(j);
  const greetingLine=getApplicationGreeting(j,company,contact);
@@ -2541,7 +2543,7 @@ async function makeProposals(){
   persist();renderProposals();
   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Analysen er klar. Nu sendes en ny forespørgsel om tre ansøgningsforslag…';
   try{
-   const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-drafts',cv,job:jobText,title:j.title||state.jobtitle||'',company,contactName:contact,greetingLine,authorName:'Jacob',applicationPreferences:(()=>{const p=getApplicationPreferences();return {length:p.lengthKey,targetLines:p.lines,includeExamples:p.includeExamples,toneOfVoice:p.toneOfVoice,paragraphStructure:p.structure,themes:p.themes,weights:p.weights,instructions:"Skriv på dansk i Jacobs direkte, personlige og let uformelle stil. Hold afsnit korte og adskilte. Rækkefølge: motivation, bidrag/relevant erfaring, konkrete eksempler kun hvis valgt og CV’et understøtter dem, arbejdsform/samarbejde, naturlig afslutning. Undgå generiske salgspåstande og opfundne fakta."}})()})});
+   const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-drafts',cv:draftCvContext,candidateClarifications:confirmedClarifications,job:jobText,title:j.title||state.jobtitle||'',company,contactName:contact,greetingLine,authorName:'Jacob',applicationPreferences:(()=>{const p=getApplicationPreferences();return {length:p.lengthKey,targetLines:p.lines,includeExamples:p.includeExamples,toneOfVoice:p.toneOfVoice,paragraphStructure:p.structure,themes:p.themes,weights:p.weights,instructions:"Skriv på dansk i Jacobs direkte, personlige og let uformelle stil. Hold afsnit korte og adskilte. Rækkefølge: motivation, bidrag/relevant erfaring, konkrete eksempler kun hvis valgt og CV’et understøtter dem, arbejdsform/samarbejde, naturlig afslutning. Undgå generiske salgspåstande og opfundne fakta."}})()})});
    let data;try{data=await response.json()}catch(e){data=null}
    if(response.ok&&data&&Array.isArray(data.drafts)&&data.drafts.length>=3){
     setDraftModalProgress(95,'Kontrollerer de tre forslag','Svaret er modtaget. Jeg kontrollerer længde og eventuelle pladsholdere.',2,false);

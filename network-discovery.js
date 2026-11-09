@@ -192,7 +192,7 @@ function jobLocationQuery(value){
  if(/\b(danmark|denmark|hele landet|hele danmark)\b/.test(text))return 'Denmark';
  return searchPhrase(value||'Denmark').split(/\s+/).filter(Boolean).slice(0,2).join(' ')||'Denmark';
 }
-function jobKeywordVariants(profile){return uniqueTerms((profile&&profile.terms||[]).map(searchPhrase).filter(term=>term.length>1)).slice(0,8)}
+function jobKeywordVariants(profile){return uniqueTerms((profile&&profile.terms||[]).map(searchPhrase).filter(term=>term.length>1)).slice(0,10)}
 function jobQueries(profile){
  const terms=jobKeywordVariants(profile),first=terms[0]||'marketing',second=terms[1]||first,third=terms[2]||second;
  const loc=jobLocationQuery(profile.location||'Frederiksberg, København og omegn, Danmark');
@@ -427,7 +427,7 @@ async function queryIndex(query,terms,profile){
   try{
    const firstPage=await request(text,1);
    const availablePages=Math.max(1,firstPage.totalPages||(firstPage.hasNext?2:1));
-   const pageLimit=Math.min(pageBudget,availablePages);
+   const pageLimit=Math.min(3,pageBudget,availablePages);
    pageBudget-=pageLimit;
    const pageResponses=[firstPage];
    for(let pageStart=2;pageStart<=pageLimit;pageStart+=5){
@@ -451,8 +451,7 @@ async function queryIndex(query,terms,profile){
    errors.push(String(error&&error.message||error).slice(0,140));
    attempts.push({query:text,raw:0,mapped:0,pages:0,error:String(error&&error.message||error).slice(0,140)});
   }
-  // Read several pages per portal, then continue through more of the user's search terms.
-  if(unique.size>=20)break;
+  // Continue through every eligible keyword until this portal's page budget is used.
  }
  if(!unique.size&&errors.length===searchVariants.length)throw new Error(errors.join(' / '));
  return {query,results:[...unique.values()],usedFallback:attempts.some((attempt,index)=>index>0&&attempt.mapped>0),diagnostics:{raw:totalRaw,mapped:totalMapped,attempts,errors}};

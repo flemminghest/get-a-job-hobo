@@ -1189,6 +1189,15 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
 .fixed-proposals-bar .fixed-proposals-button{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:240px;min-height:48px;padding:11px 24px;border-radius:13px;background:linear-gradient(110deg,#2f83f7,#2065df);color:white;font-size:15px;line-height:1.2;font-weight:800;box-shadow:0 5px 14px rgba(32,101,223,.17)}
 .fixed-proposals-bar .fixed-proposals-button:hover{filter:brightness(.97)}
 .fixed-proposals-bar .fixed-proposals-button:focus-visible{outline:3px solid #75aaff;outline-offset:3px}
+.fixed-proposals-warning[hidden],.fixed-proposals-reassess[hidden]{display:none!important}
+.fixed-proposals-bar.has-clarifications .fixed-proposals-normal{display:none}
+.fixed-proposals-warning{color:#90601b!important;font-size:12px!important;line-height:1.5!important}
+.fixed-proposals-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:0 0 auto}
+.fixed-proposals-bar .fixed-proposals-reassess{min-height:48px;padding:10px 19px;border:1px solid #c7d7e9;border-radius:12px;background:#f3f7fc;color:#264b78;font-size:14px;font-weight:800;white-space:nowrap}
+.fixed-proposals-bar .fixed-proposals-reassess:hover{background:#e6eef9}
+.fixed-proposals-bar .fixed-proposals-reassess:focus-visible{outline:3px solid #75aaff;outline-offset:3px}
+@media(max-width:760px){.fixed-proposals-inner{flex-wrap:wrap;gap:10px}.fixed-proposals-actions{width:100%;flex-wrap:wrap}.fixed-proposals-actions button{flex:1 1 190px}.fixed-proposals-bar.has-clarifications .fixed-proposals-copy{display:flex!important;width:100%}.fixed-proposals-bar.has-clarifications .fixed-proposals-copy strong{display:none}}
+@media(max-width:640px){.fixed-proposals-bar .fixed-proposals-actions{display:flex;gap:8px}.fixed-proposals-bar .fixed-proposals-actions .fixed-proposals-button{flex:1 1 55%;min-width:0;width:auto;font-size:13px;padding:10px}.fixed-proposals-bar .fixed-proposals-actions .fixed-proposals-reassess{flex:1 1 35%;padding:10px;font-size:13px}.fixed-proposals-bar.has-clarifications .fixed-proposals-warning{font-size:12px!important}body.has-fixed-proposals:has(.fixed-proposals-bar.has-clarifications:not([hidden])){padding-bottom:calc(145px + env(safe-area-inset-bottom))}}
 body.has-fixed-proposals{padding-bottom:calc(94px + env(safe-area-inset-bottom))}
 @media(max-width:640px){.fixed-proposals-bar{padding:10px 14px calc(10px + env(safe-area-inset-bottom))}.fixed-proposals-inner{display:block}.fixed-proposals-copy{display:none}.fixed-proposals-bar .fixed-proposals-button{width:100%;min-width:0;min-height:50px;font-size:16px}body.has-fixed-proposals{padding-bottom:calc(80px + env(safe-area-inset-bottom))}}
 </style></head><body>
@@ -1949,6 +1958,18 @@ function scheduleFixedProposalsBar(){
   updateFixedProposalsBar();
  },2000);
 }
+function reassessFromFixedBar(){
+ if(hasPendingClarificationSelection()){
+  reassessAllClarifications();
+  return;
+ }
+ const section=document.getElementById('clarification-section');
+ if(section){
+  section.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+  const first=section.querySelector('input[type="radio"]');
+  if(first)first.focus({preventScroll:true});
+ }
+}
 function updateFixedProposalsBar(){
  const bar=document.getElementById('fixedProposalsBar');
  if(!bar)return;
@@ -1971,6 +1992,16 @@ function updateFixedProposalsBar(){
   bar.classList.add('is-visible');
  }
  document.body.classList.toggle('has-fixed-proposals',visible);
+ const unresolved=!!(analyzedJob&&analyzedJob.competencyAssessment&&Array.isArray(analyzedJob.competencyAssessment.rows)&&analyzedJob.competencyAssessment.rows.some(row=>row.status==='mentioned'&&!row.candidateAnswer));
+ bar.classList.toggle('has-clarifications',unresolved);
+ const alert=bar.querySelector('.fixed-proposals-warning');
+ if(alert)alert.hidden=!unresolved;
+ const reassessButton=bar.querySelector('.fixed-proposals-reassess');
+ if(reassessButton){
+  reassessButton.hidden=!unresolved;
+  const selected=hasPendingClarificationSelection();
+  reassessButton.title=selected?'Genvurdér de valgte svar og se den opdaterede matchscore':'Gå til de uafklarede spørgsmål';
+ }
  const button=bar.querySelector('.fixed-proposals-button');
  if(button){
   const clarified=!!(state.activeJob&&state.activeJob.competencyAssessment&&state.activeJob.competencyAssessment.rows&&state.activeJob.competencyAssessment.rows.some(row=>!!row.candidateAnswer));
@@ -4211,8 +4242,8 @@ if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#
 document.addEventListener('DOMContentLoaded',updateFixedProposalsBar);
 </script><script src="./network-discovery.js"></script><div id="fixedProposalsBar" class="fixed-proposals-bar" hidden aria-label="Hurtig adgang til ansøgningsforslag">
  <div class="fixed-proposals-inner">
-  <div class="fixed-proposals-copy"><strong>Din jobvurdering er klar</strong><span>Fortsæt direkte til en målrettet ansøgning</span></div>
-  <button class="fixed-proposals-button" type="button" onclick="openUpdatedApplicationProposals()">Lav 3 ansøgningsforslag</button>
+  <div class="fixed-proposals-copy"><strong>Din jobvurdering er klar</strong><span class="fixed-proposals-normal">Fortsæt direkte til en målrettet ansøgning</span><span class="fixed-proposals-warning" hidden>Det kan give mening, at du lige kigger på Taler imod inden du fortsætter.</span></div>
+  <div class="fixed-proposals-actions"><button class="fixed-proposals-reassess" type="button" onclick="reassessFromFixedBar()" hidden>Vurdér igen</button><button class="fixed-proposals-button" type="button" onclick="openUpdatedApplicationProposals()">Lav 3 ansøgningsforslag</button></div>
  </div>
 </div>
 </body></html>

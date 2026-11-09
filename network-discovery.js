@@ -273,6 +273,10 @@ function formatJobLocation(value){
  const address=value.address&&typeof value.address==='object'?value.address:value;
  return [value.name,value.streetAddress||address.streetAddress,value.postalCode||address.postalCode,value.addressLocality||address.addressLocality,value.addressRegion||address.addressRegion,typeof (value.addressCountry||address.addressCountry)==='string'?(value.addressCountry||address.addressCountry):(value.addressCountry&&value.addressCountry.name)||''].filter(part=>typeof part==='string'&&part.trim()).map(part=>part.trim()).filter((part,index,list)=>list.findIndex(other=>normalizeInsightText(other)===normalizeInsightText(part))===index).join(', ');
 }
+function rawPostingLocation(raw){
+ const values=[raw&&raw.jobLocation,raw&&raw.job_location,raw&&raw.workLocation,raw&&raw.work_location,raw&&raw.workplace,raw&&raw.locationName,raw&&raw.location_name,raw&&raw.city,raw&&raw.location,raw&&raw.address].map(formatJobLocation);
+ return values.find(value=>value&&!/^(?:denmark|danmark|dk|remote|remote jobs?)$/i.test(value.trim()))||'';
+}
 function mapResult(raw,query,terms,usedFallback){
  const url=canonicalSearchUrl(raw&&raw.url);if(!url)return null;
  let parsed;try{parsed=new URL(url)}catch(e){return null}
@@ -281,7 +285,7 @@ function mapResult(raw,query,terms,usedFallback){
  const description=String(raw.description||raw.snippet||raw.content||'').replace(/\s+/g,' ').trim().slice(0,1200);
  const host=parsed.hostname.toLowerCase().replace(/^www\./,'');
  const pick=(...values)=>{for(const value of values){const text=formatJobLocation(value);if(text)return text}return ''};
- const postingLocation=pick(raw.jobLocation,raw.job_location,raw.workLocation,raw.work_location,raw.workplace,raw.locationName,raw.location_name,raw.location,raw.city,raw.address,raw.country);
+ const postingLocation=rawPostingLocation(raw);
  const companyFacts={
   employeeCount:pick(raw.employeeCount,raw.employee_count,raw.employees,raw.companySize,raw.company_size,raw.employeeRange),
   location:postingLocation,
@@ -378,7 +382,7 @@ async function queryIndex(query,terms,profile){
  function mapAndFilter(rows,usedFallback){
   return rows.map(row=>{
    if(!row||!safeHttpUrl(row.url))return null;
-   const rawItem={url:row.url,domain:(()=>{try{return new URL(row.url).hostname}catch(e){return ''}})(),title:row.title||row.name||'',description:row.description||row.snippet||row.content||'',location:formatJobLocation(row.jobLocation||row.job_location||row.workLocation||row.work_location||row.workplace||row.locationName||row.location_name||row.location||row.city),country:formatJobLocation(row.country)||'',address:formatJobLocation(row.address)||''};
+   const rawItem={url:row.url,domain:(()=>{try{return new URL(row.url).hostname}catch(e){return ''}})(),title:row.title||row.name||'',description:row.description||row.snippet||row.content||'',location:rawPostingLocation(row),country:formatJobLocation(row.country)||'',address:formatJobLocation(row.address)||''};
    const geo=getDanishJobScope(rawItem,profile);
    const geoCandidate=query.scope==='danish-jobs'&&!geo.eligible&&!explicitNonDanishLocation(jobEvidenceText(rawItem));
    if(!isDanishJobResult(row,query,profile)&&!geoCandidate)return null;

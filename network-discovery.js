@@ -1640,12 +1640,60 @@ function copyNetworkOutreach(collection,index){
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(message).then(onDone).catch(()=>window.prompt('Kopiér og tilpas teksten manuelt:',message));
  else window.prompt('Kopiér og tilpas teksten manuelt:',message);
 }
-function loadJobOpportunityInAnalyzer(index){
+function fullJobContextText(context){
+ if(!context||typeof context!=='object')return '';
+ const candidates=[context.content,context.text,context.description,context.summary].filter(value=>typeof value==='string');
+ const rawHtml=[context.html,context.rawHtml,context.sourceHtml].find(value=>typeof value==='string'&&value.length>0);
+ if(rawHtml){
+  try{
+   const doc=new DOMParser().parseFromString(rawHtml,'text/html');
+   doc.querySelectorAll('script,style,nav,footer,header,aside,form,noscript').forEach(node=>node.remove());
+   candidates.push(doc.body?doc.body.innerText||doc.body.textContent||'':'');
+  }catch(error){}
+ }
+ return candidates.map(value=>String(value).replace(/\s+/g,' ').trim()).sort((a,b)=>b.length-a.length)[0]?.slice(0,150000)||'';
+}
+function hasFullRelevantJobText(text,item,snippet){
+ const body=normalizeSearchText(text),short=normalizeSearchText(snippet);
+ if(body.length<Math.max(350,short.length+120))return false;
+ const bodyWords=new Set(body.split(/\s+/).filter(word=>word.length>=3));
+ const titleTokens=normalizeSearchText(jobDisplayTitle(item)).split(/\s+/).filter(word=>word.length>=3);
+ const titleHits=titleTokens.filter(word=>bodyWords.has(word)).length;
+ const snippetTokens=[...new Set(short.split(/\s+/).filter(word=>word.length>=4))];
+ const snippetHits=snippetTokens.filter(word=>bodyWords.has(word)).length;
+ return titleHits>=Math.min(2,titleTokens.length||2)||snippetHits>=2;
+}
+async function loadJobOpportunityInAnalyzer(index){
  const item=state.jobOpportunities[index];if(!item)return;
- state.jobtitle=String(item.title||'').slice(0,500);state.company=String(item.company||'').slice(0,500);
- state.jobtext=String(item.description||'').slice(0,50000)||'Indsæt hele jobteksten fra originalopslaget. Webindekset gav ikke et tilstrækkeligt uddrag.';
- persist();if(el('jobtitle'))el('jobtitle').value=state.jobtitle;if(el('company'))el('company').value=state.company;if(el('jobtext'))el('jobtext').value=state.jobtext;if(el('sourceurl'))el('sourceurl').value=item.url||'';
- go('job');notify('jobmsg','Titel og tilgængeligt uddrag er indsat. Åbn originalopslaget, indsæt hele teksten og kontrollér deadline, før du analyserer.','goodbox');
+ const url=safeHttpUrl(item.url),snippet=String(item.description||'').trim();
+ state.jobtitle=String(jobDisplayTitle(item)||item.jobTitle||item.title||'').slice(0,500);
+ state.company=String(jobDisplayCompany(item)||item.companyName||item.company||item.employer||'').slice(0,500);
+ state.jobtext=snippet;
+ state.activeJob=null;state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.selectedProposal=-1;state.proposalNotice='';state.application='';
+ persist();
+ if(el('jobtitle'))el('jobtitle').value=state.jobtitle;
+ if(el('company'))el('company').value=state.company;
+ if(el('jobtext'))el('jobtext').value=state.jobtext;
+ if(el('apptext'))el('apptext').value='';
+ if(el('sourceurl'))el('sourceurl').value=url||'';
+ go('job');renderJobResult();renderProposals();
+ if(!url){notify('jobmsg','Originalopslagets URL mangler. Åbn opslaget manuelt, og indsæt hele teksten for at få en retvisende vurdering.','warnbox');return}
+ notify('jobmsg','Henter hele teksten fra originalopslaget, før CV-matchen beregnes…','');
+ let fullText='';
+ try{
+  const endpoint=COMPANY_CONTEXT_API+'?'+new URLSearchParams({url}).toString();
+  const context=await fetchJsonTimeout(endpoint,18000);
+  const candidate=fullJobContextText(context);
+  if(candidate&&hasFullRelevantJobText(candidate,item,snippet))fullText=candidate;
+ }catch(error){}
+ if(!fullText){
+  state.jobtext=snippet;persist();if(el('jobtext'))el('jobtext').value=snippet;
+  notify('jobmsg','Kilden gav kun et kort uddrag — jeg har ikke beregnet en score på det. Åbn originalopslaget, kopiér hele jobteksten ind i feltet, og vælg derefter “Analyser job”.','warnbox');
+  return;
+ }
+ state.jobtext=fullText;persist();if(el('jobtext'))el('jobtext').value=fullText;
+ notify('jobmsg','Hele opslagsteksten blev hentet. CV-vurderingen beregnes nu ud fra den tekst.','goodbox');
+ await analyzeJob();
 }
 function followUpTypeName(type){return ({contact:'Person',company:'Virksomhed',post:'Opslag',group:'Faggruppe',job:'Job',other:'Andet'})[type]||'Andet'}
 function followUpStatusName(status){return ({to_review:'Skal undersøges',ready:'Klar til næste skridt',contacted:'Kontaktet',replied:'Svar modtaget',applied:'Ansøgt',closed:'Lukket'})[status]||'Skal undersøges'}

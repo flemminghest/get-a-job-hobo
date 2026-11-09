@@ -208,7 +208,7 @@ function jobQueries(profile){
   perPortal('jobindex','Jobindex Danmark','jobindex.dk','jobindex.dk/jobannonce'),
   perPortal('indeed-dk','Indeed Danmark','indeed.com','dk.indeed.com/viewjob'),
   perPortal('jobnet','Jobnet · Danmark','jobnet.dk','jobnet.dk'),
-  perPortal('hk-jobportal','HK Jobportal · Danmark','hk.dk','hk.dk'),
+  perPortal('hk-jobportal','HK Jobportal · Danmark','hk.dk','hk.dk/omhk/job-i-hk-fagforening/job-i-hk'),
   perPortal('stepstone','StepStone Danmark','stepstone.dk','stepstone.dk'),
   perPortal('ofir','Ofir · Danmark','ofir.dk','ofir.dk'),
   perPortal('workindenmark','Workindenmark','workindenmark.dk','workindenmark.dk'),
@@ -353,7 +353,7 @@ function directJobDetailUrl(item){
  if(host==='ofir.dk'||host.endsWith('.ofir.dk'))return /\/(job|jobs|stilling|stillinger)\/[^/]+/.test(path);
  if(host==='workindenmark.dk'||host.endsWith('.workindenmark.dk'))return /\/(job|jobs|vacancy|vacancies|stillinger)\/[^/]+/.test(path);
  if(host==='jobdanmark.dk'||host.endsWith('.jobdanmark.dk'))return /\/(job|jobs|stilling|stillinger)\/[^/]+/.test(path);
- if(host==='hk.dk'||host.endsWith('.hk.dk'))return /\/(job|jobs|jobannonce|stillinger)\/[^/]+/.test(path);
+ if(host==='hk.dk'||host.endsWith('.hk.dk'))return /\/omhk\/job-i-hk-fagforening\/job-i-hk\/\d+\/[^/]+/.test(path)||/\/(job|jobs|jobannonce|stillinger)\/[^/]+/.test(path);
  const segments=path.split('/').filter(Boolean),detailWords=['job','jobs','jobopslag','jobannonce','career','careers','vacancy','vacancies','stilling','stillinger','position','positions','opportunities'];
  const ix=segments.findIndex(segment=>detailWords.includes(segment));
  return ix>=0&&segments.length>=ix+2&&!['search','all','category','categories','locations','teams','department'].includes(segments[ix+1]);

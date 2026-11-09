@@ -1874,7 +1874,12 @@ function updateFixedProposalsBar(){
  const bar=document.getElementById('fixedProposalsBar');
  if(!bar)return;
  const jobPage=document.getElementById('page-job');
- const visible=!!(state.activeJob&&state.activeJob.competencyAssessment&&jobPage&&jobPage.classList.contains('active'));
+ const enteredJob=document.getElementById('jobtext');
+ const analyzedJob=state.activeJob;
+ const currentText=enteredJob?enteredJob.value.trim():'';
+ const analyzedText=analyzedJob?String(analyzedJob.job||'').trim():'';
+ const hasCompletedAnalysis=!!(analyzedJob&&analyzedJob.contentScore!=null&&analyzedJob.competencyAssessment&&Array.isArray(analyzedJob.competencyAssessment.rows));
+ const visible=!!(hasCompletedAnalysis&&currentText&&currentText===analyzedText&&jobPage&&jobPage.classList.contains('active'));
  bar.hidden=!visible;
  document.body.classList.toggle('has-fixed-proposals',visible);
  const button=bar.querySelector('.fixed-proposals-button');
@@ -4081,7 +4086,7 @@ function loadHistory(id){const h=state.history.find(x=>x.id===id);if(!h)return;e
 function exportHistory(){const text=state.history.map(h=>[h.title,h.company,h.created,h.contentScore!=null?'Match '+h.contentScore:'/'].join(' · ')+'\n'+h.job).join('\n\n---\n\n');download('jobhistorik.txt',text||'Ingen historik endnu.')}
 function hydrate(){el('cvtext').value=state.cv||'';el('jobtitle').value=state.jobtitle||'';el('company').value=state.company||'';el('jobContactName').value=state.jobContactName||'';el('jobtext').value=state.jobtext||'';el('apptext').value=state.application||'';el('panelDocumentType').value=state.panelDocumentType||'cv';el('paneltext').value=state.panelText||'';el('paneljob').value=state.panelJob||'';el('panelrevision').value=state.panelRevision||'';updatePanelDocumentType(false);renderJobResult();renderProposals();renderSources();renderHistory();renderNetwork();updateOverview()}
 el('apptext').addEventListener('input',()=>{state.application=el('apptext').value;markApplicationPdfOutdated();persist();updateOverview()});
-['jobtitle','company','jobContactName'].forEach(id=>el(id).addEventListener('input',()=>{const field=el(id);if(!/^MANGLER INFO$/i.test(field.value.trim()))field.classList.remove('missing-info-input');if(id==='jobtitle')state.jobtitle=cleanJobFieldValue(field.value);if(id==='company')state.company=cleanJobFieldValue(field.value);if(id==='jobContactName')state.jobContactName=cleanJobFieldValue(field.value);persist()}));el('jobtext').addEventListener('input',()=>{state.jobtext=el('jobtext').value;persist()});
+['jobtitle','company','jobContactName'].forEach(id=>el(id).addEventListener('input',()=>{const field=el(id);if(!/^MANGLER INFO$/i.test(field.value.trim()))field.classList.remove('missing-info-input');if(id==='jobtitle')state.jobtitle=cleanJobFieldValue(field.value);if(id==='company')state.company=cleanJobFieldValue(field.value);if(id==='jobContactName')state.jobContactName=cleanJobFieldValue(field.value);persist()}));el('jobtext').addEventListener('input',()=>{state.jobtext=el('jobtext').value;persist();updateFixedProposalsBar()});
 hydrate();
 selectApplicationLength('short');
 updateApplicationExampleSetting();
@@ -4090,6 +4095,7 @@ loadPanelAiSettings();
 updateModelIntegrationStatus();
 if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3E7099';
 if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#1F325E';
+document.addEventListener('DOMContentLoaded',updateFixedProposalsBar);
 </script><script src="./network-discovery.js"></script><div id="fixedProposalsBar" class="fixed-proposals-bar" hidden aria-label="Hurtig adgang til ansøgningsforslag">
  <div class="fixed-proposals-inner">
   <div class="fixed-proposals-copy"><strong>Din jobvurdering er klar</strong><span>Fortsæt direkte til en målrettet ansøgning</span></div>

@@ -197,7 +197,7 @@ function jobQueries(profile){
  const q=(domain,term,geo)=>'site:'+domain+' '+term+' '+geo;
  const perPortal=(id,label,targetSite,domain)=>{
   const primary=q(domain,first,loc+' job'),fallback=q(domain,first,'Denmark job');
-  const alternatives=uniqueTerms([second,third].filter(term=>term&&term!==first)).map(term=>q(domain,term,'Denmark job'));
+  const alternatives=uniqueTerms(terms.slice(1).filter(term=>term&&term!==first)).map(term=>q(domain,term,'Denmark job'));
   if(first===second&&first===third)alternatives.push(q(domain,first,'vacancy career'));
   return {id,label,targetSite,scope:'danish-jobs',query:primary,fallbackQuery:fallback,alternativeQueries:alternatives};
  };
@@ -252,8 +252,16 @@ function matchedJobTerms(item,terms){
  const words=new Set(text.split(/\s+/).filter(Boolean));
  return (terms||[]).filter(term=>{
   const tokens=normalizeSearchText(term).split(/\s+/).filter(token=>token.length>1);
-  return tokens.length>0&&tokens.every(token=>words.has(token));
+  // Search terms are often phrases. Requiring every phrase word to appear in a
+  // short index snippet hid real roles; one meaningful word is enough to surface
+  // a candidate, while the card shows the actual word that matched.
+  return tokens.length>0&&(tokens.every(token=>words.has(token))||tokens.some(token=>token.length>=4&&words.has(token)));
  });
+}
+function matchedJobSignals(item,terms){
+ const text=normalizeSearchText([item&&item.jobTitle,item&&item.title,item&&item.description,item&&item.searchTags].filter(Boolean).join(' '));
+ const words=new Set(text.split(/\s+/).filter(Boolean));
+ return uniqueTerms((terms||[]).flatMap(term=>normalizeSearchText(term).split(/\s+/).filter(token=>token.length>1&&words.has(token))));
 }
 function mapResult(raw,query,terms,usedFallback){
  const url=canonicalSearchUrl(raw&&raw.url);if(!url)return null;
@@ -359,7 +367,10 @@ async function queryIndex(query,terms,profile){
  function mapAndFilter(rows,usedFallback){
   return rows.map(row=>{
    if(!row||!safeHttpUrl(row.url))return null;
-   if(!isDanishJobResult(row,query,profile))return null;
+   const rawItem={url:row.url,domain:(()=>{try{return new URL(row.url).hostname}catch(e){return ''}})(),title:row.title||row.name||'',description:row.description||row.snippet||row.content||'',location:row.location||row.workLocation||row.work_location||row.city||'',country:row.country||'',address:row.address||''};
+   const geo=getDanishJobScope(rawItem,profile);
+   const geoCandidate=query.scope==='danish-jobs'&&!geo.eligible&&!explicitNonDanishLocation(jobEvidenceText(rawItem));
+   if(!isDanishJobResult(row,query,profile)&&!geoCandidate)return null;
    const item=mapResult(row,query,terms,usedFallback);if(!item)return null;
    if(query.scope==='danish-jobs'){
     item.matchedTerms=matchedJobTerms(item,terms);
@@ -378,7 +389,12 @@ async function queryIndex(query,terms,profile){
       scope={eligible:true,kind:'query-location',label:label+' · kontrollér arbejdssted'};
      }
     }
-    if(!scope.eligible)return null;
+    if(!scope.eligible){
+     if(explicitNonDanishLocation(jobEvidenceText(item)))return null;
+     scope={eligible:true,kind:'query-location',label:'Geografi skal bekræftes'};
+     item.matchStatus='candidate';
+    }else item.matchStatus='matched';
+    if(scope.kind==='remote-check'||scope.kind==='query-location')item.matchStatus='candidate';
     item.matchScope=scope.kind;item.matchScopeLabel=scope.label;
    }
    return item;
@@ -1221,7 +1237,7 @@ function jobDisplayLocation(item,scope){
 let visibleJobOpportunityCount=10;
 function renderJobOpportunities(){
  const activeProfile=searchProfile(),all=(state.jobOpportunities||[]),distanceLimit=selectedJobDistanceLimit();
- const matchedResults=all.map(item=>({...item,matchedTerms:matchedJobTerms(item,activeProfile.terms)})).filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,activeProfile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
+ const matchedResults=all.map(item=>({...item,matchedTerms:matchedJobTerms(item,activeProfile.terms),matchedSignals:matchedJobSignals(item,activeProfile.terms)})).filter(item=>item.matchedTerms.length>0&&isDanishMappedJob(item,activeProfile)&&isLikelySpecificJobPosting(item,{scope:'danish-jobs',id:item.queryId||'web-jobs'}));
  const unknownDistanceCount=matchedResults.filter(item=>opportunityDistanceKm(item)===null).length;
  const measuredResults=matchedResults.filter(item=>opportunityDistanceKm(item)!==null);
  const outsideDistanceCount=measuredResults.filter(item=>opportunityDistanceKm(item)>distanceLimit).length;
@@ -1235,24 +1251,24 @@ function renderJobOpportunities(){
    ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Afstande beregnes</strong><p>'+unknownDistanceCount+' relevante opslag afventer en beregnet afstand. De vises, så snart arbejdsstedet kan placeres. '+(outsideDistanceCount?outsideDistanceCount+' opslag ligger allerede uden for '+distanceLimit+' km.':'')+'</p></div>'
    :'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen opslag inden for '+distanceLimit+' km</strong><p>'+outsideDistanceCount+' relevante opslag ligger længere væk. Øg afstanden med slideren for at udvide området.</p></div>';
  if(el('jobOpportunitiesResults'))el('jobOpportunitiesResults').innerHTML=visibleResults.length?visibleResults.map((item,index)=>{
-  const stateIndex=all.findIndex(row=>canonicalSearchUrl(row.url)===canonicalSearchUrl(item.url)),url=safeHttpUrl(item.url),matched=item.matchedTerms||[];
+  const stateIndex=all.findIndex(row=>canonicalSearchUrl(row.url)===canonicalSearchUrl(item.url)),url=safeHttpUrl(item.url),matched=item.matchedSignals||[];
   const tracked=url&&state.followUps.some(f=>f.url&&canonicalSearchUrl(f.url)===canonicalSearchUrl(url));
-  const source=item.queryLabel||item.sourceLabel||item.domain||'Jobportal',scope=getDanishJobScope(item,activeProfile);
+  const source=item.queryLabel||item.sourceLabel||item.domain||'Jobportal',rawScope=getDanishJobScope(item,activeProfile),scope=item.matchStatus==='candidate'?{...rawScope,kind:'query-location',label:rawScope.kind==='remote-check'?'Remote · tjek adgang fra DK':'Geografi skal bekræftes'}:rawScope;
   const title=jobDisplayTitle(item),company=jobDisplayCompany(item),location=jobDisplayLocation(item,scope);
   const date=String(item.postedAt||item.datePosted||'').trim(),type=String(item.employmentType||'').trim(),workMode=String(item.workMode||'').trim(),salary=String(item.salary||'').trim();
   let html='<article class="discovery-card job-result-card">';
-  html+='<div class="job-result-topline"><span class="discovery-source">'+escapeHtml(item.domain||source)+'</span><span class="chip job-location-match job-location-match-'+escapeHtml(scope.kind)+'">'+escapeHtml(scope.label)+'</span></div>';
+  html+='<div class="job-result-topline"><span class="discovery-source">'+escapeHtml(item.domain||source)+'</span><span class="chip job-location-match job-location-match-'+escapeHtml(scope.kind)+'">'+escapeHtml(scope.label)+'</span>'+(item.matchStatus==='candidate'?'<span class="chip">Muligt opslag · kontrollér geografi</span>':'')+'</div>';
   html+='<h3 class="job-result-title">'+escapeHtml(title)+'</h3>';
   if(item.distancePending)html+='<p class="notice warnbox">Afstand afventer beregning — opslaget er ikke udelukket på grund af afstand.</p>';
   html+='<div class="job-result-employer"><span class="job-result-company-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/></svg></span><div><strong>'+escapeHtml(company)+'</strong><span>'+escapeHtml(location)+'</span></div></div>';
   const meta=[];if(date)meta.push('<span><b>Opslået</b> '+escapeHtml(date)+'</span>');if(type)meta.push('<span><b>Ansættelse</b> '+escapeHtml(type)+'</span>');if(workMode)meta.push('<span><b>Arbejdsform</b> '+escapeHtml(workMode)+'</span>');if(salary)meta.push('<span><b>Løn</b> '+escapeHtml(salary)+'</span>');
   if(item.verifiedSnapshot)meta.push('<span><b>Kilde kontrolleret</b> '+escapeHtml(item.sourceCheckedAt||'26.10.2026')+'</span>');
   if(meta.length)html+='<div class="job-result-meta">'+meta.join('')+'</div>';
-  html+='<section class="job-result-match"><h4>Hvorfor matcher jobbet?</h4>';
+  html+='<section class="job-result-match"><h4>Søgeord fundet i titel eller uddrag</h4>';
   html+=item.description?'<p>'+escapeHtml(item.description)+'</p>':'<p>Åbn originalopslaget for at kontrollere ansvarsområder, kvalifikationer og ansøgningsfrist.</p>';
   html+='<div class="discovery-matched">'+(matched.length?matched.map(term=>'<span class="chip job-keyword-chip">'+escapeHtml(term)+'</span>').join(''):'<span class="chip">Søgt med dine valgte søgeord</span>')+'</div></section>';
   html+=companyInsightBox(item,stateIndex);
-  html+='<div class="job-result-caution">Kontrollér, at opslaget stadig er aktivt, og at arbejdsstedet eller remote-vilkårene passer.</div><div class="discovery-actions">';
+  html+='<div class="job-result-caution">'+(item.matchStatus==='candidate'?'Dette er et konkret opslag fra en job-URL, men indekset kunne ikke bekræfte arbejdslandet. Kontrollér geografi og originalopslaget.':'Kontrollér, at opslaget stadig er aktivt, og at arbejdsstedet eller remote-vilkårene passer.')+'</div><div class="discovery-actions">';
   if(url)html+='<a href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">Åbn originalopslag ↗</a>';
   html+='<button class="secondary" data-discovery-action="follow" data-collection="jobs" data-index="'+stateIndex+'">'+(tracked?'Opfølgning oprettet':'Følg op')+'</button><button data-discovery-action="analyze" data-index="'+stateIndex+'">Vurdér mod mit CV</button></div></article>';
   return html;
@@ -1527,8 +1543,9 @@ async function searchJobOpportunities(ignoreCvWarning=false){
    const rawTotal=settled.reduce((total,result)=>total+(result.status==='fulfilled'&&result.value.diagnostics?Number(result.value.diagnostics.raw||0):0),0);
    const portalSummary=settled.map((result,index)=>({label:queries[index].label,raw:result.status==='fulfilled'&&result.value.diagnostics?Number(result.value.diagnostics.raw||0):0,shown:result.status==='fulfilled'?result.value.results.length:0})).filter(x=>x.raw||x.shown).slice(0,5).map(x=>x.label+': '+x.raw+' rå / '+x.shown+' vist').join(' · ');
    const snapshotShown=state.jobOpportunities.filter(item=>item.verifiedSnapshot).length;
+   const candidateCount=state.jobOpportunities.filter(item=>item.matchStatus==='candidate').length;
    let message=state.jobOpportunities.length
-    ?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete stillingsopslag vist fra '+succeeded+' live-kildeområder.'+(snapshotShown?' Listen er suppleret med '+snapshotShown+' konkrete annoncer, kildekontrolleret 26.10.2026. Kontrollér altid originalopslaget. ':' ')+remoteCheck+' opslag har geografiske forbehold.'
+    ?'Søgningen er færdig: '+state.jobOpportunities.length+' konkrete job-URL’er vist fra '+succeeded+' live-kildeområder.'+(candidateCount?' '+candidateCount+' har ukendt geografi og er markeret til kontrol.':'')+(snapshotShown?' Listen er suppleret med '+snapshotShown+' konkrete annoncer, kildekontrolleret 26.10.2026. Kontrollér altid originalopslaget. ':' ')+remoteCheck+' opslag har geografiske forbehold.'
     :'Søgeindekset returnerede '+rawTotal+' rå resultater, men ingen kunne bekræftes som konkrete stillingsopslag, der matcher søgeordene. '+(portalSummary?'Kilder: '+portalSummary+'. ':'')+'Udvid søgeordene eller geografien.';
    el('jobSearchStatus').className='notice '+(state.jobOpportunities.length?'goodbox':'warnbox');
    el('jobSearchStatus').textContent=message+(errors.length?' Kildeproblemer: '+errors.join(' | '):'');

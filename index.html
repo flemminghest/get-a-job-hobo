@@ -2506,7 +2506,7 @@ const COMPETENCY_LIBRARY=[
  {id:'research-testing',label:'Brugerindsigt, research og test',aliases:['user research','brugerundersøgelse','customer research','customer insights','qualitative research','quantitative research','survey design','surveys','usability testing','user interviews','market research']},
  {id:'email-lifecycle',label:'E-mailmarketing og customer lifecycle',aliases:['email marketing','e-mail marketing','email campaigns','e-mail kampagner','newsletter','email segmentation','retention marketing','customer retention','churn prevention','permission marketing','email journeys']},
  {id:'budget-roi',label:'Budget, ROI og økonomisk styring',aliases:['budgeting','budgetansvar','marketing budget','budget management','budget','budget ownership','return on investment','roi','profitability','profit margin','financial planning','cost control','p l responsibility']},
- {id:'languages',label:'Sprogkrav',aliases:['danish language','dansk i skrift og tale','fluent in danish','native danish','english fluency','fluent in english','dansk og engelsk','written and spoken danish','written and spoken english','danish','dansk','english','engelsk']},
+ {id:'languages',label:'Sprogkrav',aliases:['danish language','dansk i skrift og tale','fluent in danish','native danish','english fluency','fluent in english','dansk og engelsk','written and spoken danish','written and spoken english','danish','dansk','english','engelsk'],baseWeight:2.2},
  {id:'employer-branding',label:'Employer branding og rekrutteringskommunikation',aliases:['employer branding','arbejdsgiverbranding','employee value proposition','evp','recruitment marketing','employer brand','talent attraction']},
  {id:'b2b',label:'B2B-marketing og account-based arbejde',aliases:['b2b marketing','business to business','account based marketing','abm','demand generation','lead nurturing','enterprise marketing','b2b sales']},
  {id:'experimentation',label:'Eksperimenter og løbende optimering',aliases:['experimentation','experimentation framework','test and learn','multivariate testing','hypothesis testing','conversion experiments','incrementality testing']}
@@ -2560,6 +2560,16 @@ const COMPETENCY_DOMAIN_PROFILES=[
  {id:'church-sexton',label:'kirketjener og kirkelig service',detectTitle:/kirketjener|kirke.?tjener|church caretaker|sexton|church attendant/i,detectJob:/kirketjener|kirke.?tjener|klargøring af kirken|gudstjenester|kirkelige handlinger|menighedsarrangementer|church caretaker|church services/i,coreSkillIds:['sexton-church-preparation','sexton-services-ceremonies','sexton-cleaning','sexton-hospitality-events','sexton-practical-technical','sexton-careful-handling','sexton-danish','sexton-training'],scoreCap:25}
 ];
 
+const DOMAIN_COMPETENCY_PROFILES={
+ 'tyre-fitting':['vehicle-workshop'],'wheel-balancing':['vehicle-workshop'],'tyre-repair':['vehicle-workshop'],'mechanical-workshop':['vehicle-workshop'],'vehicle-inspection':['vehicle-workshop'],'workshop-safety':['vehicle-workshop'],'wheel-handling':['vehicle-workshop'],'physical-work-pace':['vehicle-workshop'],
+ 'inventory-warehouse':['warehouse-logistics'],'forklift-operation':['warehouse-logistics'],'logistics-delivery':['warehouse-logistics'],
+ 'software-development':['software-development'],'testing-debugging':['software-development'],
+ 'patient-care':['healthcare-care'],'medication-safety':['healthcare-care'],'healthcare-documentation':['healthcare-care'],
+ 'teaching':['teaching-education'],'classroom-management':['teaching-education'],
+ 'financial-analysis':['finance-accounting'],'accounting-bookkeeping':['finance-accounting'],
+ 'craft-construction':['craft-construction'],'machinery-operation':['craft-construction'],'quality-control':['vehicle-workshop','craft-construction'],
+ 'sexton-church-preparation':['church-sexton'],'sexton-services-ceremonies':['church-sexton'],'sexton-cleaning':['church-sexton'],'sexton-hospitality-events':['church-sexton'],'sexton-practical-technical':['church-sexton'],'sexton-careful-handling':['church-sexton'],'sexton-service-minded':['church-sexton'],'sexton-teamwork-structure':['church-sexton'],'sexton-danish':['church-sexton'],'sexton-training':['church-sexton']
+};
 function hasCompetencyTerm(text,term){const hay=' '+normalizeSearchText(text)+' ',needle=' '+normalizeSearchText(term)+' ';return !!needle.trim()&&hay.includes(needle)}
 function extractSkillSnippet(text,aliases){
  const segments=String(text||'').split(/[\r\n•]+|[.!?]\s+/).map(x=>x.trim()).filter(Boolean);
@@ -2575,7 +2585,7 @@ function competencyPriority(text,aliases){
  if(index<0)return {label:'Nævnt',weight:1};
  const w=normalized.slice(Math.max(0,index-130),Math.min(normalized.length,index+190));
  if(/nice to have|preferred|preferably|foretrækkes|foretrukken|foretrukket|would be an advantage|is a plus|desirable|an advantage|en fordel|gerne|ønskeligt|ønskes|kan være en fordel/.test(w))return {label:'Ønsket',weight:.65};
- if(/must have|required|requirement|require|requires|we require|essential|mandatory|shall have|need to have|skal kunne|skal have|kræves|et krav|krav om|minimum|minimumskrav|forventes at|solid experience|proven experience|documented experience/.test(w))return {label:'Krav',weight:1.5};
+ if(/must have|required|requirement|require|requires|we require|essential|mandatory|shall have|need to have|skal kunne|skal have|kræves|et krav|krav om|minimum|minimumskrav|forventes at|solid experience|proven experience|documented experience|skriver godt|skrive godt|fejlfrit|error.free|excellent written|strong written|good written/.test(w))return {label:'Krav',weight:1.5};
  return {label:'Fremhævet i opslag',weight:1};
 }
 function buildCompetencyAssessment(jobText,cvText,title,research){
@@ -2584,13 +2594,19 @@ function buildCompetencyAssessment(jobText,cvText,title,research){
  const profile=COMPETENCY_DOMAIN_PROFILES.find(p=>p.detectJob.test(job))||COMPETENCY_DOMAIN_PROFILES.find(p=>p.detectTitle.test(titleText))||null;
  const rows=[];
  for(const skill of COMPETENCY_LIBRARY){
+  const relevantProfiles=DOMAIN_COMPETENCY_PROFILES[skill.id];
+  if(relevantProfiles&&(!profile||!relevantProfiles.includes(profile.id)))continue;
   const jobAliases=skill.aliases.filter(alias=>hasCompetencyTerm(job,alias));
   if(!jobAliases.length)continue;
   const cvAliases=skill.aliases.filter(alias=>hasCompetencyTerm(cv,alias));
   const jobEvidence=extractSkillSnippet(job,jobAliases);
   const cvEvidence=extractSkillSnippet(cv,cvAliases);
   const priority=competencyPriority(jobEvidence||jobAliases.join(', '),jobAliases);
-  const specificEvidence=cvEvidence&&/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|experience with|performed|operated|handled|repaired|installed|prepared|cleaned|served|assisted|coordinated|maintained|ansvarlig|arbejdede med|erfaring med|erfaring inden for|klargjorde|forberedte|rengjorde|serverede|assisterede|koordinerede|vedligeholdt|udførte|betjente|reparerede|monterede|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\\b\\d+\\s?%|\\bled to\\s+\\d{3,}\\b|\\b\\d{1,3}(?:,\\d{3})+\\b)/i.test(cvEvidence);
+  const languageEvidence=skill.id==='languages'&&cvEvidence&&(
+   /\\b(native|native speaker|fluent|fluency|proficient|advanced|modersmål|flydende|professionelt niveau|fejlfrit)\\b/i.test(cvEvidence)||
+   (/\\b(dansk|danish|engelsk|english)\\b/i.test(cvEvidence)&&/\\b(skrift|written|writing)\\b/i.test(cvEvidence)&&/\\b(tale|spoken|speaking)\\b/i.test(cvEvidence))
+  );
+  const specificEvidence=!!cvEvidence&&(skill.id==='languages'?!!languageEvidence:/(implemented|built|developed|managed|led|launched|created|designed|analysed|analyzed|analysis|analyserer|monitoring|monitored|monitorerede|overvågede|optimized|optimised|improved|increased|reduced|delivered|executed|produced|integrated|automated|generated|responsible for|worked with|experience in|experience with|performed|operated|handled|repaired|installed|prepared|cleaned|served|assisted|coordinated|maintained|ansvarlig|arbejdede med|erfaring med|erfaring inden for|klargjorde|forberedte|rengjorde|serverede|assisterede|koordinerede|vedligeholdt|udførte|betjente|reparerede|monterede|udviklede|ledte|byggede|lancerede|skabte|designede|analyserede|optimerede|forbedrede|øgede|reducerede|gennemførte|producerede|integrerede|automatiserede|drev|løftede|resulted in|increased by|reduced by|\\b\\d+\\s?%|\\bled to\\s+\\d{3,}\\b|\\b\\d{1,3}(?:,\\d{3})+\\b)/i.test(cvEvidence));
   const status=cvAliases.length?(specificEvidence?'evidenced':'mentioned'):'missing';
   const isCore=!!(profile&&profile.coreSkillIds.includes(skill.id))||!!skill.critical;
   const weight=(Number(skill.baseWeight)||1)*priority.weight;
@@ -2599,7 +2615,7 @@ function buildCompetencyAssessment(jobText,cvText,title,research){
    const kind=String(source.kind||'').toLowerCase(),text=[source.title,source.description,source.kind].join(' ');
    return source.categoryId==='esco-skills'||String(source.domain||'').toLowerCase().includes('esco.ec.europa.eu')||/jobopslag|jobindex|jobnet|workindenmark|linkedin.*job|fagmedie|branche/i.test(kind+' '+source.categoryId);
   }).filter(source=>skill.aliases.some(alias=>hasCompetencyTerm([source.title,source.description,source.kind].join(' '),alias))).sort((a,b)=>sourceTrustAssessment(b,research).score-sourceTrustAssessment(a,research).score).slice(0,2).map(source=>({title:source.title,url:source.url,domain:source.domain,categoryId:source.categoryId,kind:source.kind}));
-  rows.push({id:skill.id,label:skill.label,aliases:jobAliases,priority:isCore&&profile&&profile.coreSkillIds.includes(skill.id)?'Kernekompetence':priority.label,weight,baseWeight:Number(skill.baseWeight)||1,critical:isCore,status,statusLabel:status==='evidenced'?'Relevant erfaring eller konkret handling fundet':status==='mentioned'?'Nævnt i CV — omfang/resultat bør afklares':'Ikke fundet i CV-teksten',factor:status==='evidenced'?1:status==='mentioned'?.45:0,jobEvidence:jobEvidence||'Kompetencekravet blev identificeret i opslaget, men et præcist kravcitat kunne ikke udtrækkes.',cvEvidence:cvEvidence||'',sourceRefs});
+  rows.push({id:skill.id,label:skill.label,aliases:jobAliases,priority:isCore&&profile&&profile.coreSkillIds.includes(skill.id)?'Kernekompetence':priority.label,weight,baseWeight:Number(skill.baseWeight)||1,critical:isCore,status,statusLabel:status==='evidenced'?(skill.id==='languages'?'Sprogniveau angivet i CV’et':'Relevant erfaring eller konkret handling fundet'):status==='mentioned'?(skill.id==='languages'?'Sprog nævnt i CV — niveau og skriftlig sikkerhed bør præciseres':'Nævnt i CV — omfang/resultat bør afklares'):'Ikke fundet i CV-teksten',factor:status==='evidenced'?1:status==='mentioned'?.45:0,jobEvidence:jobEvidence||'Kompetencekravet blev identificeret i opslaget, men et præcist kravcitat kunne ikke udtrækkes.',cvEvidence:cvEvidence||'',sourceRefs});
  }
  rows.sort((a,b)=>b.weight-a.weight);
  const totalWeight=rows.reduce((sum,row)=>sum+row.weight,0);

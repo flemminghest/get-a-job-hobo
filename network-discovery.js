@@ -82,7 +82,7 @@ async function saveDistanceOrigin(){
  const value=String(input&&input.value||'').trim().slice(0,300);
  let addressResolved=!value;
  state.distanceOrigin=value;
- if(value){try{localStorage.removeItem('gajh_company_geocode_'+normalizeInsightText(value))}catch(e){}}
+ if(value){try{localStorage.removeItem('gajh_company_geocode_'+normalizeInsightText(value));localStorage.removeItem('gajh_company_geocode_v2_'+normalizeInsightText(value))}catch(e){}}
  persist();
  if(button){button.disabled=true;button.textContent='Kontrollerer placering…'}
  if(status){status.className='distance-origin-status';status.textContent=value?'Kontrollerer adressen og opdaterer afstandene…':'Placeringen er ryddet. Der bruges Frederiksberg bymidte som standard.'}
@@ -216,6 +216,7 @@ function jobQueries(profile){
   perPortal('thehub','The Hub · danske startupjobs','thehub.io','thehub.io/jobs'),
   perPortal('it-jobbank','IT-Jobbank','it-jobbank.dk','it-jobbank.dk'),
   perPortal('jobsearch','Jobsearch.dk','jobsearch.dk','jobsearch.dk'),
+  perPortal('3f-jobs','3F · karriere','3f.dk','3f.dk/om-3f/job-i-3f/jobopslag'),
   perPortal('graduateland','Graduateland · graduatejobs','graduateland.com','graduateland.com/jobs'),
   {id:'career-sites',label:'Danske virksomheders karrieresider',targetSite:'',scope:'danish-jobs',query:first+' job '+loc+' Denmark',fallbackQuery:first+' job Denmark',alternativeQueries:uniqueTerms([second,third].filter(t=>t&&t!==first)).map(t=>t+' job Denmark')}
  ];
@@ -265,6 +266,13 @@ function matchedJobSignals(item,terms){
  const words=new Set(text.split(/\s+/).filter(Boolean));
  return uniqueTerms((terms||[]).flatMap(term=>normalizeSearchText(term).split(/\s+/).filter(token=>token.length>1&&words.has(token))));
 }
+function formatJobLocation(value){
+ if(typeof value==='string')return value.trim();
+ if(Array.isArray(value))return value.map(formatJobLocation).filter(Boolean).join('; ');
+ if(!value||typeof value!=='object')return '';
+ const address=value.address&&typeof value.address==='object'?value.address:value;
+ return [value.name,value.streetAddress||address.streetAddress,value.postalCode||address.postalCode,value.addressLocality||address.addressLocality,value.addressRegion||address.addressRegion,typeof (value.addressCountry||address.addressCountry)==='string'?(value.addressCountry||address.addressCountry):(value.addressCountry&&value.addressCountry.name)||''].filter(part=>typeof part==='string'&&part.trim()).map(part=>part.trim()).filter((part,index,list)=>list.findIndex(other=>normalizeInsightText(other)===normalizeInsightText(part))===index).join(', ');
+}
 function mapResult(raw,query,terms,usedFallback){
  const url=canonicalSearchUrl(raw&&raw.url);if(!url)return null;
  let parsed;try{parsed=new URL(url)}catch(e){return null}
@@ -272,10 +280,11 @@ function mapResult(raw,query,terms,usedFallback){
  const title=String(raw.title||raw.name||parsed.hostname).trim().slice(0,500);
  const description=String(raw.description||raw.snippet||raw.content||'').replace(/\s+/g,' ').trim().slice(0,1200);
  const host=parsed.hostname.toLowerCase().replace(/^www\./,'');
- const pick=(...values)=>{for(const value of values){if(value!==undefined&&value!==null&&String(value).trim()!=='')return String(value).trim()}return ''};
+ const pick=(...values)=>{for(const value of values){const text=formatJobLocation(value);if(text)return text}return ''};
+ const postingLocation=pick(raw.jobLocation,raw.job_location,raw.workLocation,raw.work_location,raw.workplace,raw.locationName,raw.location_name,raw.location,raw.city,raw.address,raw.country);
  const companyFacts={
   employeeCount:pick(raw.employeeCount,raw.employee_count,raw.employees,raw.companySize,raw.company_size,raw.employeeRange),
-  location:pick(raw.workLocation,raw.work_location,raw.location,raw.city,raw.address),
+  location:postingLocation,
   distanceKm:pick(raw.distanceKm,raw.distance_km),
   employeeRating:pick(raw.employeeSatisfaction,raw.employee_satisfaction,raw.employeeRating,raw.employee_rating,raw.ratingFromEmployees),
   ratingCount:pick(raw.employeeReviewCount,raw.employee_review_count,raw.workplaceReviewCount,raw.workplace_review_count),
@@ -292,8 +301,8 @@ function mapResult(raw,query,terms,usedFallback){
   url,
   domain:registrableDomain(parsed.hostname),
   description,
-  location:pick(raw.workLocation,raw.work_location,raw.location,raw.city,raw.country,raw.address),
-  jobLocation:pick(raw.workLocation,raw.work_location,raw.location,raw.city,raw.country,raw.address),
+  location:postingLocation,
+  jobLocation:postingLocation,
   country:pick(raw.country),
   postedAt:pick(raw.datePosted,raw.date_posted,raw.postedAt,raw.posted_at,raw.publishedAt,raw.published_at),
   employmentType:pick(raw.employmentType,raw.employment_type,raw.jobType,raw.job_type,raw.contractType,raw.contract_type),
@@ -341,7 +350,7 @@ function directJobDetailUrl(item){
  if(host==='workindenmark.dk'||host.endsWith('.workindenmark.dk'))return /\/(job|jobs|vacancy|vacancies|stillinger)\/[^/]+/.test(path);
  if(host==='jobdanmark.dk'||host.endsWith('.jobdanmark.dk'))return /\/(job|jobs|stilling|stillinger)\/[^/]+/.test(path);
  if(host==='hk.dk'||host.endsWith('.hk.dk'))return /\/(job|jobs|jobannonce|stillinger)\/[^/]+/.test(path);
- const segments=path.split('/').filter(Boolean),detailWords=['job','jobs','career','careers','vacancy','vacancies','stilling','stillinger','position','positions','opportunities'];
+ const segments=path.split('/').filter(Boolean),detailWords=['job','jobs','jobopslag','jobannonce','career','careers','vacancy','vacancies','stilling','stillinger','position','positions','opportunities'];
  const ix=segments.findIndex(segment=>detailWords.includes(segment));
  return ix>=0&&segments.length>=ix+2&&!['search','all','category','categories','locations','teams','department'].includes(segments[ix+1]);
 }
@@ -369,7 +378,7 @@ async function queryIndex(query,terms,profile){
  function mapAndFilter(rows,usedFallback){
   return rows.map(row=>{
    if(!row||!safeHttpUrl(row.url))return null;
-   const rawItem={url:row.url,domain:(()=>{try{return new URL(row.url).hostname}catch(e){return ''}})(),title:row.title||row.name||'',description:row.description||row.snippet||row.content||'',location:row.location||row.workLocation||row.work_location||row.city||'',country:row.country||'',address:row.address||''};
+   const rawItem={url:row.url,domain:(()=>{try{return new URL(row.url).hostname}catch(e){return ''}})(),title:row.title||row.name||'',description:row.description||row.snippet||row.content||'',location:formatJobLocation(row.jobLocation||row.job_location||row.workLocation||row.work_location||row.workplace||row.locationName||row.location_name||row.location||row.city),country:formatJobLocation(row.country)||'',address:formatJobLocation(row.address)||''};
    const geo=getDanishJobScope(rawItem,profile);
    const geoCandidate=query.scope==='danish-jobs'&&!geo.eligible&&!explicitNonDanishLocation(jobEvidenceText(rawItem));
    if(!isDanishJobResult(row,query,profile)&&!geoCandidate)return null;
@@ -664,9 +673,12 @@ function requestCompanyGeocode(url){
 }
 async function geocodeDanishCompanyLocation(location){
  const query=String(location||'').trim();if(!query)return null;
- const key='gajh_company_geocode_'+normalizeInsightText(query);
+ const key='gajh_company_geocode_v2_'+normalizeInsightText(query);
  try{const cached=localStorage.getItem(key);if(cached){const parsed=JSON.parse(cached);if(Number.isFinite(parsed.lat)&&Number.isFinite(parsed.lon))return parsed;if(parsed.notFound===true&&Number(parsed.expiresAt)>Date.now())return null}}catch(e){}
  const candidates=[query];
+ if(!/\b(?:denmark|danmark)\b/i.test(query))candidates.push(query+', Denmark');
+ const postalMatch=query.match(/^(\d{4})\s+(.+)$/);
+ if(postalMatch)candidates.push(postalMatch[1]+', '+postalMatch[2]+', Denmark');
  const parts=query.split(/[,;|]/).map(value=>value.trim()).filter(Boolean);
  if(parts.length>1){
   const postalCity=parts.findIndex(value=>/\b\d{4}\s+[A-ZÆØÅa-zæøå]/.test(value));

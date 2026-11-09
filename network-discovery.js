@@ -700,7 +700,7 @@ async function resolveDistanceOrigin(){
  return {...FREDERIKSBERG_ORIGIN,displayName:FREDERIKSBERG_ORIGIN.label,personalized:false,originLabel:FREDERIKSBERG_ORIGIN.label,geocodeFailed:!!raw};
 }
 async function resolveJobPostingDestination(item,facts){
- const generic=value=>/^(?:denmark|danmark|dk|remote|remote jobs?|remote\\s*[·,-]\\s*(?:denmark|danmark)|danmark\\s*[·,-]\\s*arbejdssted skal bekræftes|denmark\\s*[·,-]\\s*workplace to be confirmed)$/i.test(String(value||'').trim())||/(?:arbejdssted skal bekræftes|kontrollér arbejdssted|confirm workplace|location to be confirmed)/i.test(String(value||''));
+ const generic=value=>/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark)|danmark\s*[·,-]\s*arbejdssted skal bekræftes|denmark\s*[·,-]\s*workplace to be confirmed)$/i.test(String(value||'').trim())||/(?:arbejdssted skal bekræftes|kontrollér arbejdssted|confirm workplace|location to be confirmed)/i.test(String(value||''));
  const direct=String(item.jobLocation||item.location||item.city||'').trim();
  if(direct&&!generic(direct))return direct;
  const saved=String(facts&&facts.location||'').trim();
@@ -713,11 +713,8 @@ async function resolveJobPostingDestination(item,facts){
   const structured=[context&&context.jobLocation,context&&context.workLocation,context&&context.work_location,context&&context.job_location,context&&context.workplace,context&&context.address];
   for(const value of structured){const text=typeof value==='string'?value:(value&&typeof value==='object'?[value.addressLocality,value.addressRegion,value.addressCountry,value.streetAddress].filter(Boolean).join(', '):'');if(text&&!generic(text))return String(text).trim().slice(0,180)}
   const pageText=fullJobContextText(context);
-  const patterns=[/(?:job\\s+)?location|work\\s+location|workplace|office\\s+location|based\\s+in|arbejdssted|arbejdsplads|lokation|arbejdsadresse/i];
-  if(patterns.length&&pageText){
-   const label=/(?:job\\s+)?location|work\\s+location|workplace|office\\s+location|based\\s+in|arbejdssted|arbejdsplads|lokation|arbejdsadresse\\s*[:–—-]\\s*([^\\n|.;]{3,100})/ig;
-   let match;while((match=label.exec(pageText))){const value=String(match[1]||'').trim().replace(/^(?:is|:|-|–)\\s*/i,'').replace(/\\s{2,}/g,' ');if(value&&!generic(value)&&!/^remote(?:ly)?$/i.test(value))return value.slice(0,180)}
-  }
+  const label=/(?:job\s+)?location|work\s+location|workplace|office\s+location|based\s+in|arbejdssted|arbejdsplads|lokation|arbejdsadresse/ig;
+  let match;while((match=label.exec(pageText))){const tail=pageText.slice(label.lastIndex,label.lastIndex+150);const value=(tail.match(/^\s*(?:is\s+)?[:–—-]?\s*([^\n|.;]{3,100})/i)||[])[1];if(value){const cleaned=value.trim().replace(/\s{2,}/g,' ');if(cleaned&&!generic(cleaned)&&!/^remote(?:ly)?$/i.test(cleaned))return cleaned.slice(0,180)}}
  }catch(error){}
  return '';
 }

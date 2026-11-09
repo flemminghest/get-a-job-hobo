@@ -1308,13 +1308,11 @@ function renderJobOpportunities(){
  const outsideDistanceCount=measuredResults.filter(item=>opportunityDistanceKm(item)>distanceLimit).length;
  const inRange=measuredResults.filter(item=>opportunityDistanceKm(item)<=distanceLimit).sort((a,b)=>opportunityDistanceKm(a)-opportunityDistanceKm(b)||b.matchedTerms.length-a.matchedTerms.length);
  const pendingDistance=matchedResults.filter(item=>opportunityDistanceKm(item)===null);
- const results=inRange;
+ const results=[...inRange,...pendingDistance.map(item=>({...item,distancePending:true}))];
  const visibleResults=results.slice(0,visibleJobOpportunityCount);
  const emptyResultsHtml=!matchedResults.length
   ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen konkrete stillingsopslag blev fundet</strong><p>Prøv flere søgeord eller en bredere geografi.</p></div>'
-  :unknownDistanceCount
-   ?'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen opslag med kendt afstand inden for '+distanceLimit+' km</strong><p>'+unknownDistanceCount+' relevante opslag er skjult, fordi jobbets destination endnu ikke kan placeres sikkert. '+(outsideDistanceCount?outsideDistanceCount+' opslag med kendt afstand ligger uden for radius.':'')+' Kun opslag med beregnet afstand vises her.</p></div>'
-   :'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen opslag inden for '+distanceLimit+' km</strong><p>'+outsideDistanceCount+' relevante opslag ligger længere væk. Øg afstanden med slideren for at udvide området.</p></div>';
+  :'<div class="empty job-results-empty"><span class="job-results-empty-icon">⌕</span><strong>Ingen opslag med kendt afstand inden for '+distanceLimit+' km</strong><p>'+outsideDistanceCount+' opslag med kendt afstand ligger uden for radius.'+(unknownDistanceCount?' '+unknownDistanceCount+' konkrete opslag afventer stadig afstandsberegning.':'')+' Øg afstanden med slideren for at udvide området.</p></div>';
  if(el('jobOpportunitiesResults'))el('jobOpportunitiesResults').innerHTML=visibleResults.length?visibleResults.map((item,index)=>{
   const stateIndex=all.findIndex(row=>canonicalSearchUrl(row.url)===canonicalSearchUrl(item.url)),url=safeHttpUrl(item.url),matched=item.matchedSignals||[];
   const tracked=url&&state.followUps.some(f=>f.url&&canonicalSearchUrl(f.url)===canonicalSearchUrl(url));
@@ -1346,9 +1344,9 @@ function renderJobOpportunities(){
  if(el('jobKeywordCount'))el('jobKeywordCount').textContent=searchProfile().terms.length;
  if(el('jobTrackedCount'))el('jobTrackedCount').textContent=(state.followUps||[]).filter(item=>item.type==='job').length;
  if(el('jobLastSearchLabel'))el('jobLastSearchLabel').textContent=state.jobLastSearch?new Date(state.jobLastSearch).toLocaleDateString('da-DK'):'Ikke søgt';
- if(el('jobOpportunitiesMeta'))el('jobOpportunitiesMeta').textContent=results.length+' med kendt afstand';
+ if(el('jobOpportunitiesMeta'))el('jobOpportunitiesMeta').textContent=inRange.length+' med kendt afstand inden for '+distanceLimit+' km'+(unknownDistanceCount?' · '+unknownDistanceCount+' afventer afstand':'');
  const distanceFilterStatus=el('jobDistanceFilterStatus');
- if(distanceFilterStatus){distanceFilterStatus.textContent='Viser kun opslag med kendt afstand inden for '+distanceLimit+' km, sorteret nærmest din adresse først.'+(unknownDistanceCount?' '+unknownDistanceCount+' opslag uden beregnelig afstand er skjult.':'')+(outsideDistanceCount?' '+outsideDistanceCount+' opslag med kendt afstand ligger uden for radius.':'');}
+ if(distanceFilterStatus){distanceFilterStatus.textContent='Viser '+inRange.length+' opslag med kendt afstand inden for '+distanceLimit+' km, sorteret nærmest din adresse først.'+(unknownDistanceCount?' '+unknownDistanceCount+' konkrete opslag vises derefter, mens afstand beregnes. De regnes ikke som match på sliderens radius.':'')+(outsideDistanceCount?' '+outsideDistanceCount+' kendte afstande ligger uden for radius.':'');}
 }
 let jobSearchProgressOriginalOverflow='';
 let jobSearchProgressQueries=[];

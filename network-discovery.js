@@ -545,14 +545,15 @@ function effectiveCompanyFacts(item){
  for(const field of facts){
   const source=stored.factSources&&stored.factSources[field];
   const jobLocation=field==='location'&&stored.locationKind==='job'&&safeHttpUrl(source&&source.url);
+  const companyWebsiteAddress=field==='location'&&stored.locationKind==='company'&&hostMatchesOne(companySourceHost(source),[item&&item.domain||''])&&!isDanishJobPortalHost(item&&item.domain||'');
   const greatPlaceEmployeeCount=field==='employeeCount'&&hostMatchesOne(companySourceHost(source),['greatplacetowork.dk','greatplacetowork.com']);
-  const sourceAllowed=(field==='employeeRating'||field==='ratingCount')?isWorkplaceReviewSource(source):(greatPlaceEmployeeCount||jobLocation||isDanishCompanySource(source));
+  const sourceAllowed=(field==='employeeRating'||field==='ratingCount')?isWorkplaceReviewSource(source):(greatPlaceEmployeeCount||jobLocation||companyWebsiteAddress||isDanishCompanySource(source));
   if(source&&sourceAllowed&&String(stored[field]||'').trim()){
    result[field]=stored[field];factSources[field]=source;
   }
  }
  const distanceSource=stored.factSources&&stored.factSources.distanceKm;
- if(distanceSource&&hostMatchesOne(companySourceHost(distanceSource),['openstreetmap.org'])&&String(stored.distanceKm||'').trim()&&stored.distanceTargetLabel==='jobbets arbejdssted'){
+ if(distanceSource&&hostMatchesOne(companySourceHost(distanceSource),['openstreetmap.org'])&&String(stored.distanceKm||'').trim()&&['virksomhedens adresse','jobbets arbejdssted'].includes(stored.distanceTargetLabel)){
   result.distanceKm=stored.distanceKm;factSources.distanceKm=distanceSource;
  }
  if(stored.companyHighlight)result.companyHighlight=stored.companyHighlight;
@@ -739,20 +740,26 @@ async function updateOpportunityDistance(item,facts){
  facts=facts||item.companyFacts||(item.companyFacts={});
  const sourceLocation=String(facts.location||'').trim();
  const candidates=[];
- const jobLocation=await resolveJobPostingDestination(item,facts);
  const isGenericLocation=value=>/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark)|danmark\s*[·,-]\s*arbejdssted skal bekræftes|denmark\s*[·,-]\s*workplace to be confirmed)$/i.test(String(value||'').trim())||/(?:arbejdssted skal bekræftes|kontrollér arbejdssted|confirm workplace|location to be confirmed)/i.test(String(value||''));
+ const source=facts.factSources&&facts.factSources.location;
+ const sourceHost=companySourceHost(source),itemHost=String(item.domain||'').toLowerCase().replace(/^www\./,'');
+ const verifiedCompanyAddress=facts.locationKind==='company'&&!isGenericLocation(sourceLocation)&&!!source&&safeHttpUrl(source.url)&&(isDanishCompanySource(source)||!!itemHost&&hostMatchesOne(sourceHost,[itemHost])&&!isDanishJobPortalHost(itemHost));
+ if(verifiedCompanyAddress)candidates.push({value:sourceLocation,kind:'company'});
+ const jobLocation=await resolveJobPostingDestination(item,facts);
  if(jobLocation&&!isGenericLocation(jobLocation))candidates.push({value:jobLocation,kind:'job'});
  else if(sourceLocation&&facts.locationKind==='job'&&!isGenericLocation(sourceLocation))candidates.push({value:sourceLocation,kind:'job'});
  const usable=candidates.filter((candidate,index)=>candidate.value&&!isGenericLocation(candidate.value)&&candidates.findIndex(other=>normalizeInsightText(other.value)===normalizeInsightText(candidate.value))===index);
+ const destinationLabel=usable[0]&&usable[0].kind==='company'?'virksomhedens adresse':'jobbets arbejdssted';
  if(!usable.length){
-  facts.distanceKm='';facts.distanceMessage='Arbejdssted/adresse mangler i de fundne kilder';
+  facts.distanceKm='';facts.distanceMessage='En verificeret firmaadresse eller joblokation mangler i de fundne kilder';
   facts.distanceOriginLabel=String(state.distanceOrigin||'').trim()?'din gemte placering':'Frederiksberg bymidte (standard)';
+  facts.distanceTargetLabel='';
   return false;
  }
  const origin=await resolveDistanceOrigin();
  if(!origin){
   facts.distanceKm='';facts.distanceMessage='Din gemte adresse kunne ikke geokodes; afstand er ikke beregnet';
-  facts.distanceOriginLabel='din gemte placering';facts.distanceTargetLabel='jobbets arbejdssted';
+  facts.distanceOriginLabel='din gemte placering';facts.distanceTargetLabel=destinationLabel;
   return false;
  }
  let resolved=null;
@@ -770,7 +777,7 @@ async function updateOpportunityDistance(item,facts){
  facts.distanceKm=haversineDistanceKm(origin.lat,origin.lon,destination.lat,destination.lon).toLocaleString('da-DK',{maximumFractionDigits:1});
  facts.distanceMethod='Luftlinje';
  facts.distanceOriginLabel=origin.personalized?'din gemte placering':(origin.geocodeFailed?'Frederiksberg bymidte (standard · gemt placering kunne ikke geokodes)':'Frederiksberg bymidte (standard)');
- facts.distanceTargetLabel='jobbets arbejdssted';
+ facts.distanceTargetLabel=candidate.kind==='company'?'virksomhedens adresse':'jobbets arbejdssted';
  facts.distanceMessage='';
  facts.distanceDestinationDisplay=destination.displayName||candidate.value;
  facts.factSources=facts.factSources||{};
@@ -790,7 +797,7 @@ async function autoCalculateJobDistances(items){
    const item=current[cursor++];
    if(!state.jobOpportunities.includes(item))continue;
    item.companyFacts=item.companyFacts||{};
-   if(opportunityDistanceKm(item)!==null&&item.companyFacts.distanceOriginLabel&&item.companyFacts.distanceTargetLabel==='jobbets arbejdssted')continue;
+   if(opportunityDistanceKm(item)!==null&&item.companyFacts.distanceOriginLabel&&['virksomhedens adresse','jobbets arbejdssted'].includes(item.companyFacts.distanceTargetLabel))continue;
    try{await updateOpportunityDistance(item,item.companyFacts)}catch(error){item.companyFacts.distanceMessage=String(error&&error.message||error).slice(0,160)||'Afstand kunne ikke beregnes endnu'}
    completed++;persist();renderJobOpportunities();
    if(status&&unknownDistanceCountForJobs(current)>0)status.textContent='Afstand beregnes løbende: '+completed+' af '+current.length+' opslag kontrolleret. Kun opslag inden for '+selectedJobDistanceLimit()+' km vises.';
@@ -956,7 +963,7 @@ async function lookupCompanyInsights(indexOrItem){
  // Calculate from the job's own location immediately while the more extensive employer lookup continues.
  const earlyDistanceTask=(async()=>{
   const facts=item.companyFacts;
-  if(opportunityDistanceKm(item)!==null&&facts.distanceOriginLabel&&facts.distanceTargetLabel==='jobbets arbejdssted')return true;
+  if(opportunityDistanceKm(item)!==null&&facts.distanceOriginLabel&&['virksomhedens adresse','jobbets arbejdssted'].includes(facts.distanceTargetLabel))return true;
   const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
   const generic=/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark))$/i.test(jobLocation);
   if(jobLocation&&!generic&&(!facts.location||facts.locationKind==='job')){
@@ -1452,7 +1459,7 @@ const VERIFIED_DANISH_JOB_ROWS=[
  ['3f-marketing-automation-2026-11','Marketing automation specialist','3F','https://www.3f.dk/om-3f/job-i-3f/jobopslag/marketing-automation-specialist-til-3f','3f.dk','Københavns Kommune','Udvikle automatiserede medlems- og kunderejser, onboarding, aktivering, loyalitet, segmentering og datadrevne kampagner. Ansøgningsfrist 10. november 2026.','marketing automation CRM customer journeys loyalty segmentation analytics','Ansøgningsfrist 10. november 2026','3F · officiel karriereside','Fuldtid']
 ];
 const VERIFIED_DANISH_JOB_SNAPSHOT=VERIFIED_DANISH_JOB_ROWS.map(([slug,title,companyName,url,domain,location,description,searchTags,postedAt,sourceLabel,employmentType])=>({
- id:'snapshot-'+slug,title,jobTitle:title,companyName,url,domain,location,jobLocation:location,country:'Denmark',description,searchTags,postedAt,sourceLabel,queryLabel:sourceLabel+' · kontrolleret 26.10.2026',queryId:'snapshot-'+sourceLabel.toLowerCase().replace(/[^a-z0-9]+/g,'-'),sourceCheckedAt:slug==='3f-marketing-automation-2026-11'?'09.11.2026':'26.10.2026',verifiedSnapshot:true,employmentType,matchScope:'denmark',matchScopeLabel:'Arbejdssted i Danmark',createdAt:slug==='3f-marketing-automation-2026-11'?'2026-11-09T12:00:00+01:00':'2026-10-26T12:00:00+01:00',saved:false,companyFacts:{},snapshotExpiresAt:slug==='3f-marketing-automation-2026-11'?'2026-11-11T00:00:00+01:00':'2026-11-02T00:00:00+01:00'
+ id:'snapshot-'+slug,title,jobTitle:title,companyName,url,domain,location,jobLocation:location,country:'Denmark',description,searchTags,postedAt,sourceLabel,queryLabel:sourceLabel+' · kontrolleret 26.10.2026',queryId:'snapshot-'+sourceLabel.toLowerCase().replace(/[^a-z0-9]+/g,'-'),sourceCheckedAt:slug==='3f-marketing-automation-2026-11'?'09.11.2026':'26.10.2026',verifiedSnapshot:true,employmentType,matchScope:'denmark',matchScopeLabel:'Arbejdssted i Danmark',createdAt:slug==='3f-marketing-automation-2026-11'?'2026-11-09T12:00:00+01:00':'2026-10-26T12:00:00+01:00',saved:false,companyFacts:slug==='3f-marketing-automation-2026-11'?{location:'Kampmannsgade 4, 1604 København V',locationKind:'company',factSources:{location:{url:'https://www.3f.dk/om-3f/job-i-3f/jobopslag/marketing-automation-specialist-til-3f',title:'3F officiel side · kontaktadresse',domain:'3f.dk'}}}:{},snapshotExpiresAt:slug==='3f-marketing-automation-2026-11'?'2026-11-11T00:00:00+01:00':'2026-11-02T00:00:00+01:00'
 }));
 function recentVerifiedJobSnapshot(profile){
  return VERIFIED_DANISH_JOB_SNAPSHOT.filter(item=>Date.parse(item.snapshotExpiresAt)>Date.now())

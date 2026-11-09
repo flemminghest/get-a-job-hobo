@@ -88,14 +88,14 @@ async function saveDistanceOrigin(){
  if(status){status.className='distance-origin-status';status.textContent=value?'Kontrollerer adressen og opdaterer afstandene…':'Placeringen er ryddet. Der bruges Frederiksberg bymidte som standard.'}
  try{
   if(value){
-   const coords=await geocodeDanishCompanyLocation(value);
+   const coords=await geocodeDanishCompanyLocation(value,true);
    if(!coords){
     if(status){status.className='distance-origin-status is-warning';status.textContent='Adressen kunne ikke geokodes. Den er gemt, men der bruges midlertidigt Frederiksberg bymidte som standard. Prøv evt. postnummer + by i stedet for fuld adresse.'}
    }else {addressResolved=true;if(status){status.className='distance-origin-status is-saved';status.textContent='Placering fundet: '+(coords.displayName||value)+'. Afstandene opdateres nu.'}}
   }
   await refreshOpportunityDistances();
   if(status&&value&&addressResolved){
-   const usable=await geocodeDanishCompanyLocation(value);
+   const usable=await geocodeDanishCompanyLocation(value,true);
    if(usable){status.className='distance-origin-status is-saved';status.textContent='Din placering er gemt og fundet. Afstande vises som luftlinje fra denne placering.'}
   }
   if(status&&value&&!addressResolved){status.className='distance-origin-status is-warning';status.textContent='Din adresse kunne ikke placeres på kortet. Afstande er derfor ikke beregnet eller sorteret fra din adresse. Prøv postnummer og by.'}
@@ -671,14 +671,14 @@ function requestCompanyGeocode(url){
  companyGeocodeQueue=task.catch(()=>{});
  return task;
 }
-async function geocodeDanishCompanyLocation(location){
+async function geocodeDanishCompanyLocation(location,addDenmarkSuffix=false){
  const query=String(location||'').trim();if(!query)return null;
  const key='gajh_company_geocode_v2_'+normalizeInsightText(query);
  try{const cached=localStorage.getItem(key);if(cached){const parsed=JSON.parse(cached);if(Number.isFinite(parsed.lat)&&Number.isFinite(parsed.lon))return parsed;if(parsed.notFound===true&&Number(parsed.expiresAt)>Date.now())return null}}catch(e){}
  const candidates=[query];
- if(!/\b(?:denmark|danmark)\b/i.test(query))candidates.push(query+', Denmark');
+ if(addDenmarkSuffix&&!/\b(?:denmark|danmark)\b/i.test(query))candidates.push(query+', Denmark');
  const postalMatch=query.match(/^(\d{4})\s+(.+)$/);
- if(postalMatch)candidates.push(postalMatch[1]+', '+postalMatch[2]+', Denmark');
+ if(addDenmarkSuffix&&postalMatch)candidates.push(postalMatch[1]+', '+postalMatch[2]+', Denmark');
  const parts=query.split(/[,;|]/).map(value=>value.trim()).filter(Boolean);
  if(parts.length>1){
   const postalCity=parts.findIndex(value=>/\b\d{4}\s+[A-ZÆØÅa-zæøå]/.test(value));
@@ -705,7 +705,7 @@ async function geocodeDanishCompanyLocation(location){
 async function resolveDistanceOrigin(){
  const raw=String(state.distanceOrigin||'').trim();
  if(raw){
-  const coords=await geocodeDanishCompanyLocation(raw);
+  const coords=await geocodeDanishCompanyLocation(raw,true);
   if(coords)return {...coords,personalized:true,originLabel:'din gemte placering'};
   return null;
  }
@@ -1444,10 +1444,11 @@ const VERIFIED_DANISH_JOB_ROWS=[
  ['thehub-artdirector','Art Director: Content and Campaigns','Framna','https://thehub.io/jobs/6ad8008e27cdd81217307814','thehub.io','København','Kreativ retning, kampagnekoncepter, website, social, nyhedsbreve, paid media og produktion af visuelt indhold.','marketing art director content campaigns brand creative','Opslået for 5 dage siden','The Hub','Fuldtid'],
  ['thehub-copywriter','Copywriter and Content Lead','Framna','https://thehub.io/jobs/6ad8008e27cdd81217307810','thehub.io','København','Redaktionel strategi og praktisk tekstproduktion til sociale medier, thought leadership, website, nyhedsbreve og kampagner.','marketing copywriter content lead campaigns communications','Opslået for 4 dage siden','The Hub','Fuldtid'],
  ['thehub-flatpay','Group Portfolio Marketing Director','Flatpay','https://thehub.io/jobs/6ad8012b27cdd81217310344','thehub.io','Herlev','Byg en ny portfolio marketingfunktion med fokus på produktadoption, cross-sell, churn prevention, go-to-market og marketing automation.','marketing director portfolio marketing automation content lifecycle strategy','Opslået for 5 dage siden','The Hub','Fuldtid'],
- ['thehub-storyteller','Storyteller (Danish and English)','Photoncycle','https://thehub.io/jobs/6ad6afecdc9dad558098a37d','thehub.io','København','Ejerskab for contentstrategi, brand storytelling, sociale medier, nyhedsbreve, kundekommunikation og community management.','marketing storyteller content strategy brand social media communications','Opslået for 5 dage siden','The Hub','Fuldtid']
+ ['thehub-storyteller','Storyteller (Danish and English)','Photoncycle','https://thehub.io/jobs/6ad6afecdc9dad558098a37d','thehub.io','København','Ejerskab for contentstrategi, brand storytelling, sociale medier, nyhedsbreve, kundekommunikation og community management.','marketing storyteller content strategy brand social media communications','Opslået for 5 dage siden','The Hub','Fuldtid'],
+ ['3f-marketing-automation-2026-11','Marketing automation specialist','3F','https://www.3f.dk/om-3f/job-i-3f/jobopslag/marketing-automation-specialist-til-3f','3f.dk','Københavns Kommune','Udvikle automatiserede medlems- og kunderejser, onboarding, aktivering, loyalitet, segmentering og datadrevne kampagner. Ansøgningsfrist 10. november 2026.','marketing automation CRM customer journeys loyalty segmentation analytics','Ansøgningsfrist 10. november 2026','3F · officiel karriereside','Fuldtid']
 ];
 const VERIFIED_DANISH_JOB_SNAPSHOT=VERIFIED_DANISH_JOB_ROWS.map(([slug,title,companyName,url,domain,location,description,searchTags,postedAt,sourceLabel,employmentType])=>({
- id:'snapshot-'+slug,title,jobTitle:title,companyName,url,domain,location,jobLocation:location,country:'Denmark',description,searchTags,postedAt,sourceLabel,queryLabel:sourceLabel+' · kontrolleret 26.10.2026',queryId:'snapshot-'+sourceLabel.toLowerCase().replace(/[^a-z0-9]+/g,'-'),sourceCheckedAt:'26.10.2026',verifiedSnapshot:true,employmentType,matchScope:'denmark',matchScopeLabel:'Arbejdssted i Danmark',createdAt:'2026-10-26T12:00:00+01:00',saved:false,companyFacts:{},snapshotExpiresAt:'2026-11-02T00:00:00+01:00'
+ id:'snapshot-'+slug,title,jobTitle:title,companyName,url,domain,location,jobLocation:location,country:'Denmark',description,searchTags,postedAt,sourceLabel,queryLabel:sourceLabel+' · kontrolleret 26.10.2026',queryId:'snapshot-'+sourceLabel.toLowerCase().replace(/[^a-z0-9]+/g,'-'),sourceCheckedAt:slug==='3f-marketing-automation-2026-11'?'09.11.2026':'26.10.2026',verifiedSnapshot:true,employmentType,matchScope:'denmark',matchScopeLabel:'Arbejdssted i Danmark',createdAt:slug==='3f-marketing-automation-2026-11'?'2026-11-09T12:00:00+01:00':'2026-10-26T12:00:00+01:00',saved:false,companyFacts:{},snapshotExpiresAt:slug==='3f-marketing-automation-2026-11'?'2026-11-11T00:00:00+01:00':'2026-11-02T00:00:00+01:00'
 }));
 function recentVerifiedJobSnapshot(profile){
  return VERIFIED_DANISH_JOB_SNAPSHOT.filter(item=>Date.parse(item.snapshotExpiresAt)>Date.now())

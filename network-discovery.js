@@ -192,7 +192,7 @@ function jobLocationQuery(value){
  if(/\b(danmark|denmark|hele landet|hele danmark)\b/.test(text))return 'Denmark';
  return searchPhrase(value||'Denmark').split(/\s+/).filter(Boolean).slice(0,2).join(' ')||'Denmark';
 }
-function jobKeywordVariants(profile){return uniqueTerms((profile&&profile.terms||[]).map(searchPhrase).filter(term=>term.length>1)).slice(0,6)}
+function jobKeywordVariants(profile){return uniqueTerms((profile&&profile.terms||[]).map(searchPhrase).filter(term=>term.length>1)).slice(0,8)}
 function jobQueries(profile){
  const terms=jobKeywordVariants(profile),first=terms[0]||'marketing',second=terms[1]||first,third=terms[2]||second;
  const loc=jobLocationQuery(profile.location||'Frederiksberg, København og omegn, Danmark');
@@ -372,12 +372,16 @@ function isLikelySpecificJobPosting(item,query){
  return false;
 }
 async function queryIndex(query,terms,profile){
- async function request(q){
-  const endpoint=LIVE_SEARCH_API+'?'+new URLSearchParams({q,page:'1',exact:'0'}).toString();
+ async function request(q,page){
+  const endpoint=LIVE_SEARCH_API+'?'+new URLSearchParams({q,page:String(page||1),exact:'0'}).toString();
   const data=await fetchJsonTimeout(endpoint,15000);
   if(!data||typeof data!=='object')throw new Error('Uventet svar fra webindekset.');
   if(data.error&&!Array.isArray(data.results))throw new Error(String(data.error));
-  return Array.isArray(data.results)?data.results:(Array.isArray(data.items)?data.items:[]);
+  return {
+   results:Array.isArray(data.results)?data.results:(Array.isArray(data.items)?data.items:[]),
+   totalPages:Number(data.totalPages||data.total_pages)||0,
+   hasNext:!!data.hasNext
+  };
  }
  function mapAndFilter(rows,usedFallback){
   return rows.map(row=>{
@@ -421,7 +425,17 @@ async function queryIndex(query,terms,profile){
  for(let i=0;i<searchVariants.length;i++){
   const text=searchVariants[i];let rows=[];
   try{
-   rows=await request(text);
+   const firstPage=await request(text,1);
+   const pageLimit=Math.min(5,Math.max(1,firstPage.totalPages||(firstPage.hasNext?2:1)));
+   const pageResponses=[firstPage];
+   if(pageLimit>1){
+    const extraPages=await Promise.allSettled(Array.from({length:pageLimit-1},(_,index)=>request(text,index+2)));
+    extraPages.forEach(result=>{
+     if(result.status==='fulfilled')pageResponses.push(result.value);
+     else errors.push(String(result.reason&&result.reason.message||result.reason).slice(0,140));
+    });
+   }
+   rows=pageResponses.flatMap(page=>page.results);
    totalRaw+=rows.length;
    const mapped=mapAndFilter(rows,i>0);
    totalMapped+=mapped.length;
@@ -429,13 +443,13 @@ async function queryIndex(query,terms,profile){
     const key=canonicalSearchUrl(item.url),old=unique.get(key);
     if(!old||item.matchedTerms.length>old.matchedTerms.length)unique.set(key,item);
    }
-   attempts.push({query:text,raw:rows.length,mapped:mapped.length,error:''});
+   attempts.push({query:text,raw:rows.length,mapped:mapped.length,pages:pageResponses.length,error:''});
   }catch(error){
    errors.push(String(error&&error.message||error).slice(0,140));
-   attempts.push({query:text,raw:0,mapped:0,error:String(error&&error.message||error).slice(0,140)});
+   attempts.push({query:text,raw:0,mapped:0,pages:0,error:String(error&&error.message||error).slice(0,140)});
   }
-  // Keep each portal quick, but try another keyword when the index has no usable match.
-  if(unique.size>=8)break;
+  // Read several pages per portal, then continue through more of the user's search terms.
+  if(unique.size>=20)break;
  }
  if(!unique.size&&errors.length===searchVariants.length)throw new Error(errors.join(' / '));
  return {query,results:[...unique.values()],usedFallback:attempts.some((attempt,index)=>index>0&&attempt.mapped>0),diagnostics:{raw:totalRaw,mapped:totalMapped,attempts,errors}};

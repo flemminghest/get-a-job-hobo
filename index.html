@@ -373,6 +373,17 @@ label{font-size:14px;font-weight:750}
 .evidence-against .clarification-embedded .clarification-action button{width:100%}
 .evidence-against .clarification-embedded .clarification-action small{order:2}
 @media(max-width:720px){.clarification-shortcut{align-items:flex-start}}
+.clarification-batch-action{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;margin-top:16px!important;padding-top:16px!important;border-top:1px solid #dce5ef}
+.clarification-batch-action button{width:100%!important;min-height:49px!important;border-radius:12px!important;font-size:16px!important;font-weight:800!important}
+.clarification-batch-action button:disabled{opacity:.42!important;cursor:not-allowed!important}
+.clarification-batch-action small{font-size:12px!important;line-height:1.5!important;color:#64758a!important;text-align:center!important}
+.clarification-score-comparison{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px;margin:16px 0;padding:16px;border:1px solid #c6e7d5;background:#f3fbf6;border-radius:15px}
+.clarification-score-comparison>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.clarification-score-comparison small{font-size:12px;color:#526d61}
+.clarification-score-comparison strong{font-size:27px;color:#1b6441;font-weight:900}
+.clarification-score-comparison>span{color:#5d8370;font-size:22px}
+.clarification-score-comparison p{grid-column:1/-1;margin:0;color:#557062;font-size:12px;line-height:1.5}
+@media(max-width:620px){.clarification-score-comparison{gap:8px;padding:12px}.clarification-score-comparison strong{font-size:22px}}
 /* Score temperature meter: red 0–20 through green 80–100 */
 .score-meter{width:180px;max-width:100%;margin:0 0 10px auto}
 .score-meter-number{display:flex;align-items:baseline;justify-content:flex-end;gap:3px;margin-bottom:7px;font-variant-numeric:tabular-nums}
@@ -1656,7 +1667,7 @@ function normalizeCompetencyAssessment(raw){
  const references=Array.isArray(raw.references)?raw.references.slice(0,8).filter(ref=>ref&&typeof ref==='object').map(ref=>({title:String(ref.title||'').slice(0,300),url:safeHttpUrl(ref.url),domain:String(ref.domain||'').slice(0,200),categoryId:String(ref.categoryId||'').slice(0,100),kind:String(ref.kind||'').slice(0,200),description:String(ref.description||'').slice(0,500),trust:String(ref.trust||'').slice(0,200),staticReference:!!ref.staticReference})):[];
  const coverageScore=raw.coverageScore==null?null:Math.max(0,Math.min(100,Number(raw.coverageScore)||0));
  const matchLabel=String(raw.matchLabel|| (coverageScore==null?'Kan ikke vurderes':coverageScore<20?'Meget lavt fagligt match':coverageScore<40?'Lavt fagligt match':coverageScore<60?'Delvist match':coverageScore<80?'Godt fagligt match':'Stærkt fagligt match'));
- return {rows,requiredCount:rows.length,documentedCount:rows.filter(row=>row.status==='evidenced').length,mentionedCount:rows.filter(row=>row.status==='mentioned').length,missingCount:rows.filter(row=>row.status==='missing').length,coverageScore,matchLabel,rawScore:raw.rawScore==null?null:Math.max(0,Math.min(100,Number(raw.rawScore)||0)),profileId:typeof raw.profileId==='string'?raw.profileId:null,profileLabel:String(raw.profileLabel||''),coreSkillIds:Array.isArray(raw.coreSkillIds)?raw.coreSkillIds.filter(id=>typeof id==='string').slice(0,30):[],coreSkillCount:Math.max(0,Number(raw.coreSkillCount)||0),coreMissingCount:Math.max(0,Number(raw.coreMissingCount)||0),scoreCap:raw.scoreCap==null?null:Math.max(0,Math.min(100,Number(raw.scoreCap)||0)),capApplied:!!raw.capApplied,references,method:String(raw.method||'').slice(0,1000)};
+ return {rows,requiredCount:rows.length,documentedCount:rows.filter(row=>row.status==='evidenced').length,mentionedCount:rows.filter(row=>row.status==='mentioned').length,missingCount:rows.filter(row=>row.status==='missing').length,coverageScore,matchLabel,rawScore:raw.rawScore==null?null:Math.max(0,Math.min(100,Number(raw.rawScore)||0)),profileId:typeof raw.profileId==='string'?raw.profileId:null,profileLabel:String(raw.profileLabel||''),coreSkillIds:Array.isArray(raw.coreSkillIds)?raw.coreSkillIds.filter(id=>typeof id==='string').slice(0,30):[],coreSkillCount:Math.max(0,Number(raw.coreSkillCount)||0),coreMissingCount:Math.max(0,Number(raw.coreMissingCount)||0),scoreCap:raw.scoreCap==null?null:Math.max(0,Math.min(100,Number(raw.scoreCap)||0)),capApplied:!!raw.capApplied,originalCoverageScore:raw.originalCoverageScore==null?null:Math.max(0,Math.min(100,Number(raw.originalCoverageScore)||0)),lastClarificationCount:Math.max(0,Number(raw.lastClarificationCount)||0),references,method:String(raw.method||'').slice(0,1000)};
 }
 function normalizeCompanySourceRecord(source){
  if(!source||typeof source!=='object'||Array.isArray(source))return null;
@@ -2771,34 +2782,48 @@ function clarificationOptions(row){
   ['none','Jeg har ikke den efterspurgte kompetence.']
  ];
 }
+function updateClarificationButton(){
+ const button=document.getElementById('clarification-reassess-all');
+ if(!button)return;
+ const selected=document.querySelectorAll('#clarification-section input[type="radio"]:checked').length;
+ button.disabled=selected===0;
+ const count=document.getElementById('clarification-selected-count');
+ if(count)count.textContent=selected?selected+' svar valgt – klar til samlet vurdering':'Du kan svare på et eller flere spørgsmål.';
+}
 function renderClarificationPanel(competence,embedded=false){
  const pending=competence.rows.map((row,index)=>({...row,index})).filter(row=>row.status==='mentioned'&&!row.candidateAnswer);
  if(!pending.length)return '';
  const cards=pending.map(row=>{
   const name='clarification-'+row.index;
-  const opts=clarificationOptions(row).map(([value,label])=>'<label class="clarification-option"><input type="radio" name="'+name+'" value="'+value+'" onchange="document.getElementById(&quot;clarification-btn-'+row.index+'&quot;).disabled=false"><span>'+escapeHtml(label)+'</span></label>').join('');
-  return '<article class="clarification-card"><div class="clarification-card-title"><strong>'+escapeHtml(row.label)+'</strong><span class="competency-badge competency-mentioned">Delvis evidens</span></div><p class="clarification-job"><b>Jobkrav:</b> '+escapeHtml(row.jobEvidence)+'</p><p class="clarification-question">Hvilket udsagn passer bedst på dig?</p><div class="clarification-options" role="radiogroup" aria-label="Afklaring af '+escapeHtml(row.label)+'">'+opts+'</div><div class="clarification-action"><small>Valgfrit – scoren ændres kun, hvis du vælger et svar og vurderer igen.</small><button type="button" disabled id="clarification-btn-'+row.index+'" onclick="reassessClarification('+row.index+')">Vurdér igen</button></div></article>';
+  const opts=clarificationOptions(row).map(([value,label])=>'<label class="clarification-option"><input type="radio" name="'+name+'" value="'+value+'" onchange="updateClarificationButton()"><span>'+escapeHtml(label)+'</span></label>').join('');
+  return '<article class="clarification-card"><div class="clarification-card-title"><strong>'+escapeHtml(row.label)+'</strong><span class="competency-badge competency-mentioned">Delvis evidens</span></div><p class="clarification-job"><b>Jobkrav:</b> '+escapeHtml(row.jobEvidence)+'</p><p class="clarification-question">Hvilket udsagn passer bedst på dig?</p><div class="clarification-options" role="radiogroup" aria-label="Afklaring af '+escapeHtml(row.label)+'">'+opts+'</div></article>';
  }).join('');
- return '<section id="clarification-section" class="clarification-panel'+(embedded?' clarification-embedded':'')+'" aria-label="Delvis evidens – afklar disse krav"><div class="clarification-header"><h3>Delvis evidens – afklar disse krav</h3><span class="clarification-count">'+pending.length+' spørgsmål</span></div><p class="clarification-intro">Vælg et svar, og tryk “Vurdér igen”. Uden svar forbliver matchscoren uændret.</p>'+cards+'</section>';
+ const action='<div class="clarification-batch-action"><small id="clarification-selected-count">Du kan svare på et eller flere spørgsmål.</small><button id="clarification-reassess-all" type="button" disabled onclick="reassessAllClarifications()">Vurdér igen</button><small>Alle valgte svar vurderes samlet. Ubesvarede krav beholder deres oprindelige vurdering.</small></div>';
+ return '<section id="clarification-section" class="clarification-panel'+(embedded?' clarification-embedded':'')+'" aria-label="Delvis evidens – afklar disse krav"><div class="clarification-header"><h3>Delvis evidens – afklar disse krav</h3><span class="clarification-count">'+pending.length+' spørgsmål</span></div><p class="clarification-intro">Vælg de svar, der passer på dig, og klik derefter én gang på “Vurdér igen”. Hvis du springer over, forbliver scoren uændret.</p>'+cards+action+'</section>';
 }
-function reassessClarification(index){
+function reassessAllClarifications(){
  const job=state.activeJob,competence=job&&job.competencyAssessment;
  if(!competence||!Array.isArray(competence.rows))return;
- const row=competence.rows[index];
- if(!row||row.status!=='mentioned'||row.candidateAnswer)return;
- const selected=document.querySelector('input[name="clarification-'+index+'"]:checked');
- if(!selected)return;
- const choice=clarificationOptions(row).find(item=>item[0]===selected.value);
- if(!choice)return;
- const answer=choice[1];
- row.candidateAnswer=answer;
- if(selected.value==='full'||selected.value==='written'){
-  row.status='evidenced';row.factor=1;row.statusLabel='Kravet er bekræftet af kandidaten; ikke dokumenteret i CV-teksten.';
- }else if(selected.value==='partial'){
-  row.status='mentioned';row.factor=.45;row.statusLabel='Kandidaten bekræfter kun delvis opfyldelse af kravet.';
- }else{
-  row.status='missing';row.factor=0;row.statusLabel='Kandidaten oplyser, at kravet ikke er opfyldt.';
- }
+ const responses=[];
+ competence.rows.forEach((row,index)=>{
+  if(row.status!=='mentioned'||row.candidateAnswer)return;
+  const selected=document.querySelector('input[name="clarification-'+index+'"]:checked');
+  if(!selected)return;
+  const choice=clarificationOptions(row).find(item=>item[0]===selected.value);
+  if(choice)responses.push({row,value:selected.value,answer:choice[1]});
+ });
+ if(!responses.length)return;
+ if(competence.originalCoverageScore===undefined||competence.originalCoverageScore===null)competence.originalCoverageScore=competence.coverageScore;
+ responses.forEach(({row,value,answer})=>{
+  row.candidateAnswer=answer;
+  if(value==='full'||value==='written'){
+   row.status='evidenced';row.factor=1;row.statusLabel='Kravet er bekræftet af kandidaten; ikke dokumenteret i CV-teksten.';
+  }else if(value==='partial'){
+   row.status='mentioned';row.factor=.45;row.statusLabel='Kandidaten bekræfter kun delvis opfyldelse af kravet.';
+  }else{
+   row.status='missing';row.factor=0;row.statusLabel='Kandidaten oplyser, at kravet ikke er opfyldt.';
+  }
+ });
  const rows=competence.rows;
  competence.documentedCount=rows.filter(r=>r.status==='evidenced').length;
  competence.mentionedCount=rows.filter(r=>r.status==='mentioned').length;
@@ -2811,10 +2836,10 @@ function reassessClarification(index){
  competence.coverageScore=competence.rawScore==null?null:competence.capApplied?competence.scoreCap:competence.rawScore;
  const score=competence.coverageScore;
  competence.matchLabel=score==null?'Kan ikke vurderes':score<20?'Meget lavt fagligt match':score<40?'Lavt fagligt match':score<60?'Delvist match':score<80?'Godt fagligt match':'Stærkt fagligt match';
- job.contentScore=score==null?0:score;
- job.appScore=job.contentScore;
- const historyItem=state.history.find(item=>item.id===job.id);
- if(historyItem){historyItem.competencyAssessment=competence;historyItem.contentScore=job.contentScore;historyItem.appScore=job.appScore}
+ competence.lastClarificationCount=responses.length;
+ job.contentScore=score==null?0:score;job.appScore=job.contentScore;
+ const h=state.history.find(item=>item.id===job.id);
+ if(h){h.competencyAssessment=competence;h.contentScore=job.contentScore;h.appScore=job.appScore}
  persist();renderJobResult();renderHistory();updateOverview();
 }
 
@@ -2847,8 +2872,9 @@ function renderJobResult(){
  const manualSources=sourceStats(),assessment=buildEvidenceAssessment(job),competence=assessment.competence;
  const cvScore=competence.coverageScore==null?0:competence.coverageScore,sourceScore=assessment.metrics.score;
  const heading='<div class="row" style="align-items:start"><div><h2 style="margin-bottom:4px">'+escapeHtml(job.title||'Jobanalyse')+'</h2><div class="muted">'+escapeHtml(job.company||'Virksomhed ikke angivet')+' · '+new Date(job.created).toLocaleString('da-DK')+'</div></div><button class="secondary fit" onclick="go(&quot;application&quot;)">Fortsæt til ansøgning →</button></div>';
+ const comparison=competence.originalCoverageScore!=null?'<div class="clarification-score-comparison" role="status" aria-live="polite"><div><small>Oprindelig matchscore</small><strong>'+escapeHtml(competence.originalCoverageScore+'/100')+'</strong></div><span aria-hidden="true">→</span><div><small>Ny matchscore efter dine svar</small><strong>'+escapeHtml(competence.coverageScore+'/100')+'</strong></div><p>Genberegnet på baggrund af '+escapeHtml(String(competence.lastClarificationCount||0))+' senest afklarede krav. De øvrige krav er vurderet som før.</p></div>':'';
  const scorecards='<div class="notice warnbox">Matchprocenten beregnes ud fra vægtede jobkrav og CV-evidens. Kernekompetencer vægter højere end generelle styrker. Manglende dokumentation er ikke bevis for manglende evne, og matchprocenten er ikke en sandsynlighed for at få jobbet.</div><div class="scoregrid"><div class="score"><span>Vægtet fagligt match</span><strong>'+(competence.coverageScore==null?'—':cvScore+'/100')+'</strong><div class="bar"><i style="width:'+cvScore+'%"></i></div><small>'+competence.matchLabel+' · '+competence.requiredCount+' krav: '+competence.documentedCount+' dokumenteret, '+competence.mentionedCount+' delvis evidens, '+competence.missingCount+' uden dokumentation.</small></div><div class="score alt"><span>Ekstern kildedækning</span><strong>'+sourceScore+'/100</strong><div class="bar"><i style="width:'+sourceScore+'%"></i></div><small>Måler udelukkende ekstern kildedækning. Det er ikke en del af matchscoren.</small></div></div>';
- el('jobresult').innerHTML=heading+scorecards+(competence.rows.some(row=>row.status==='mentioned'&&!row.candidateAnswer)?'<div class="clarification-shortcut"><span>Der er '+competence.rows.filter(row=>row.status==='mentioned'&&!row.candidateAnswer).length+' krav med delvis evidens, som du kan afklare.</span><a href="#clarification-section">Gå til spørgsmålene ↓</a></div>':'')+renderEvidenceConclusion(job)+'<div class="result"><h3>Live-søgning og webkilder — detaljer</h3>'+renderLiveResearch(job.liveResearch||null)+'</div><div class="result"><h3>Dine egne supplerende kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
+ el('jobresult').innerHTML=heading+scorecards+comparison+(competence.rows.some(row=>row.status==='mentioned'&&!row.candidateAnswer)?'<div class="clarification-shortcut"><span>Der er '+competence.rows.filter(row=>row.status==='mentioned'&&!row.candidateAnswer).length+' krav med delvis evidens, som du kan afklare.</span><a href="#clarification-section">Gå til spørgsmålene ↓</a></div>':'')+renderEvidenceConclusion(job)+'<div class="result"><h3>Live-søgning og webkilder — detaljer</h3>'+renderLiveResearch(job.liveResearch||null)+'</div><div class="result"><h3>Dine egne supplerende kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
  sourceSummary();
 }
 function saveJobOnly(){const job=el('jobtext').value.trim();if(!job){notify('jobmsg','Indsæt et jobopslag først.');return}state.jobtitle=el('jobtitle').value;state.company=el('company').value;state.jobContactName=el('jobContactName').value.trim();state.jobtext=job;state.history.unshift({id:Date.now(),title:state.jobtitle,company:state.company,contactName:state.jobContactName,created:new Date().toISOString(),job:job,savedOnly:true});state.history=state.history.slice(0,50);persist();renderHistory();updateOverview();notify('jobmsg','Jobopslag gemt i historikken uden score.','goodbox')}

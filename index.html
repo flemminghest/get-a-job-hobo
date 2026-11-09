@@ -1478,10 +1478,10 @@ body.has-fixed-proposals{padding-bottom:calc(94px + env(safe-area-inset-bottom))
  <section class="research-modal-card ai-thinking-card">
   <div class="research-modal-heading">
    <span class="research-spinner" aria-hidden="true"></span>
-   <div><div class="eyebrow" id="aiThinkingEyebrow" style="color:#16866b">AI-ANALYSE</div><h2 id="aiThinkingTitle">Sprogmodellen analyserer dit CV</h2></div>
+   <div><div class="eyebrow" id="aiThinkingEyebrow" style="color:#16866b">ANALYSERER</div><h2 id="aiThinkingTitle">Sprogmodellerne analyserer</h2></div>
   </div>
   <p id="aiThinkingDescription" class="research-modal-description">Jeg gennemgår CV'et og det eventuelle stillingsopslag for at skrive en konkret vurdering. Det kan tage lidt tid afhængigt af tekstens længde.</p>
-  <div class="ai-thinking-state" aria-live="polite"><span class="research-spinner research-spinner-small" aria-hidden="true"></span><span id="aiThinkingStatus">Sender forespørgslen til sprogmodellen…</span></div>
+  <div class="ai-thinking-state" aria-live="polite"><span class="research-spinner research-spinner-small" aria-hidden="true"></span><span id="aiThinkingStatus">Sender forespørgslen til sprogmodellerne…</span></div>
   <div id="proposalCountdownPanel" class="proposal-countdown-panel" hidden aria-live="polite"><div class="proposal-countdown-number"><strong id="proposalCountdownValue">3</strong><small>sek.</small></div><div><h3>Vi gør klar til dine tre forslag</h3><p>Jeg samler jobopslaget, dit CV og dine valg. Derefter starter analysen og skrivningen. Nedtællingen viser, at processen er i gang.</p></div></div>
   <div class="ai-thinking-progress" aria-hidden="true"><span></span></div>
   <div class="ai-thinking-timer-row"><span>Ventetid</span><strong id="aiThinkingTimer">00:00</strong></div>
@@ -1547,7 +1547,7 @@ body.has-fixed-proposals{padding-bottom:calc(94px + env(safe-area-inset-bottom))
    <p class="draft-source-note">Kilder fra en eventuel tidligere jobanalyse kan ses under “Jobopslag”. Selve ansøgningsudkastene genereres ud fra materialet ovenfor — uden at påstå, at der søges på nettet lige nu.</p>
   </div>
 
-  <div class="research-modal-footer"><span id="aiThinkingFooter">Modalen lukker automatisk, når svaret kommer tilbage — eller hvis der opstår en fejl.</span></div>
+  <div class="research-modal-footer" id="aiThinkingFooterContainer" hidden><span id="aiThinkingFooter"></span></div>
  </section>
 </div>
 
@@ -3864,10 +3864,10 @@ function updateAiThinkingModal(){
   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent=status;
   return;
  }
- let status='Sender forespørgslen til sprogmodellen…';
- if(elapsed>=5&&elapsed<15)status='Afventer svar fra sprogmodellen…';
+ let status='Sender forespørgslen til sprogmodellerne…';
+ if(elapsed>=5&&elapsed<15)status='Afventer svar fra sprogmodellerne…';
  else if(elapsed>=15&&elapsed<30)status='Analysen tager lidt længere tid; ventetiden afhænger af tekstens længde…';
- else if(elapsed>=30)status='Sprogmodellen er stadig i gang. Jeg venter på svar fra serveren…';
+ else if(elapsed>=30)status='Sprogmodellerne er stadig i gang. Jeg venter på svar fra serveren…';
  if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent=status;
 }
 function showAiThinkingModal(mode,config){
@@ -3877,6 +3877,8 @@ function showAiThinkingModal(mode,config){
  const displayMode=mode==='proposals'?'proposals':'panel';
  const options=config||{};
  modal.dataset.mode=displayMode;
+ const footerContainer=el('aiThinkingFooterContainer');
+ if(footerContainer)footerContainer.hidden=displayMode!=='proposals';
  aiThinkingStartedAt=Date.now();
  aiThinkingPreviousOverflow=document.body.style.overflow;
  if(el('aiThinkingTimer'))el('aiThinkingTimer').textContent='00:00';
@@ -3890,13 +3892,13 @@ function showAiThinkingModal(mode,config){
   if(el('aiThinkingFooter'))el('aiThinkingFooter').textContent='Der søges ikke på nettet i dette trin. Procenten er en visuel procesindikator og går først til 100 %, når de tre udkast er modtaget og kontrolleret.';
   setDraftModalProgress(12,'Klargør materiale','CV og jobopslag er samlet. Nu sendes de til sprogmodellen.',0,false);
  }else{
-  if(el('aiThinkingEyebrow'))el('aiThinkingEyebrow').textContent='AI-ANALYSE';
+  if(el('aiThinkingEyebrow'))el('aiThinkingEyebrow').textContent='ANALYSERER';
   if(el('aiThinkingEyebrow'))el('aiThinkingEyebrow').style.color='#16866b';
-  if(el('aiThinkingTitle'))el('aiThinkingTitle').textContent=options.title||'Sprogmodellen analyserer dit CV';
+  if(el('aiThinkingTitle'))el('aiThinkingTitle').textContent='Sprogmodellerne analyserer';
   if(el('aiThinkingDescription'))el('aiThinkingDescription').textContent=options.description||"Jeg gennemgår CV'et og det eventuelle stillingsopslag for at skrive en konkret vurdering. Det kan tage lidt tid afhængigt af tekstens længde.";
-  if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Sender forespørgslen til sprogmodellen…';
+  if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Sender forespørgslen til sprogmodellerne…';
   if(el('draftLiveProgress'))el('draftLiveProgress').hidden=true;
-  if(el('aiThinkingFooter'))el('aiThinkingFooter').textContent='Modalen lukker automatisk, når svaret kommer tilbage — eller hvis der opstår en fejl.';
+  if(el('aiThinkingFooter'))el('aiThinkingFooter').textContent='';
  }
  modal.hidden=false;
  document.body.style.overflow='hidden';

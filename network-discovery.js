@@ -80,6 +80,7 @@ function syncOpportunityInputs(){
 async function saveDistanceOrigin(){
  const input=el('distanceOriginInput'),button=el('saveDistanceOriginButton'),status=el('distanceOriginStatus');
  const value=String(input&&input.value||'').trim().slice(0,300);
+ let addressResolved=!value;
  state.distanceOrigin=value;
  if(value){try{localStorage.removeItem('gajh_company_geocode_'+normalizeInsightText(value))}catch(e){}}
  persist();
@@ -90,13 +91,14 @@ async function saveDistanceOrigin(){
    const coords=await geocodeDanishCompanyLocation(value);
    if(!coords){
     if(status){status.className='distance-origin-status is-warning';status.textContent='Adressen kunne ikke geokodes. Den er gemt, men der bruges midlertidigt Frederiksberg bymidte som standard. Prøv evt. postnummer + by i stedet for fuld adresse.'}
-   }else if(status){status.className='distance-origin-status is-saved';status.textContent='Placering fundet: '+(coords.displayName||value)+'. Afstandene opdateres nu.'}
+   }else {addressResolved=true;if(status){status.className='distance-origin-status is-saved';status.textContent='Placering fundet: '+(coords.displayName||value)+'. Afstandene opdateres nu.'}}
   }
   await refreshOpportunityDistances();
-  if(status&&value){
+  if(status&&value&&addressResolved){
    const usable=await geocodeDanishCompanyLocation(value);
    if(usable){status.className='distance-origin-status is-saved';status.textContent='Din placering er gemt og fundet. Afstande vises som luftlinje fra denne placering.'}
   }
+  if(status&&value&&!addressResolved){status.className='distance-origin-status is-warning';status.textContent='Din adresse kunne ikke placeres på kortet. Afstande er derfor ikke beregnet eller sorteret fra din adresse. Prøv postnummer og by.'}
  }catch(error){
   if(status){status.className='distance-origin-status is-warning';status.textContent='Placeringen er gemt, men geokodningen kunne ikke gennemføres. Standardafstanden fra Frederiksberg bruges foreløbigt.'}
  }finally{
@@ -537,7 +539,7 @@ function effectiveCompanyFacts(item){
   }
  }
  const distanceSource=stored.factSources&&stored.factSources.distanceKm;
- if(distanceSource&&hostMatchesOne(companySourceHost(distanceSource),['openstreetmap.org'])&&String(stored.distanceKm||'').trim()){
+ if(distanceSource&&hostMatchesOne(companySourceHost(distanceSource),['openstreetmap.org'])&&String(stored.distanceKm||'').trim()&&stored.distanceTargetLabel==='jobbets arbejdssted'){
   result.distanceKm=stored.distanceKm;factSources.distanceKm=distanceSource;
  }
  if(stored.companyHighlight)result.companyHighlight=stored.companyHighlight;
@@ -693,6 +695,7 @@ async function resolveDistanceOrigin(){
  if(raw){
   const coords=await geocodeDanishCompanyLocation(raw);
   if(coords)return {...coords,personalized:true,originLabel:'din gemte placering'};
+  return null;
  }
  return {...FREDERIKSBERG_ORIGIN,displayName:FREDERIKSBERG_ORIGIN.label,personalized:false,originLabel:FREDERIKSBERG_ORIGIN.label,geocodeFailed:!!raw};
 }
@@ -700,13 +703,11 @@ async function updateOpportunityDistance(item,facts){
  if(!item)return false;
  facts=facts||item.companyFacts||(item.companyFacts={});
  const sourceLocation=String(facts.location||'').trim();
- const sourceLocationIsCompany=!!(sourceLocation&&facts.locationKind!=='job'&&facts.factSources&&facts.factSources.location&&isDanishCompanySource(facts.factSources.location));
  const candidates=[];
  const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
  const isGenericLocation=value=>/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark)|danmark\s*[·,-]\s*arbejdssted skal bekræftes|denmark\s*[·,-]\s*workplace to be confirmed)$/i.test(String(value||'').trim())||/(?:arbejdssted skal bekræftes|kontrollér arbejdssted|confirm workplace|location to be confirmed)/i.test(String(value||''));
  if(jobLocation&&!isGenericLocation(jobLocation))candidates.push({value:jobLocation,kind:'job'});
- if(sourceLocationIsCompany&&sourceLocation)candidates.push({value:sourceLocation,kind:'company'});
- if(sourceLocation&&!candidates.some(candidate=>normalizeInsightText(candidate.value)===normalizeInsightText(sourceLocation)))candidates.push({value:sourceLocation,kind:'job'});
+ else if(sourceLocation&&facts.locationKind==='job'&&!isGenericLocation(sourceLocation))candidates.push({value:sourceLocation,kind:'job'});
  const usable=candidates.filter((candidate,index)=>candidate.value&&!isGenericLocation(candidate.value)&&candidates.findIndex(other=>normalizeInsightText(other.value)===normalizeInsightText(candidate.value))===index);
  if(!usable.length){
   facts.distanceKm='';facts.distanceMessage='Arbejdssted/adresse mangler i de fundne kilder';
@@ -714,6 +715,11 @@ async function updateOpportunityDistance(item,facts){
   return false;
  }
  const origin=await resolveDistanceOrigin();
+ if(!origin){
+  facts.distanceKm='';facts.distanceMessage='Din gemte adresse kunne ikke geokodes; afstand er ikke beregnet';
+  facts.distanceOriginLabel='din gemte placering';facts.distanceTargetLabel='jobbets arbejdssted';
+  return false;
+ }
  let resolved=null;
  for(const candidate of usable){
   const destination=await geocodeDanishCompanyLocation(candidate.value);
@@ -729,12 +735,12 @@ async function updateOpportunityDistance(item,facts){
  facts.distanceKm=haversineDistanceKm(origin.lat,origin.lon,destination.lat,destination.lon).toLocaleString('da-DK',{maximumFractionDigits:1});
  facts.distanceMethod='Luftlinje';
  facts.distanceOriginLabel=origin.personalized?'din gemte placering':(origin.geocodeFailed?'Frederiksberg bymidte (standard · gemt placering kunne ikke geokodes)':'Frederiksberg bymidte (standard)');
- facts.distanceTargetLabel=candidate.kind==='company'?'virksomhedsadresse':'jobbets arbejdssted';
+ facts.distanceTargetLabel='jobbets arbejdssted';
  facts.distanceMessage='';
  facts.distanceDestinationDisplay=destination.displayName||candidate.value;
  facts.factSources=facts.factSources||{};
  facts.factSources.distanceKm={url:destination.sourceUrl||'https://www.openstreetmap.org/',title:'OpenStreetMap-geokodning',domain:'openstreetmap.org'};
- if(candidate.kind==='job'&&!sourceLocationIsCompany){
+ if(candidate.kind==='job'){
   facts.location=candidate.value;facts.locationKind='job';
   facts.factSources.location={url:safeHttpUrl(item.url),title:String(item.jobTitle||item.title||'Originalt jobopslag'),domain:String(item.domain||''),description:String(item.description||'').slice(0,1000)};
  }
@@ -749,7 +755,7 @@ async function autoCalculateJobDistances(items){
    const item=current[cursor++];
    if(!state.jobOpportunities.includes(item))continue;
    item.companyFacts=item.companyFacts||{};
-   if(opportunityDistanceKm(item)!==null&&item.companyFacts.distanceOriginLabel)continue;
+   if(opportunityDistanceKm(item)!==null&&item.companyFacts.distanceOriginLabel&&item.companyFacts.distanceTargetLabel==='jobbets arbejdssted')continue;
    try{await updateOpportunityDistance(item,item.companyFacts)}catch(error){item.companyFacts.distanceMessage=String(error&&error.message||error).slice(0,160)||'Afstand kunne ikke beregnes endnu'}
    completed++;persist();renderJobOpportunities();
    if(status&&unknownDistanceCountForJobs(current)>0)status.textContent='Afstand beregnes løbende: '+completed+' af '+current.length+' opslag kontrolleret. Kun opslag inden for '+selectedJobDistanceLimit()+' km vises.';
@@ -915,7 +921,7 @@ async function lookupCompanyInsights(indexOrItem){
  // Calculate from the job's own location immediately while the more extensive employer lookup continues.
  const earlyDistanceTask=(async()=>{
   const facts=item.companyFacts;
-  if(opportunityDistanceKm(item)!==null&&facts.distanceOriginLabel)return true;
+  if(opportunityDistanceKm(item)!==null&&facts.distanceOriginLabel&&facts.distanceTargetLabel==='jobbets arbejdssted')return true;
   const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
   const generic=/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark))$/i.test(jobLocation);
   if(jobLocation&&!generic&&(!facts.location||facts.locationKind==='job')){

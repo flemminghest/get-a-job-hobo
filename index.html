@@ -1175,6 +1175,19 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
  .app-pdf-controls h3{font-size:16px!important}
 }
 
+
+/* Fast CTA efter gennemført jobmatch. Giver plads til indhold og mobil safe area. */
+.fixed-proposals-bar[hidden]{display:none!important}
+.fixed-proposals-bar{position:fixed;left:0;right:0;bottom:0;z-index:990;box-sizing:border-box;padding:12px max(16px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:rgba(255,255,255,.96);border-top:1px solid #dbe5f1;box-shadow:0 -10px 32px rgba(29,56,92,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.fixed-proposals-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.fixed-proposals-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fixed-proposals-copy strong{font-size:14px;color:#1f3853}
+.fixed-proposals-copy span{font-size:12px;color:#64778d}
+.fixed-proposals-bar .fixed-proposals-button{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:240px;min-height:48px;padding:11px 24px;border-radius:13px;background:linear-gradient(110deg,#2f83f7,#2065df);color:white;font-size:15px;line-height:1.2;font-weight:800;box-shadow:0 5px 14px rgba(32,101,223,.17)}
+.fixed-proposals-bar .fixed-proposals-button:hover{filter:brightness(.97)}
+.fixed-proposals-bar .fixed-proposals-button:focus-visible{outline:3px solid #75aaff;outline-offset:3px}
+body.has-fixed-proposals{padding-bottom:calc(94px + env(safe-area-inset-bottom))}
+@media(max-width:640px){.fixed-proposals-bar{padding:10px 14px calc(10px + env(safe-area-inset-bottom))}.fixed-proposals-inner{display:block}.fixed-proposals-copy{display:none}.fixed-proposals-bar .fixed-proposals-button{width:100%;min-width:0;min-height:50px;font-size:16px}body.has-fixed-proposals{padding-bottom:calc(80px + env(safe-area-inset-bottom))}}
 </style></head><body>
 <div class="shell"><aside class="side"><div class="brand"><span class="brand-symbol" aria-hidden="true">✳</span><span class="brand-title"><span class="brand-getajob">Get a Job</span> <span class="brand-hobo">Hobo</span></span></div><nav class="nav" id="nav">
 <button class="active" data-page="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg></span><span>Overblik</span></button>
@@ -1842,6 +1855,14 @@ function continueToApplicationAnyway(){
  closeLowMatchModal();
  go('application',true);
 }
+function updateFixedProposalsBar(){
+ const bar=document.getElementById('fixedProposalsBar');
+ if(!bar)return;
+ const jobPage=document.getElementById('page-job');
+ const visible=!!(state.activeJob&&state.activeJob.competencyAssessment&&jobPage&&jobPage.classList.contains('active'));
+ bar.hidden=!visible;
+ document.body.classList.toggle('has-fixed-proposals',visible);
+}
 function go(name,bypassLowMatchWarning){
  if(name==='application'&&!bypassLowMatchWarning){
   const score=getCurrentCompetencyScore();
@@ -1857,6 +1878,7 @@ function go(name,bypassLowMatchWarning){
  if(name==='opportunities'){syncOpportunityInputs();renderJobOpportunities()}
  if(name==='followups')renderFollowUps();
  if(name==='history')renderHistory();
+ updateFixedProposalsBar();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 document.addEventListener('keydown',event=>{
@@ -2874,7 +2896,7 @@ function renderEvidenceConclusion(job){
 function renderJobResult(animateScore=false){
  const job=state.activeJob;
  const proposalButton=el('makeJobProposals');if(proposalButton)proposalButton.disabled=!job;
- if(!job){el('jobresult').innerHTML='<div class="empty">Indsæt et jobopslag og vælg “Analyser job” for at få en kompetencevurdering baseret på jobkrav, CV-dokumentation og relevante referencekilder.</div>';return}
+ if(!job){updateFixedProposalsBar();el('jobresult').innerHTML='<div class="empty">Indsæt et jobopslag og vælg “Analyser job” for at få en kompetencevurdering baseret på jobkrav, CV-dokumentation og relevante referencekilder.</div>';return}
  const manualSources=sourceStats(),assessment=buildEvidenceAssessment(job),competence=assessment.competence;
  const cvScore=competence.coverageScore==null?0:competence.coverageScore,sourceScore=assessment.metrics.score;
  const heading='<div class="row" style="align-items:start"><div><h2 style="margin-bottom:4px">'+escapeHtml(job.title||'Jobanalyse')+'</h2><div class="muted">'+escapeHtml(job.company||'Virksomhed ikke angivet')+' · '+new Date(job.created).toLocaleString('da-DK')+'</div></div><button class="secondary fit" onclick="go(&quot;application&quot;)">Fortsæt til ansøgning →</button></div>';
@@ -2882,6 +2904,7 @@ function renderJobResult(animateScore=false){
  const scorecards='<div class="notice warnbox">Matchprocenten beregnes ud fra vægtede jobkrav og CV-evidens samt de supplerende oplysninger, du aktivt har bekræftet. Kernekompetencer vægter højere end generelle styrker. Manglende dokumentation er ikke bevis for manglende evne, og matchprocenten er ikke en sandsynlighed for at få jobbet.</div><div class="scoregrid"><div class="score" id="updated-match-score" tabindex="-1"><span>'+(competence.originalCoverageScore!=null?'Opdateret fagligt match':'Vægtet fagligt match')+'</span><strong'+(competence.coverageScore!=null?' data-current-match-score="'+escapeHtml(String(cvScore))+'"':'')+'>'+(competence.coverageScore==null?'—':(animateScore?'0':cvScore)+'/100')+'</strong><div class="bar"><i style="width:'+cvScore+'%"></i></div><small>'+competence.matchLabel+' · '+competence.requiredCount+' krav: '+competence.documentedCount+' dokumenteret, '+competence.mentionedCount+' delvis evidens, '+competence.missingCount+' uden dokumentation.</small></div><div class="score alt"><span>Ekstern kildedækning</span><strong>'+sourceScore+'/100</strong><div class="bar"><i style="width:'+sourceScore+'%"></i></div><small>Måler udelukkende ekstern kildedækning. Det er ikke en del af matchscoren.</small></div></div>';
  el('jobresult').innerHTML=heading+scorecards+comparison+(competence.rows.some(row=>row.status==='mentioned'&&!row.candidateAnswer)?'<div class="clarification-shortcut"><span>Der er '+competence.rows.filter(row=>row.status==='mentioned'&&!row.candidateAnswer).length+' krav med delvis evidens, som du kan afklare.</span><a href="#clarification-section">Gå til spørgsmålene ↓</a></div>':'')+renderEvidenceConclusion(job)+'<div class="result"><h3>Live-søgning og webkilder — detaljer</h3>'+renderLiveResearch(job.liveResearch||null)+'</div><div class="result"><h3>Dine egne supplerende kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
  sourceSummary();
+ updateFixedProposalsBar();
  if(animateScore&&competence.coverageScore!=null){
   const elements=Array.from(document.querySelectorAll('#jobresult [data-current-match-score]'));
   const targetScore=Math.max(0,Math.min(100,Number(competence.coverageScore)||0));
@@ -4042,4 +4065,10 @@ loadPanelAiSettings();
 updateModelIntegrationStatus();
 if(el('appGreetingHex'))el('appGreetingHex').value=state.applicationGreetingHex||'#3E7099';
 if(el('appSignoffHex'))el('appSignoffHex').value=state.applicationSignoffHex||'#1F325E';
-</script><script src="./network-discovery.js"></script></body></html>
+</script><script src="./network-discovery.js"></script><div id="fixedProposalsBar" class="fixed-proposals-bar" hidden aria-label="Hurtig adgang til ansøgningsforslag">
+ <div class="fixed-proposals-inner">
+  <div class="fixed-proposals-copy"><strong>Din jobvurdering er klar</strong><span>Fortsæt direkte til en målrettet ansøgning</span></div>
+  <button class="fixed-proposals-button" type="button" onclick="document.getElementById('makeJobProposals').click()">Lav 3 ansøgningsforslag</button>
+ </div>
+</div>
+</body></html>

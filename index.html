@@ -2095,7 +2095,7 @@ async function analyzeJob(){
  state.history.unshift({id:state.activeJob.id,title,company,contentScore,appScore,matched,gaps,created,job,liveResearch,competencyAssessment});
  state.history=state.history.slice(0,50);
  state.application='';state.proposalTexts=[];state.selectedProposal=-1;el('apptext').value='';el('appPreview').hidden=true;
- makeProposals();renderJobResult();renderProposals();renderHistory();updateOverview();updateIntegrationStatus(liveResearch);
+ renderJobResult();renderProposals();renderHistory();updateOverview();updateIntegrationStatus(liveResearch);
  const rawCount=Number(liveResearch.rawResultCount)||0;
  const relevantCount=Number(liveResearch.relevantSourceCount)||0;
  const domainCount=Number(liveResearch.relevantDomainCount)||0;

@@ -1609,6 +1609,7 @@ body.has-fixed-proposals{padding-bottom:calc(94px + env(safe-area-inset-bottom))
 </div>
 <script>
 const KEY='gajh_demo_v18';
+const CV_STORAGE_KEY='gajh_private_cv_v1';
 const blank={cv:'',jobtitle:'',company:'',jobtext:'',application:'',applicationThemes:[],applicationThemeWeights:{},applicationAnalysisJobKey:'',applicationAnalysisStatus:'idle',applicationAnalysisNotice:'',proposalTexts:[],proposalTitles:[],proposalFocuses:[],proposalMode:'local',proposalNotice:'',selectedProposal:-1,activeJob:null,history:[],connections:[],savedJobs:[],sources:[],panelText:'',panelDocumentType:'cv',panelJob:'',panelRevision:'',applicationGreetingHex:'#3E7099',applicationSignoffHex:'#1F325E',applicationLinkedInUrl:'',applicationPortraitMode:'photo',applicationPortraitModeChosen:false,applicationPortraitDataUrl:'',networkSearchTerms:'CRM, marketing automation, digital marketing, kampagner, content, dataanalyse, AI',networkSearchLocation:'København og omegn',distanceOrigin:'',jobDistanceMaxKm:50,companyFactsCache:{},networkProspects:[],networkCommunities:[],jobOpportunities:[],followUps:[],networkLastSearch:'',jobLastSearch:''};
 function safeHttpUrl(raw){try{const u=new URL(String(raw||''));return (u.protocol==='https:'||u.protocol==='http:')?u.href:''}catch(e){return ''}}
 function safeProfileUrl(raw){try{const u=new URL(String(raw||''));return u.protocol==='https:'&&(u.hostname==='linkedin.com'||u.hostname.endsWith('.linkedin.com'))?u.href:''}catch(e){return ''}}
@@ -1810,6 +1811,38 @@ function normalizeState(raw){
 }
 const PORTRAIT_DEFAULT_MIGRATION_KEY='gajh_portrait_reference_default_v1';
 let state=loadState();
+function readSavedCV(){
+ try{
+  const stored=localStorage.getItem(CV_STORAGE_KEY);
+  if(stored!==null)return stored;
+  // Migrér CV fra den tidligere samlede app-lagring uden at miste teksten.
+  const legacy=localStorage.getItem(KEY);
+  if(legacy){
+   const record=JSON.parse(legacy);
+   if(record&&typeof record.cv==='string'&&record.cv.trim())return record.cv;
+  }
+ }catch(e){}
+ return '';
+}
+function persistCV(text){
+ const value=String(text||'');
+ if(!value.trim())return false;
+ try{
+  localStorage.setItem(CV_STORAGE_KEY,value);
+  return localStorage.getItem(CV_STORAGE_KEY)===value;
+ }catch(e){return false}
+}
+function reportCVStorage(ok,automatic=false){
+ const message=document.getElementById('cvmsg');
+ if(!message)return;
+ if(ok){
+  if(!automatic)notify('cvmsg','CV gemt og kontrolleret i denne browser.','goodbox');
+  else{message.textContent='CV gemt automatisk og kontrolleret.';message.className='notice goodbox';message.hidden=false}
+ }else{
+  message.textContent='CV kunne ikke gemmes i browseren. Download straks en kopi af dit CV, og kontrollér browserens lagerplads og privatlivsindstillinger.';
+  message.className='notice warnbox';message.hidden=false;
+ }
+}
 function loadState(){
  let raw={};try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){raw={}}
  try{
@@ -1822,9 +1855,29 @@ function loadState(){
    localStorage.setItem(PORTRAIT_DEFAULT_MIGRATION_KEY,'1');
   }
  }catch(e){}
- return normalizeState(raw)
+ const normalized=normalizeState(raw);
+ const savedCV=readSavedCV();
+ if(savedCV.trim()){
+  normalized.cv=savedCV;
+  // Egen lagerpost sørger for at andre data aldrig kan overskrive CV'et.
+  persistCV(savedCV);
+ }
+ return normalized;
 }
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));document.getElementById('storageStatus').textContent='Data gemt lokalt i denne browser';return true}catch(e){document.getElementById('storageStatus').textContent='Lokal lagring fuld/blokeret — eksportér backup';return false}}
+function persist(){
+ const otherData={...state};
+ delete otherData.cv;
+ try{
+  localStorage.setItem(KEY,JSON.stringify(otherData));
+  const status=document.getElementById('storageStatus');
+  if(status)status.textContent='App-data gemt lokalt; CV gemmes separat';
+  return true;
+ }catch(e){
+  const status=document.getElementById('storageStatus');
+  if(status)status.textContent='App-lagring fuld/blokeret – CV gemmes separat';
+  return false;
+ }
+}
 function el(id){return document.getElementById(id)}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 let lowMatchReturnFocus=null;
@@ -1983,8 +2036,8 @@ function updateModelIntegrationStatus(){
 
 function updateOverview(){el('kcv').textContent=state.cv.trim()?'Klar':'Ikke tilføjet';el('kanalysis').textContent=state.history.length;el('kcontacts').textContent=state.connections.length;el('kapp').textContent=state.application.trim()?'Kladde':'Tom';el('netCount').textContent=state.connections.length;el('savedJobCount').textContent=state.savedJobs.length;const companies=new Set(state.connections.map(c=>(c.company||'').trim()).filter(Boolean));el('companyCount').textContent=companies.size;el('recruiterCount').textContent=state.connections.filter(isRecruiter).length;updateIntegrationStatus();updateModelIntegrationStatus();persist()}
 function notify(id,msg,cls){const e=el(id);e.hidden=false;e.className='notice '+(cls||'');e.textContent=msg}
-function saveCV(){state.cv=el('cvtext').value;persist();updateOverview();notify('cvmsg','CV gemt lokalt. Det sendes ikke til en server.','goodbox')}
-function clearCV(){if(!confirm('Slette CV fra denne browser?'))return;state.cv='';el('cvtext').value='';persist();updateOverview();notify('cvmsg','CV slettet.','')}
+function saveCV(){const value=el('cvtext').value;if(!value.trim()){notify('cvmsg','CV-feltet er tomt. Brug “Slet CV”, hvis du vil fjerne det gemte CV.','warnbox');return}state.cv=value;const ok=persistCV(value);persist();updateOverview();reportCVStorage(ok)}
+function clearCV(){if(!confirm('Slette CV fra denne browser?'))return;try{localStorage.removeItem(CV_STORAGE_KEY)}catch(e){notify('cvmsg','Kunne ikke slette det gemte CV i denne browser.','warnbox');return}state.cv='';el('cvtext').value='';persist();updateOverview();notify('cvmsg','CV slettet fra den separate browserlagring.','')}
 function readTextFile(ev,target){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{el(target).value=String(r.result||'');if(target==='cvtext')saveCV()};r.readAsText(f);ev.target.value=''}
 function exportText(id,name){const text=el(id).value;if(!text.trim()){alert('Der er ingen tekst at eksportere endnu.');return}download(name,text,'text/plain;charset=utf-8')}
 function download(name,content,type){const blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
@@ -4119,12 +4172,30 @@ function renderNetwork(){
 }function exportNetwork(){const q=(el('netsearch').value||'').toLowerCase().trim();const a=state.connections.filter(c=>(!q||(c.first+' '+c.last+' '+c.company+' '+c.position).toLowerCase().includes(q)));const csv=['First Name,Last Name,Company,Position,URL,Connected On',...a.map(c=>[c.first,c.last,c.company,c.position,c.url,c.date].map(x=>'"'+String(x||'').replace(/"/g,'""')+'"').join(','))].join('\r\n');download('netvaerk-filter.csv',csv,'text/csv;charset=utf-8')}
 function clearNetwork(){if(!confirm('Slette alle importerede forbindelser fra denne browser?'))return;state.connections=[];persist();updateOverview();renderNetwork()}
 function exportBackup(){download('get-a-job-hobo-backup.json',JSON.stringify(state,null,2),'application/json;charset=utf-8');notify('backupmsg','Backup eksporteret. Opbevar filen privat.','goodbox')}
-function restoreBackup(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const obj=JSON.parse(r.result);if(!obj||typeof obj!=='object')throw Error('invalid');state=Object.assign({},blank,obj);persist();hydrate();notify('backupmsg','Backup gendannet lokalt.','goodbox')}catch(e){notify('backupmsg','Kunne ikke læse backup. Vælg en gyldig JSON-backup.','warnbox')}};r.readAsText(f);ev.target.value=''}
-function clearAll(){if(!confirm('Dette sletter CV, job, ansøgning, historik, kilder og importerede forbindelser fra denne browser. Fortsætte?'))return;state={...blank};persist();hydrate();notify('backupmsg','Lokale data slettet.','goodbox')}
+function restoreBackup(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const obj=JSON.parse(r.result);if(!obj||typeof obj!=='object')throw Error('invalid');state=normalizeState(obj);if(state.cv.trim()&&!persistCV(state.cv))throw Error('cv_storage_failed');if(!state.cv.trim())state.cv=readSavedCV();persist();hydrate();notify('backupmsg','Backup gendannet. CV er gemt separat og kontrolleret.','goodbox')}catch(e){notify('backupmsg','Backup kunne ikke gendannes fuldt ud. Kontrollér lagerpladsen og prøv igen.','warnbox')}};r.readAsText(f);ev.target.value=''}
+function clearAll(){if(!confirm('Dette sletter CV, job, ansøgning, historik, kilder og importerede forbindelser fra denne browser. Fortsætte?'))return;try{localStorage.removeItem(CV_STORAGE_KEY)}catch(e){notify('backupmsg','CV kunne ikke slettes fra lageret. Ingen øvrige data blev ændret.','warnbox');return}state={...blank};persist();hydrate();notify('backupmsg','Lokale data slettet.','goodbox')}
 function renderHistory(){const list=el('historyList');list.innerHTML=state.history.length?state.history.map(h=>{const m=getSourceCoverageMetrics(h.liveResearch);return '<div class="item"><h3>'+escapeHtml(h.title||'Job uden titel')+'</h3><p>'+escapeHtml(h.company||'')+' · '+new Date(h.created).toLocaleString('da-DK')+'</p>'+(h.competencyAssessment&&h.competencyAssessment.coverageScore!=null?'<span class="chip">Kompetencedokumentation '+h.competencyAssessment.coverageScore+'/100</span>':h.contentScore!=null?'<span class="chip">Ældre tekstmatch '+h.contentScore+'/100</span>':'<span class="chip">Gemt uden analyse</span>')+(h.liveResearch?'<span class="chip">Kilder '+m.relevant.length+' · '+m.domains.length+' domæner</span>':'')+'<button class="secondary" style="margin-top:8px" onclick="loadHistory('+h.id+')">Åbn job</button></div>'}).join(''):'<div class="empty">Ingen gemte analyser endnu.</div>'}
 function loadHistory(id){const h=state.history.find(x=>x.id===id);if(!h)return;el('jobtitle').value=h.title||'';el('company').value=h.company||'';el('jobtext').value=h.job||'';el('jobContactName').value=h.contactName||'';state.jobContactName=h.contactName||'';if(h.contentScore!=null){state.activeJob={...h,matched:Array.isArray(h.matched)?h.matched:[],gaps:Array.isArray(h.gaps)?h.gaps:[],sources:[],competencyAssessment:h.competencyAssessment||buildCompetencyAssessment(h.job||'',state.cv||'',h.title||'',h.liveResearch)};state.proposalTexts=[];state.application='';state.selectedProposal=-1;el('apptext').value='';renderJobResult();renderProposals();fixedProposalsActivated=true;fixedProposalsReady=false;fixedProposalsTimer=null}go('job')}
 function exportHistory(){const text=state.history.map(h=>[h.title,h.company,h.created,h.contentScore!=null?'Match '+h.contentScore:'/'].join(' · ')+'\n'+h.job).join('\n\n---\n\n');download('jobhistorik.txt',text||'Ingen historik endnu.')}
 function hydrate(){el('cvtext').value=state.cv||'';el('jobtitle').value=state.jobtitle||'';el('company').value=state.company||'';el('jobContactName').value=state.jobContactName||'';el('jobtext').value=state.jobtext||'';el('apptext').value=state.application||'';el('panelDocumentType').value=state.panelDocumentType||'cv';el('paneltext').value=state.panelText||'';el('paneljob').value=state.panelJob||'';el('panelrevision').value=state.panelRevision||'';updatePanelDocumentType(false);renderJobResult();renderProposals();renderSources();renderHistory();renderNetwork();updateOverview()}
+let cvAutoSaveTimer=null;
+el('cvtext').addEventListener('input',()=>{
+ const value=el('cvtext').value;
+ if(cvAutoSaveTimer!==null)clearTimeout(cvAutoSaveTimer);
+ if(!value.trim())return;
+ cvAutoSaveTimer=setTimeout(()=>{
+  cvAutoSaveTimer=null;
+  state.cv=value;
+  const ok=persistCV(value);
+  updateOverview();
+  reportCVStorage(ok,true);
+ },450);
+});
+window.addEventListener('pagehide',()=>{
+ if(cvAutoSaveTimer!==null){clearTimeout(cvAutoSaveTimer);cvAutoSaveTimer=null}
+ const value=el('cvtext')&&el('cvtext').value||'';
+ if(value.trim()&&value!==state.cv){state.cv=value;persistCV(value)}
+});
 el('apptext').addEventListener('input',()=>{state.application=el('apptext').value;markApplicationPdfOutdated();persist();updateOverview()});
 ['jobtitle','company','jobContactName'].forEach(id=>el(id).addEventListener('input',()=>{const field=el(id);if(!/^MANGLER INFO$/i.test(field.value.trim()))field.classList.remove('missing-info-input');if(id==='jobtitle')state.jobtitle=cleanJobFieldValue(field.value);if(id==='company')state.company=cleanJobFieldValue(field.value);if(id==='jobContactName')state.jobContactName=cleanJobFieldValue(field.value);persist()}));el('jobtext').addEventListener('input',()=>{state.jobtext=el('jobtext').value;persist();cancelFixedProposalsBar(true)});
 hydrate();

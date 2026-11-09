@@ -337,6 +337,18 @@ label{font-size:14px;font-weight:750}
 @media(max-width:620px){.competency-assessment{padding:15px}.competency-header{align-items:center}.competency-header h3{font-size:18px}.competency-row-heading{flex-direction:column}.competency-reference{grid-template-columns:minmax(0,1fr)}}
 
 
+.clarification-panel{margin:16px 0;padding:18px;border:2px solid #e7c788;border-radius:16px;background:#fffaf1}
+.clarification-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.clarification-header h3{margin:0;font-size:19px;color:#49391d}
+.clarification-header span{font-size:12px;font-weight:800;color:#845d19}
+.clarification-panel>p{font-size:13px;line-height:1.6;color:#655535}
+.clarification-card{margin-top:12px;padding:14px;border:1px solid #ecdcb9;border-radius:12px;background:white}
+.clarification-card-title{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.clarification-card p{font-size:12px;line-height:1.55}
+.clarification-options{display:grid;gap:8px;margin:12px 0}
+.clarification-options label{display:flex;gap:9px;align-items:flex-start;cursor:pointer;font-size:13px;line-height:1.5}
+.clarification-options input{margin-top:3px;flex:0 0 auto}
+.clarification-card button:disabled{opacity:.45;cursor:not-allowed}
 /* Score temperature meter: red 0–20 through green 80–100 */
 .score-meter{width:180px;max-width:100%;margin:0 0 10px auto}
 .score-meter-number{display:flex;align-items:baseline;justify-content:flex-end;gap:3px;margin-bottom:7px;font-variant-numeric:tabular-nums}
@@ -1614,7 +1626,7 @@ function normalizeCompetencyAssessment(raw){
   priority:String(row.priority||'Nævnt').slice(0,80),weight:Math.max(.1,Math.min(2,Number(row.weight)||1)),
   status:['evidenced','mentioned','missing'].includes(row.status)?row.status:'missing',
   statusLabel:String(row.statusLabel||'').slice(0,200),factor:Math.max(0,Math.min(1,Number(row.factor)||0)),
-  jobEvidence:String(row.jobEvidence||'').slice(0,700),cvEvidence:String(row.cvEvidence||'').slice(0,700),
+  jobEvidence:String(row.jobEvidence||'').slice(0,700),cvEvidence:String(row.cvEvidence||'').slice(0,700),candidateAnswer:String(row.candidateAnswer||'').slice(0,400),
   sourceRefs:Array.isArray(row.sourceRefs)?row.sourceRefs.slice(0,3).filter(ref=>ref&&typeof ref==='object').map(ref=>({title:String(ref.title||'').slice(0,300),url:safeHttpUrl(ref.url),domain:String(ref.domain||'').slice(0,200),categoryId:String(ref.categoryId||'').slice(0,100),kind:String(ref.kind||'').slice(0,200)})):[]
  })): [];
  const references=Array.isArray(raw.references)?raw.references.slice(0,8).filter(ref=>ref&&typeof ref==='object').map(ref=>({title:String(ref.title||'').slice(0,300),url:safeHttpUrl(ref.url),domain:String(ref.domain||'').slice(0,200),categoryId:String(ref.categoryId||'').slice(0,100),kind:String(ref.kind||'').slice(0,200),description:String(ref.description||'').slice(0,500),trust:String(ref.trust||'').slice(0,200),staticReference:!!ref.staticReference})):[];
@@ -2720,6 +2732,67 @@ function buildEvidenceAssessment(job){
  if(competence.capApplied)conclusion+=' Scoren er begrænset af modellens kernekompetenceregel, fordi et afgørende kompetenceområde ikke er dokumenteret.';
  return {metrics,competence,forItems,againstItems,conclusion,sourceStatus};
 }
+
+/* Frivillig kandidatafklaring af delvis evidens. */
+function clarificationOptions(row){
+ const skill=String(row.label||'kompetencen').toLowerCase();
+ return row.id==='languages' ? [
+  ['full','Jeg taler flydende og skriver fejlfrit på det krævede sprog.'],
+  ['written','Jeg skriver sikkert og professionelt på det krævede sprog.'],
+  ['partial','Jeg kan sproget, men ikke på det krævede niveau.'],
+  ['none','Jeg opfylder ikke sprogkravet.']
+ ] : [
+  ['full','Jeg har solid praktisk erfaring med '+skill+' og opfylder kravet.'],
+  ['partial','Jeg har nogen erfaring med '+skill+', men opfylder ikke hele kravet.'],
+  ['none','Jeg har ikke den efterspurgte kompetence.']
+ ];
+}
+function renderClarificationPanel(competence){
+ const pending=competence.rows.map((row,index)=>({...row,index})).filter(row=>row.status==='mentioned'&&!row.candidateAnswer);
+ if(!pending.length)return '';
+ const cards=pending.map(row=>{
+  const name='clarification-'+row.index;
+  return '<div class="clarification-card"><div class="clarification-card-title"><strong>'+escapeHtml(row.label)+'</strong><span class="competency-badge competency-mentioned">Delvis evidens</span></div><p><b>Jobkrav:</b> '+escapeHtml(row.jobEvidence)+'</p><p class="muted">Hvilket udsagn beskriver dine kompetencer bedst?</p><div class="clarification-options">'+clarificationOptions(row).map(([value,label])=>'<label><input type="radio" name="'+name+'" value="'+value+'" onchange="document.getElementById(&quot;clarification-btn-'+row.index+'&quot;).disabled=false"><span>'+escapeHtml(label)+'</span></label>').join('')+'</div><button type="button" disabled id="clarification-btn-'+row.index+'" onclick="reassessClarification('+row.index+')">Vurdér igen</button></div>';
+ }).join('');
+ return '<section class="clarification-panel" aria-label="Delvis evidens – afklar disse krav"><div class="clarification-header"><h3>Delvis evidens – afklar disse krav</h3><span>'+pending.length+' spørgsmål</span></div><p>AI’ens nuværende vurdering gælder automatisk. Svarer du ikke, eller klikker du ikke på “Vurdér igen”, ændres din matchscore ikke.</p>'+cards+'</section>';
+}
+function reassessClarification(index){
+ const job=state.activeJob,competence=job&&job.competencyAssessment;
+ if(!competence||!Array.isArray(competence.rows))return;
+ const row=competence.rows[index];
+ if(!row||row.status!=='mentioned'||row.candidateAnswer)return;
+ const selected=document.querySelector('input[name="clarification-'+index+'"]:checked');
+ if(!selected)return;
+ const choice=clarificationOptions(row).find(item=>item[0]===selected.value);
+ if(!choice)return;
+ const answer=choice[1];
+ row.candidateAnswer=answer;
+ if(selected.value==='full'||selected.value==='written'){
+  row.status='evidenced';row.factor=1;row.statusLabel='Kravet er bekræftet af kandidaten; ikke dokumenteret i CV-teksten.';
+ }else if(selected.value==='partial'){
+  row.status='mentioned';row.factor=.45;row.statusLabel='Kandidaten bekræfter kun delvis opfyldelse af kravet.';
+ }else{
+  row.status='missing';row.factor=0;row.statusLabel='Kandidaten oplyser, at kravet ikke er opfyldt.';
+ }
+ const rows=competence.rows;
+ competence.documentedCount=rows.filter(r=>r.status==='evidenced').length;
+ competence.mentionedCount=rows.filter(r=>r.status==='mentioned').length;
+ competence.missingCount=rows.filter(r=>r.status==='missing').length;
+ competence.totalWeight=rows.reduce((n,r)=>n+Number(r.weight||0),0);
+ competence.weightedPoints=rows.reduce((n,r)=>n+Number(r.weight||0)*Number(r.factor||0),0);
+ competence.rawScore=competence.totalWeight?Math.round(competence.weightedPoints/competence.totalWeight*100):null;
+ competence.coreMissingCount=rows.filter(r=>competence.coreSkillIds&&competence.coreSkillIds.includes(r.id)&&r.status==='missing').length;
+ competence.capApplied=!!(competence.scoreCap!=null&&competence.coreMissingCount>0&&competence.rawScore!=null&&competence.rawScore>competence.scoreCap);
+ competence.coverageScore=competence.rawScore==null?null:competence.capApplied?competence.scoreCap:competence.rawScore;
+ const score=competence.coverageScore;
+ competence.matchLabel=score==null?'Kan ikke vurderes':score<20?'Meget lavt fagligt match':score<40?'Lavt fagligt match':score<60?'Delvist match':score<80?'Godt fagligt match':'Stærkt fagligt match';
+ job.contentScore=score==null?0:score;
+ job.appScore=job.contentScore;
+ const historyItem=state.history.find(item=>item.id===job.id);
+ if(historyItem){historyItem.competencyAssessment=competence;historyItem.contentScore=job.contentScore;historyItem.appScore=job.appScore}
+ persist();renderJobResult();renderHistory();updateOverview();
+}
+
 function renderCompetencyAssessment(assessment){
  if(!assessment||!Array.isArray(assessment.rows)||!assessment.rows.length)return '<section class="competency-assessment"><h3>Kompetencevurdering</h3><p class="muted">Jeg kunne ikke identificere tydelige kompetencekrav i opslaget med den aktuelle ordliste. Tilføj konkrete krav og ansvarsområder, så vurderingen bliver mere præcis.</p></section>';
  const rows=assessment.rows;
@@ -2727,7 +2800,7 @@ function renderCompetencyAssessment(assessment){
  const rowsHtml=rows.map(row=>{
   const cvText=row.cvEvidence?'<p class="competency-evidence"><b>CV-dokumentation:</b> '+escapeHtml(row.cvEvidence)+'</p>':'<p class="competency-evidence muted"><b>CV-dokumentation:</b> Intet relevant eksempel fundet i CV-teksten. Det beviser ikke, at kompetencen mangler.</p>';
   const refs=row.sourceRefs.length?'<div class="competency-links">'+row.sourceRefs.map(ref=>evidenceLink(ref,ref.title||ref.domain)).join(' ')+'</div>':'';
-  return '<article class="competency-row"><div class="competency-row-heading"><div><h4>'+escapeHtml(row.label)+'</h4><span class="competency-priority">'+escapeHtml(row.priority)+' · vægt '+escapeHtml(Number(row.weight).toFixed(1))+'</span></div>'+renderBadge(row)+'</div><p class="competency-evidence"><b>Hvad opslaget siger:</b> '+escapeHtml(row.jobEvidence)+'</p>'+cvText+'<div class="competency-row-footer"><small>'+escapeHtml(row.statusLabel)+'</small>'+refs+'</div></article>';
+  return '<article class="competency-row"><div class="competency-row-heading"><div><h4>'+escapeHtml(row.label)+'</h4><span class="competency-priority">'+escapeHtml(row.priority)+' · vægt '+escapeHtml(Number(row.weight).toFixed(1))+'</span></div>'+renderBadge(row)+'</div><p class="competency-evidence"><b>Hvad opslaget siger:</b> '+escapeHtml(row.jobEvidence)+'</p>'+cvText+'<div class="competency-row-footer"><small>'+escapeHtml(row.statusLabel)+(row.candidateAnswer?' · Dit svar: '+escapeHtml(row.candidateAnswer):'')+'</small>'+refs+'</div></article>';
  }).join('');
  const sourceHtml=assessment.references.length?'<div class="competency-reference-list"><h4>Kompetencereference</h4>'+assessment.references.map(ref=>'<div class="competency-reference"><div><strong>'+escapeHtml(ref.title||ref.domain)+'</strong><small>'+escapeHtml(ref.domain)+' · '+escapeHtml(ref.trust)+'</small>'+(ref.staticReference?'<small>Metodisk reference — tæller ikke som en fundet kilde til dette stillingsopslag.</small>':'')+(ref.description?'<small>'+escapeHtml(ref.description.slice(0,220))+'</small>':'')+'</div>'+evidenceLink(ref,'Åbn kilde')+'</div>').join('')+'</div>':'';
  const score=assessment.coverageScore==null?'—':assessment.coverageScore+'/100';
@@ -2750,7 +2823,7 @@ function renderJobResult(){
  const cvScore=competence.coverageScore==null?0:competence.coverageScore,sourceScore=assessment.metrics.score;
  const heading='<div class="row" style="align-items:start"><div><h2 style="margin-bottom:4px">'+escapeHtml(job.title||'Jobanalyse')+'</h2><div class="muted">'+escapeHtml(job.company||'Virksomhed ikke angivet')+' · '+new Date(job.created).toLocaleString('da-DK')+'</div></div><button class="secondary fit" onclick="go(&quot;application&quot;)">Fortsæt til ansøgning →</button></div>';
  const scorecards='<div class="notice warnbox">Matchprocenten beregnes ud fra vægtede jobkrav og CV-evidens. Kernekompetencer vægter højere end generelle styrker. Manglende dokumentation er ikke bevis for manglende evne, og matchprocenten er ikke en sandsynlighed for at få jobbet.</div><div class="scoregrid"><div class="score"><span>Vægtet fagligt match</span><strong>'+(competence.coverageScore==null?'—':cvScore+'/100')+'</strong><div class="bar"><i style="width:'+cvScore+'%"></i></div><small>'+competence.matchLabel+' · '+competence.requiredCount+' krav: '+competence.documentedCount+' dokumenteret, '+competence.mentionedCount+' delvis evidens, '+competence.missingCount+' uden dokumentation.</small></div><div class="score alt"><span>Ekstern kildedækning</span><strong>'+sourceScore+'/100</strong><div class="bar"><i style="width:'+sourceScore+'%"></i></div><small>Måler udelukkende ekstern kildedækning. Det er ikke en del af matchscoren.</small></div></div>';
- el('jobresult').innerHTML=heading+scorecards+renderEvidenceConclusion(job)+'<div class="result"><h3>Live-søgning og webkilder — detaljer</h3>'+renderLiveResearch(job.liveResearch||null)+'</div><div class="result"><h3>Dine egne supplerende kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
+ el('jobresult').innerHTML=heading+scorecards+renderClarificationPanel(competence)+renderEvidenceConclusion(job)+'<div class="result"><h3>Live-søgning og webkilder — detaljer</h3>'+renderLiveResearch(job.liveResearch||null)+'</div><div class="result"><h3>Dine egne supplerende kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
  sourceSummary();
 }
 function saveJobOnly(){const job=el('jobtext').value.trim();if(!job){notify('jobmsg','Indsæt et jobopslag først.');return}state.jobtitle=el('jobtitle').value;state.company=el('company').value;state.jobContactName=el('jobContactName').value.trim();state.jobtext=job;state.history.unshift({id:Date.now(),title:state.jobtitle,company:state.company,contactName:state.jobContactName,created:new Date().toISOString(),job:job,savedOnly:true});state.history=state.history.slice(0,50);persist();renderHistory();updateOverview();notify('jobmsg','Jobopslag gemt i historikken uden score.','goodbox')}

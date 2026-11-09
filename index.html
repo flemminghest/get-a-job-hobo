@@ -261,6 +261,7 @@ label{font-size:14px;font-weight:750}
 
 /* Search progress modal / lightbox */
 .research-modal[hidden]{display:none!important}.research-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px}.research-modal-backdrop{position:absolute;inset:0;background:rgba(12,28,43,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.research-modal-card{position:relative;width:min(760px,100%);max-height:min(88vh,900px);overflow:auto;background:#fff;border:1px solid rgba(220,232,239,.95);border-radius:24px;padding:clamp(20px,4vw,34px);box-shadow:0 30px 100px rgba(5,23,39,.32);animation:researchModalIn .22s ease-out}@keyframes researchModalIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}.research-modal-heading{display:flex;align-items:center;gap:17px}.research-modal-heading .eyebrow{margin-bottom:4px}.research-modal-heading h2{font-size:clamp(22px,3vw,28px);line-height:1.2;margin:0;color:#1c344b}.research-modal-description{font-size:14px;line-height:1.65;color:#64758a;margin:18px 0 20px}.research-spinner{display:inline-block;flex:0 0 auto;width:42px;height:42px;border:4px solid #d8eee5;border-top-color:#16866b;border-right-color:#16866b;border-radius:50%;animation:researchSpin .8s linear infinite}@keyframes researchSpin{to{transform:rotate(360deg)}}.research-spinner-small{width:16px;height:16px;border-width:2px}.research-modal-progress-row{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800;color:#52667b;margin-bottom:8px}.research-modal-progress{height:8px;border-radius:99px;background:#eaf0f3;overflow:hidden}.research-modal-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#16866b,#69c69d);border-radius:99px;transition:width .25s ease}.research-modal-queries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:18px}.research-modal-query{min-width:0;display:flex;flex-direction:column;gap:5px;padding:12px 13px;border:1px solid #e0e8ed;border-radius:13px;background:#fbfcfd}.research-modal-query strong{font-size:12px;line-height:1.4;color:#223951}.research-modal-query small{font-size:11px;color:#718196;line-height:1.4}.research-modal-query-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#728195}.research-modal-query-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#bec9d4;flex:0 0 auto}.research-modal-query[data-done="true"] .research-modal-query-status:before{background:#16966c}.research-modal-query[data-error="true"] .research-modal-query-status:before{background:#c45353}.research-modal-query[data-done="true"] .research-modal-query-status{color:#217553}.research-modal-query[data-error="true"] .research-modal-query-status{color:#a04444}.research-modal-footer{display:flex;align-items:flex-start;gap:10px;border-top:1px solid #e8edf1;margin-top:18px;padding-top:14px;font-size:11px;line-height:1.55;color:#758497}@media(max-width:600px){.research-modal{padding:10px}.research-modal-card{border-radius:18px;padding:20px 15px;max-height:92vh}.research-modal-queries{grid-template-columns:1fr}.research-modal-heading{align-items:flex-start}.research-modal-heading .research-spinner{width:34px;height:34px}}
+.proposal-countdown-panel{display:flex;align-items:center;gap:16px;margin:18px 0;padding:18px;border:1px solid #d9e9e4;border-radius:16px;background:linear-gradient(135deg,#f1faf6,#fff)}.proposal-countdown-panel[hidden]{display:none!important}.proposal-countdown-panel h3{margin:0 0 4px;font-size:16px;color:#20374e}.proposal-countdown-panel p{margin:0;color:#62748a;font-size:13px;line-height:1.55}.proposal-countdown-number{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 74px;width:74px;height:74px;border-radius:50%;background:#168254;color:#fff;box-shadow:0 6px 18px #16825430}.proposal-countdown-number strong{font-size:34px;line-height:1}.proposal-countdown-number small{font-size:10px;color:#eafff4;text-transform:uppercase;letter-spacing:.08em;margin-top:3px}@media(max-width:500px){.proposal-countdown-panel{align-items:flex-start;padding:14px}.proposal-countdown-number{flex-basis:60px;width:60px;height:60px}.proposal-countdown-number strong{font-size:28px}}
 /* AI thinking modal: spinner, honest indeterminate progress, and elapsed timer */
 .ai-thinking-modal[hidden]{display:none!important}
 .ai-thinking-modal{z-index:12000}
@@ -1416,6 +1417,7 @@ a.job-company-evidence-item:hover{border-color:var(--insight);box-shadow:0 3px 1
   </div>
   <p id="aiThinkingDescription" class="research-modal-description">Jeg gennemgår CV'et og det eventuelle stillingsopslag for at skrive en konkret vurdering. Det kan tage lidt tid afhængigt af tekstens længde.</p>
   <div class="ai-thinking-state" aria-live="polite"><span class="research-spinner research-spinner-small" aria-hidden="true"></span><span id="aiThinkingStatus">Sender forespørgslen til sprogmodellen…</span></div>
+  <div id="proposalCountdownPanel" class="proposal-countdown-panel" hidden aria-live="polite"><div class="proposal-countdown-number"><strong id="proposalCountdownValue">3</strong><small>sek.</small></div><div><h3>Vi gør klar til dine tre forslag</h3><p>Jeg samler jobopslaget, dit CV og dine valg. Derefter starter analysen og skrivningen. Nedtællingen viser, at processen er i gang.</p></div></div>
   <div class="ai-thinking-progress" aria-hidden="true"><span></span></div>
   <div class="ai-thinking-timer-row"><span>Ventetid</span><strong id="aiThinkingTimer">00:00</strong></div>
 
@@ -2065,18 +2067,40 @@ function hideResearchModal(){
 function cleanJobFieldValue(value){const text=String(value||'').trim();return /^(?:\*\*\s*)?MANGLER INFO(?:\s*\*\*)?$/i.test(text)?'':text}
 function markMissingJobField(field){if(!field)return;field.value='MANGLER INFO';field.classList.add('missing-info-input')}
 function setJobFieldFromPosting(id,value){const field=el(id);if(!field)return;const current=cleanJobFieldValue(field.value);if(current){field.value=current;field.classList.remove('missing-info-input');return current}const found=cleanJobFieldValue(value);if(found){field.value=found;field.classList.remove('missing-info-input');return found}markMissingJobField(field);return ''}
+function extractContactFirstName(jobText){
+ const text=String(jobText||'');
+ const patterns=[
+  {weight:110,re:/(?:kontaktperson|contact person)(?:\s*[:\-]\s*|\s+)([\p{Lu}][\p{L}.'’\-]*(?:\s+[\p{Lu}][\p{L}.'’\-]*){0,3})/giu},
+  {weight:105,re:/(?:du er velkommen til at kontakte|du kan kontakte|contact (?:the )?person)\s+([\p{Lu}][\p{L}.'’\-]*(?:\s+[\p{Lu}][\p{L}.'’\-]*){0,3})/giu},
+  {weight:100,re:/(?:spørgsmål.{0,100}?(?:kontakt|kontakte)|hør mere hos|mere information hos|for yderligere information kontakt)\s+([\p{Lu}][\p{L}.'’\-]*(?:\s+[\p{Lu}][\p{L}.'’\-]*){0,3})/giu},
+  {weight:90,re:/(?:kontakt|contact)\s+(?:til|hos)\s+([\p{Lu}][\p{L}.'’\-]*(?:\s+[\p{Lu}][\p{L}.'’\-]*){0,3})/giu},
+  {weight:80,re:/(?:kontakt|contact)\s+([\p{Lu}][\p{L}.'’\-]*(?:\s+[\p{Lu}][\p{L}.'’\-]*){0,3})/giu}
+ ];
+ const reject=/^(?:hr|team(?:et)?|os|vores|capio|virksomheden|kommunikation|marketing|recruitment|rekruttering|the|our|you|stilling|arbejdsgiver|kontakt)$/iu;
+ const candidates=[];
+ for(const pattern of patterns){
+  pattern.re.lastIndex=0;let match;
+  while((match=pattern.re.exec(text))!==null){
+   const full=String(match[1]||'').trim().replace(/[.,;:]+$/,'');
+   const first=full.split(/\s+/)[0]||'';
+   if(!first||!/\p{Lu}/u.test(first[0])||reject.test(first)||first.length<2)continue;
+   const nearby=text.slice(match.index,Math.min(text.length,pattern.re.lastIndex+100));
+   const score=pattern.weight+(full.split(/\s+/).length>1?4:0)+(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(nearby)?8:0);
+   candidates.push({first,score,index:match.index});
+  }
+ }
+ candidates.sort((a,b)=>b.score-a.score||a.index-b.index);
+ return candidates.length?candidates[0].first:'';
+}
 function inferJobMetadata(jobText){
  const text=String(jobText||'');
  const titleMatch=text.match(/\bjobtitel\s*[:\-]\s*([^\n.,;]{2,80})/i)||text.match(/\bsom\s+(marketingansvarlig)\b/i)||text.match(/\bvi\s+søger\s+(?:en|et)\s+([^\n.,;]{3,80}?)(?=\s+(?:til|hos|der|med|som)\b|[.,;\n]|$)/i);
  let title=titleMatch?String(titleMatch[1]||'').trim().replace(/\s+/g,' '):'';
  title=title.replace(/\s+(?:får du|hos|i hverdagen).*$/i,'').trim();if(title)title=title.charAt(0).toLocaleUpperCase('da-DK')+title.slice(1);
  let company='';
- const capio=text.match(/\bCapio\s+Privathospital\b/i);
- if(capio)company='Capio';
+ if(/\bCapio\s+Privathospital\b/i.test(text))company='Capio';
  if(!company){const companyHeading=text.match(/(?:^|\n)\s*Om\s+([A-ZÆØÅ][\p{L}0-9&.'’-]*(?:\s+[A-ZÆØÅ][\p{L}0-9&.'’-]*){0,3})/u);if(companyHeading)company=companyHeading[1].replace(/\s+Privathospital$/i,'').trim()}
- let contact='';
- const contactPatterns=[/(?:du er velkommen til at kontakte|kontaktperson|kontakt|spørgsmål kan rettes til|hør mere hos)\s*(?:[:\-]\s*|\s+til\s+|\s+hos\s+)?([A-ZÆØÅ][A-Za-zÆØÅæøåÉéÜüÖöÄä.'-]+(?:\s+[A-ZÆØÅ][A-Za-zÆØÅæøåÉéÜüÖöÄä.'-]+){0,2})/i];
- for(const re of contactPatterns){const m=text.match(re);if(m&&m[1]&&!/^(team|teamet|os|vores|hr)$/i.test(m[1])){contact=m[1].trim().split(/\s+/)[0];break}}
+ const contact=extractContactFirstName(text);
  return {title,company,contact};
 }
 function fillJobFieldsFromPosting(jobText){
@@ -2404,23 +2428,25 @@ async function makeProposals(){
  const contact=getApplicationContact(j);
  const greetingLine=getApplicationGreeting(j,company,contact);
  const settings=typeof getPanelAiSettings==='function'?getPanelAiSettings():{url:'',code:''};
- state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.generatingProposals=true;state.proposalMode=settings.url&&settings.code?'ai':'local';
- state.proposalNotice=settings.url&&settings.code?'Analyserer jobopslaget på ny og skriver tre nye forslag…':'AI-forbindelsen mangler. Der sendes ingen AI-forespørgsel; appen laver lokale forslag.';
- persist();renderProposals();
- if(settings.url&&settings.code){
-  const analysisReady=await ensureApplicationAnalysis(true);
-  if(!analysisReady){state.generatingProposals=false;state.proposalNotice='Jobopslaget kunne ikke analyseres på ny. Kontrollér AI-forbindelsen, og prøv igen.';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');return}
- }
  const currentPreferences=getApplicationPreferences();
  const hasCustomThemeWeights=currentPreferences.themes.some(theme=>Number(currentPreferences.weights[theme.id]||0)>0);
  if(hasCustomThemeWeights&&(!settings.url||!settings.code)){
   state.generatingProposals=false;state.proposalNotice='Dine tema-vægtninger kræver en aktiv AI-forbindelse. Vægtningerne er gemt, men ikke anvendt.';persist();renderProposals();
   notify('proposalState','Dine tema-vægtninger kræver en aktiv AI-forbindelse. Gå til “Spørg panelet”, og kontrollér AI-indstillingerne. Vægtningerne er gemt, men er ikke anvendt.','warnbox');return;
  }
+ state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.generatingProposals=true;state.proposalMode=settings.url&&settings.code?'ai':'local';
+ state.proposalNotice=settings.url&&settings.code?'Forbereder en frisk jobanalyse og tre nye forslag…':'AI-forbindelsen mangler. Der sendes ingen AI-forespørgsel; appen laver lokale forslag.';
+ persist();renderProposals();
+ showAiThinkingModal('proposals');
+ await runProposalCountdown();
+ if(settings.url&&settings.code){
+  const analysisReady=await ensureApplicationAnalysis(true);
+  if(!analysisReady){state.generatingProposals=false;state.proposalNotice='Jobopslaget kunne ikke analyseres på ny. Kontrollér AI-forbindelsen, og prøv igen.';persist();hideAiThinkingModal();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');return}
+ }
  if(settings.url&&settings.code){
   state.proposalMode='ai';state.proposalNotice='Jobopslaget er genanalyseret. Sprogmodellen skriver nu tre nye udkast…';
   persist();renderProposals();
-  showAiThinkingModal('proposals');
+  if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Analysen er klar. Nu sendes en ny forespørgsel om tre ansøgningsforslag…';
   try{
    const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-drafts',cv,job:jobText,title:j.title||state.jobtitle||'',company,contactName:contact,greetingLine,authorName:'Jacob',applicationPreferences:(()=>{const p=getApplicationPreferences();return {length:p.lengthKey,targetLines:p.lines,includeExamples:p.includeExamples,toneOfVoice:p.toneOfVoice,paragraphStructure:p.structure,themes:p.themes,weights:p.weights,instructions:"Skriv på dansk i Jacobs direkte, personlige og let uformelle stil. Hold afsnit korte og adskilte. Rækkefølge: motivation, bidrag/relevant erfaring, konkrete eksempler kun hvis valgt og CV’et understøtter dem, arbejdsform/samarbejde, naturlig afslutning. Undgå generiske salgspåstande og opfundne fakta."}})()})});
    let data;try{data=await response.json()}catch(e){data=null}
@@ -2472,7 +2498,8 @@ async function makeProposals(){
  const fallback=buildLocalApplicationDrafts(j);
  state.proposalTexts=fallback.drafts.map(d=>d.text);state.proposalTitles=fallback.drafts.map(d=>d.title);state.proposalFocuses=fallback.drafts.map(d=>d.focus);state.proposalMode='local';state.generatingProposals=false;
  state.proposalNotice='Der blev ikke sendt en ny AI-forespørgsel, fordi AI-endpoint og adgangskode ikke er konfigureret. Her er i stedet lokale, stiltilpassede forslag. Opsæt AI under “Spørg panelet” for at få nye forslag skrevet af sprogmodellen.';
- state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');
+ setDraftModalProgress(100,'Tre lokale forslag er klar','Forslagene er lavet ud fra CV’et og opslaget. De er lokale skabeloner, ikke svar fra sprogmodellen.',2,true);
+ hideAiThinkingModal();state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');
 }
 
 function sourceTrustAssessment(source,research){
@@ -3499,6 +3526,7 @@ function renderAiPersonaResult(item,documentType){
 }
 let aiThinkingTicker=null;
 let aiThinkingStartedAt=0;
+let proposalCountdownRemaining=0;
 let aiThinkingPreviousOverflow='';
 function setDraftModalProgress(percent,heading,caption,activeStep,complete){
  const safePercent=Math.max(0,Math.min(100,Math.round(percent)));
@@ -3532,6 +3560,11 @@ function updateAiThinkingModal(){
   if(elapsed>=24){heading='Afventer de færdige forslag';caption='Svaret samles på serveren. Jeg viser først 100 %, når alle tre udkast er modtaget og kontrolleret.';status='Det tager lidt længere tid end normalt. Forbindelsen er stadig i gang…'}
   setDraftModalProgress(percent,heading,caption,1,false);
   if(el('draftProgressCaption'))el('draftProgressCaption').textContent=caption;
+  if(proposalCountdownRemaining>0){
+   const countdown=el('proposalCountdownValue');if(countdown)countdown.textContent=String(proposalCountdownRemaining);
+   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Vi starter analysen om '+proposalCountdownRemaining+'…';
+   return;
+  }
   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent=status;
   return;
  }
@@ -3555,7 +3588,7 @@ function showAiThinkingModal(mode,config){
   if(el('aiThinkingEyebrow'))el('aiThinkingEyebrow').textContent='ANSØGNING · AI-SKRIVEVÆRKSTED';
   if(el('aiThinkingEyebrow'))el('aiThinkingEyebrow').style.color='#7957dd';
   if(el('aiThinkingTitle'))el('aiThinkingTitle').textContent='Vi skriver tre forslag til dig';
-  if(el('aiThinkingDescription'))el('aiThinkingDescription').textContent='Jeg bruger dit CV og det gemte jobopslag til at lave tre målrettede udkast. Du beholder kontrollen og vælger selv, hvilket forslag du vil arbejde videre med.';
+  if(el('aiThinkingDescription'))el('aiThinkingDescription').textContent='Jeg gennemgår stillingsopslaget og dit CV, finder de mest relevante krav og erfaringer og skriver derefter tre forskellige ansøgningsforslag. Nedtællingen viser, at klargøringen er i gang.';
   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Klargør materiale og sender forespørgslen…';
   if(el('draftLiveProgress'))el('draftLiveProgress').hidden=false;
   if(el('aiThinkingFooter'))el('aiThinkingFooter').textContent='Der søges ikke på nettet i dette trin. Procenten er en visuel procesindikator og går først til 100 %, når de tre udkast er modtaget og kontrolleret.';
@@ -3575,7 +3608,23 @@ function showAiThinkingModal(mode,config){
  updateAiThinkingModal();
  aiThinkingTicker=setInterval(updateAiThinkingModal,1000);
 }
+async function runProposalCountdown(){
+ const panel=el('proposalCountdownPanel'),value=el('proposalCountdownValue'),progress=el('draftLiveProgress');
+ if(!panel||!value)return;
+ if(progress)progress.hidden=true;
+ panel.hidden=false;
+ for(let remaining=3;remaining>=1;remaining--){
+  proposalCountdownRemaining=remaining;value.textContent=String(remaining);
+  if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Vi starter analysen om '+remaining+'…';
+  await new Promise(resolve=>setTimeout(resolve,1000));
+ }
+ proposalCountdownRemaining=0;panel.hidden=true;if(progress)progress.hidden=false;
+ if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Nedtællingen er slut. Nu gennemgår jeg opslaget og forbereder de tre forslag…';
+ setDraftModalProgress(15,'Klargør CV og jobopslag','Jeg gennemgår kravene i opslaget og udvælger erfaringer fra dit CV.',0,false);
+}
 function hideAiThinkingModal(){
+ proposalCountdownRemaining=0;
+ const countdownPanel=el('proposalCountdownPanel');if(countdownPanel)countdownPanel.hidden=true;
  const modal=el('aiThinkingModal');
  if(aiThinkingTicker!==null){clearInterval(aiThinkingTicker);aiThinkingTicker=null}
  if(modal)modal.hidden=true;

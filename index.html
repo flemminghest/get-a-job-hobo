@@ -306,6 +306,19 @@ label{font-size:14px;font-weight:750}
 .evidence-source-row strong{font-size:12px;line-height:1.4;color:#2c4157;overflow-wrap:anywhere}
 .evidence-source-row small{font-size:10px;line-height:1.45;color:#728195;overflow-wrap:anywhere}
 @media(max-width:720px){.evidence-conclusion{padding:16px}.evidence-conclusion-header{flex-direction:column}.evidence-pro-con{grid-template-columns:1fr}.evidence-source-row{grid-template-columns:minmax(0,1fr)}}
+/* To rolige, lige høje paneler med uafhængigt rul og scrollhint. */
+.evidence-pro-con{align-items:stretch}
+.evidence-pro-con>.evidence-column{position:relative;display:flex;flex-direction:column;height:clamp(380px,65vh,640px);min-height:0;overflow:hidden}
+.evidence-pro-con>.evidence-column>h4{flex:0 0 auto;position:relative;z-index:1;margin-bottom:12px}
+.evidence-scroll-area{flex:1 1 auto;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b9cbe0 transparent;padding:0 6px 26px 0}
+.evidence-scroll-area::-webkit-scrollbar{width:7px}
+.evidence-scroll-area::-webkit-scrollbar-thumb{background:#b9cbe0;border-radius:99px}
+.evidence-scroll-area:focus-visible{outline:2px solid #4a90e2;outline-offset:-2px;border-radius:8px}
+.evidence-scroll-cue[hidden]{display:none!important}
+.evidence-scroll-cue{position:absolute;z-index:3;bottom:12px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:6px;justify-content:center;white-space:nowrap;border:1px solid #cfdeec;border-radius:999px;padding:6px 12px;box-shadow:0 3px 14px rgba(25,49,77,.12);background:rgba(255,255,255,.96);color:#315a80;font-size:12px;font-weight:800}
+.evidence-scroll-cue:hover{background:#eef5fc}
+.evidence-scroll-cue:focus-visible{outline:2px solid #4a90e2;outline-offset:2px}
+@media(max-width:720px){.evidence-pro-con>.evidence-column{height:auto;max-height:none;min-height:0}.evidence-pro-con>.evidence-column:has(.evidence-scroll-area.is-overflowing){height:clamp(340px,63vh,560px)}.evidence-scroll-area{max-height:clamp(290px,58vh,510px)}}
 /* Competency evidence panel */
 .competency-assessment{margin:15px 0 18px;padding:20px;border:1px solid #dbe7e5;border-radius:18px;background:linear-gradient(145deg,#fff 0%,#fbfdfc 100%)}
 .competency-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
@@ -3045,7 +3058,26 @@ function renderEvidenceConclusion(job){
  const renderItems=(items,type)=>items.length?items.map(item=>'<article class="evidence-point"><span class="evidence-point-icon" aria-hidden="true">'+(type==='for'?'✓':'!')+'</span><div><p>'+escapeHtml(item.text)+'</p></div></article>').join(''):'<p class="muted evidence-empty">'+(type==='for'?'Ingen kompetencer med fundet CV-evidens endnu.':'Ingen yderligere kompetencegab identificeret ud over dem, der vises ovenfor.')+'</p>';
  const topSources=m.ranked.slice(0,5).map(source=>{const trust=sourceTrustAssessment(source,job.liveResearch);return '<article class="evidence-source-row"><div><strong>'+escapeHtml(source.title||source.domain)+'</strong><small>'+escapeHtml(source.domain||'')+' · '+escapeHtml(trust.label)+'</small><small>'+escapeHtml(trust.why)+'</small></div>'+evidenceLink(source,'Åbn kilde')+'</article>'}).join('');
  const sourceNote='<div class="notice" style="margin:0 0 14px"><b>Ekstern kildekontrol:</b> '+escapeHtml(assessment.sourceStatus||sourceStatus)+'. Dette påvirker ikke den faglige matchscore. Webresultater kan hjælpe med at kontrollere originalopslag og typiske krav, men hverken et manglende søgeresultat eller en manglende ekstern kilde er et argument imod kandidaten.</div>';
- return '<section class="evidence-conclusion" aria-labelledby="evidenceConclusionTitle"><div class="evidence-conclusion-header"><div><div class="eyebrow">VÆGTET KOMPETENCEVURDERING</div><h3 id="evidenceConclusionTitle">Konklusion — match, styrker og kompetencegab</h3></div><span class="evidence-status">'+escapeHtml(competence.matchLabel||'Kan ikke vurderes')+'</span></div><p class="evidence-conclusion-summary">'+escapeHtml(assessment.conclusion)+'</p>'+sourceNote+'<div class="evidence-pro-con"><div class="evidence-column evidence-for"><h4><span>✓</span> Taler for</h4>'+renderItems(assessment.forItems,'for')+'</div><div class="evidence-column evidence-against"><h4><span>!</span> Taler imod / skal afklares</h4>'+renderClarificationPanel(competence,true)+renderItems(assessment.againstItems.filter(item=>!item.isClarification),'against')+'</div></div>'+renderCompetencyAssessment(competence)+'<div class="evidence-sources"><h4>Eksterne kilder — separat kontrol</h4><p class="muted">Disse kilder giver job- og virksomhedskontekst. De påvirker ikke kandidatens faglige matchscore. ESCO er en kompetencereference, ikke dokumentation for kandidatens faktiske færdigheder.</p>'+(topSources||'<p class="muted">Ingen relevante kilder fundet i denne søgning. Matchvurderingen bygger stadig på teksten i jobopslaget og CV’et.</p>')+'</div></section>';
+ return '<section class="evidence-conclusion" aria-labelledby="evidenceConclusionTitle"><div class="evidence-conclusion-header"><div><div class="eyebrow">VÆGTET KOMPETENCEVURDERING</div><h3 id="evidenceConclusionTitle">Konklusion — match, styrker og kompetencegab</h3></div><span class="evidence-status">'+escapeHtml(competence.matchLabel||'Kan ikke vurderes')+'</span></div><p class="evidence-conclusion-summary">'+escapeHtml(assessment.conclusion)+'</p>'+sourceNote+'<div class="evidence-pro-con"><div class="evidence-column evidence-for"><h4><span>✓</span> Taler for</h4><div class="evidence-scroll-area" tabindex="0" aria-label="Indhold under Taler for — rul for at se mere">'+renderItems(assessment.forItems,'for')+'</div><button class="evidence-scroll-cue" type="button" hidden onclick="scrollEvidenceColumn(this)" aria-label="Rul ned under Taler for">↓ <span>Se mere</span></button></div><div class="evidence-column evidence-against"><h4><span>!</span> Taler imod / skal afklares</h4><div class="evidence-scroll-area" tabindex="0" aria-label="Indhold under Taler imod — rul for at se flere afklaringer">'+renderClarificationPanel(competence,true)+renderItems(assessment.againstItems.filter(item=>!item.isClarification),'against')+'</div><button class="evidence-scroll-cue" type="button" hidden onclick="scrollEvidenceColumn(this)" aria-label="Rul ned under Taler imod">↓ <span>Se flere</span></button></div></div>'+renderCompetencyAssessment(competence)+'<div class="evidence-sources"><h4>Eksterne kilder — separat kontrol</h4><p class="muted">Disse kilder giver job- og virksomhedskontekst. De påvirker ikke kandidatens faglige matchscore. ESCO er en kompetencereference, ikke dokumentation for kandidatens faktiske færdigheder.</p>'+(topSources||'<p class="muted">Ingen relevante kilder fundet i denne søgning. Matchvurderingen bygger stadig på teksten i jobopslaget og CV’et.</p>')+'</div></section>';
+}
+function scrollEvidenceColumn(button){
+ const content=button&&button.parentElement&&button.parentElement.querySelector('.evidence-scroll-area');
+ if(!content)return;
+ content.scrollBy({top:Math.max(180,content.clientHeight*.65),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+function initEvidenceColumnScrolling(){
+ const areas=document.querySelectorAll('#jobresult .evidence-pro-con .evidence-scroll-area');
+ areas.forEach(area=>{
+  const button=area.parentElement.querySelector('.evidence-scroll-cue');
+  const refresh=()=>{
+   const overflowing=area.scrollHeight>area.clientHeight+8;
+   area.classList.toggle('is-overflowing',overflowing);
+   if(button)button.hidden=!overflowing||area.scrollTop+area.clientHeight>=area.scrollHeight-12;
+  };
+  area.addEventListener('scroll',refresh,{passive:true});
+  if(window.ResizeObserver){const observer=new ResizeObserver(refresh);observer.observe(area);if(area.firstElementChild)observer.observe(area.firstElementChild)}
+  refresh();
+ });
 }
 function renderJobResult(animateScore=false){
  const job=state.activeJob;
@@ -3058,6 +3090,7 @@ function renderJobResult(animateScore=false){
  const scorecards='<div class="notice warnbox">Matchprocenten beregnes ud fra vægtede jobkrav og CV-evidens samt de supplerende oplysninger, du aktivt har bekræftet. Kernekompetencer vægter højere end generelle styrker. Manglende dokumentation er ikke bevis for manglende evne, og matchprocenten er ikke en sandsynlighed for at få jobbet.</div><div class="scoregrid"><div class="score" id="updated-match-score" tabindex="-1"><span>'+(competence.originalCoverageScore!=null?'Opdateret fagligt match':'Vægtet fagligt match')+'</span><strong'+(competence.coverageScore!=null?' data-current-match-score="'+escapeHtml(String(cvScore))+'"':'')+'>'+(competence.coverageScore==null?'—':(animateScore?'0':cvScore)+'/100')+'</strong><div class="bar"><i style="width:'+cvScore+'%"></i></div><small>'+competence.matchLabel+' · '+competence.requiredCount+' krav: '+competence.documentedCount+' dokumenteret, '+competence.mentionedCount+' delvis evidens, '+competence.missingCount+' uden dokumentation.</small></div><div class="score alt"><span>Ekstern kildedækning</span><strong>'+sourceScore+'/100</strong><div class="bar"><i style="width:'+sourceScore+'%"></i></div><small>Måler udelukkende ekstern kildedækning. Det er ikke en del af matchscoren.</small></div></div>';
  el('jobresult').innerHTML=heading+scorecards+comparison+(competence.rows.some(row=>row.status==='mentioned'&&!row.candidateAnswer)?'<div class="clarification-shortcut"><span>Der er '+competence.rows.filter(row=>row.status==='mentioned'&&!row.candidateAnswer).length+' krav med delvis evidens, som du kan afklare.</span><a href="#clarification-section">Gå til spørgsmålene ↓</a></div>':'')+renderEvidenceConclusion(job)+'<div class="result"><h3>Live-søgning og webkilder — detaljer</h3>'+renderLiveResearch(job.liveResearch||null)+'</div><div class="result"><h3>Dine egne supplerende kilder</h3>'+escapeHtml(manualSources.message)+'</div><div class="toolbar"><button onclick="makeProposals();go(&quot;application&quot;)">Lav 3 ansøgningsforslag</button><button class="secondary" onclick="exportJob()">Eksportér analyse</button></div>';
  sourceSummary();
+ initEvidenceColumnScrolling();
  updateFixedProposalsBar();
  if(animateScore&&competence.coverageScore!=null){
   const elements=Array.from(document.querySelectorAll('#jobresult [data-current-match-score]'));

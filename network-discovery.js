@@ -699,12 +699,34 @@ async function resolveDistanceOrigin(){
  }
  return {...FREDERIKSBERG_ORIGIN,displayName:FREDERIKSBERG_ORIGIN.label,personalized:false,originLabel:FREDERIKSBERG_ORIGIN.label,geocodeFailed:!!raw};
 }
+async function resolveJobPostingDestination(item,facts){
+ const generic=value=>/^(?:denmark|danmark|dk|remote|remote jobs?|remote\\s*[·,-]\\s*(?:denmark|danmark)|danmark\\s*[·,-]\\s*arbejdssted skal bekræftes|denmark\\s*[·,-]\\s*workplace to be confirmed)$/i.test(String(value||'').trim())||/(?:arbejdssted skal bekræftes|kontrollér arbejdssted|confirm workplace|location to be confirmed)/i.test(String(value||''));
+ const direct=String(item.jobLocation||item.location||item.city||'').trim();
+ if(direct&&!generic(direct))return direct;
+ const saved=String(facts&&facts.location||'').trim();
+ if(saved&&facts.locationKind==='job'&&!generic(saved))return saved;
+ if(item.distanceDestinationLookupAt&&Date.now()-Date.parse(item.distanceDestinationLookupAt)<6*60*60*1000)return '';
+ item.distanceDestinationLookupAt=new Date().toISOString();
+ const url=safeHttpUrl(item.url);if(!url)return '';
+ try{
+  const context=await fetchJsonTimeout(COMPANY_CONTEXT_API+'?'+new URLSearchParams({url}).toString(),18000);
+  const structured=[context&&context.jobLocation,context&&context.workLocation,context&&context.work_location,context&&context.job_location,context&&context.workplace,context&&context.address];
+  for(const value of structured){const text=typeof value==='string'?value:(value&&typeof value==='object'?[value.addressLocality,value.addressRegion,value.addressCountry,value.streetAddress].filter(Boolean).join(', '):'');if(text&&!generic(text))return String(text).trim().slice(0,180)}
+  const pageText=fullJobContextText(context);
+  const patterns=[/(?:job\\s+)?location|work\\s+location|workplace|office\\s+location|based\\s+in|arbejdssted|arbejdsplads|lokation|arbejdsadresse/i];
+  if(patterns.length&&pageText){
+   const label=/(?:job\\s+)?location|work\\s+location|workplace|office\\s+location|based\\s+in|arbejdssted|arbejdsplads|lokation|arbejdsadresse\\s*[:–—-]\\s*([^\\n|.;]{3,100})/ig;
+   let match;while((match=label.exec(pageText))){const value=String(match[1]||'').trim().replace(/^(?:is|:|-|–)\\s*/i,'').replace(/\\s{2,}/g,' ');if(value&&!generic(value)&&!/^remote(?:ly)?$/i.test(value))return value.slice(0,180)}
+  }
+ }catch(error){}
+ return '';
+}
 async function updateOpportunityDistance(item,facts){
  if(!item)return false;
  facts=facts||item.companyFacts||(item.companyFacts={});
  const sourceLocation=String(facts.location||'').trim();
  const candidates=[];
- const jobLocation=String(item.jobLocation||item.location||item.city||'').trim();
+ const jobLocation=await resolveJobPostingDestination(item,facts);
  const isGenericLocation=value=>/^(?:denmark|danmark|dk|remote|remote jobs?|remote\s*[·,-]\s*(?:denmark|danmark)|danmark\s*[·,-]\s*arbejdssted skal bekræftes|denmark\s*[·,-]\s*workplace to be confirmed)$/i.test(String(value||'').trim())||/(?:arbejdssted skal bekræftes|kontrollér arbejdssted|confirm workplace|location to be confirmed)/i.test(String(value||''));
  if(jobLocation&&!isGenericLocation(jobLocation))candidates.push({value:jobLocation,kind:'job'});
  else if(sourceLocation&&facts.locationKind==='job'&&!isGenericLocation(sourceLocation))candidates.push({value:sourceLocation,kind:'job'});

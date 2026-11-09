@@ -421,15 +421,18 @@ async function queryIndex(query,terms,profile){
  }
  const searchVariants=[query.query,query.fallbackQuery,...(query.alternativeQueries||[])].filter((value,index,all)=>value&&all.indexOf(value)===index);
  const unique=new Map(),errors=[],attempts=[];
- let totalRaw=0,totalMapped=0;
- for(let i=0;i<searchVariants.length;i++){
+ let totalRaw=0,totalMapped=0,pageBudget=30;
+ for(let i=0;i<searchVariants.length&&pageBudget>0;i++){
   const text=searchVariants[i];let rows=[];
   try{
    const firstPage=await request(text,1);
-   const pageLimit=Math.min(5,Math.max(1,firstPage.totalPages||(firstPage.hasNext?2:1)));
+   const availablePages=Math.max(1,firstPage.totalPages||(firstPage.hasNext?2:1));
+   const pageLimit=Math.min(pageBudget,availablePages);
+   pageBudget-=pageLimit;
    const pageResponses=[firstPage];
-   if(pageLimit>1){
-    const extraPages=await Promise.allSettled(Array.from({length:pageLimit-1},(_,index)=>request(text,index+2)));
+   for(let pageStart=2;pageStart<=pageLimit;pageStart+=5){
+    const pageEnd=Math.min(pageLimit,pageStart+4);
+    const extraPages=await Promise.allSettled(Array.from({length:pageEnd-pageStart+1},(_,index)=>request(text,pageStart+index)));
     extraPages.forEach(result=>{
      if(result.status==='fulfilled')pageResponses.push(result.value);
      else errors.push(String(result.reason&&result.reason.message||result.reason).slice(0,140));

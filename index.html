@@ -2446,7 +2446,6 @@ function getApplicationTeam(job){
 function getApplicationGreeting(job,company,contact){
  const team=getApplicationTeam(job);
  if(contact)return 'KÆRE '+contact+', '+team+' og hvem der ellers læser med';
- if(company)return 'KÆRE '+team+' hos '+company+' og hvem der ellers læser med';
  return 'KÆRE '+team+' og hvem der ellers læser med';
 }
 function extractApplicationTasks(jobText){

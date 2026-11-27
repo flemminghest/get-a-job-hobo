@@ -1787,7 +1787,7 @@ function normalizeState(raw){
  out.applicationLinkedInUrl=safeApplicationLinkedInUrl(raw.applicationLinkedInUrl)||'';
  out.applicationPortraitModeChosen=raw.applicationPortraitModeChosen===true;
  out.applicationPortraitMode=raw.applicationPortraitMode==='avatar'&&out.applicationPortraitModeChosen?'avatar':'photo';
- out.applicationPortraitDataUrl=typeof raw.applicationPortraitDataUrl==='string'&&/^data:image\/(?:jpeg|png);base64,/i.test(raw.applicationPortraitDataUrl)&&raw.applicationPortraitDataUrl.length<=700000?raw.applicationPortraitDataUrl:'';
+ out.applicationPortraitDataUrl=typeof raw.applicationPortraitDataUrl==='string'&&/^data:image\/(?:jpeg|png);base64,/i.test(raw.applicationPortraitDataUrl)&&raw.applicationPortraitDataUrl.length<=1500000?raw.applicationPortraitDataUrl:'';
  for(const key of Object.keys(limits))if(typeof raw[key]==='string')out[key]=raw[key].slice(0,limits[key]);
  out.applicationThemes=Array.isArray(raw.applicationThemes)?raw.applicationThemes.slice(0,6).filter(t=>t&&typeof t==='object'&&!Array.isArray(t)).map((t,i)=>({id:String(t.id||'theme-'+i).replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,80),title:String(t.title||'').slice(0,100),summary:String(t.summary||t.description||'').slice(0,260),bullets:Array.isArray(t.bullets)?t.bullets.slice(0,2).filter(v=>typeof v==='string').map(v=>v.slice(0,120)):[]})).filter(t=>t.id&&t.title&&t.summary):[];
   out.applicationThemeWeights={};
@@ -3201,22 +3201,29 @@ async function registerApplicationPdfFonts(doc){
 }
 
 function drawPdfHeader(doc,portraitDataUrl){
- // Headeren følger det vedhæftede brevpapir: skrå overkant, grå kontaktfelter og stort portræt.
+ // Exact geometry from approved proof: common straight top and bottom edges.
+ const joinX=77, darkX=152;
+ const joinTop=7.5*(1-joinX/darkX);
+ const joinBottom=61.3+(45.5-61.3)*joinX/darkX;
+ // Draw a single continuous base and overlay the light field; no internal triangle seams.
  doc.setFillColor(118,119,121);
- doc.triangle(0,7.5,77,3.5,77,55.5,'F');doc.triangle(0,7.5,77,55.5,0,61.3,'F');
+ doc.lines([[152,-7.5],[0,45.5],[-152,15.8]],0,7.5,[1,1],'F',true);
  doc.setFillColor(215,215,213);
- doc.triangle(77,3.5,152,0,152,45.5,'F');doc.triangle(77,3.5,152,45.5,77,55.5,'F');
+ doc.lines([[darkX-joinX,-joinTop],[0,45.5],[joinX-darkX,joinBottom-45.5]],joinX,joinTop,[1,1],'F',true);
  doc.setFillColor(46,44,44);
- doc.triangle(152,0,210,0,210,45.5,'F');doc.triangle(152,0,210,45.5,152,45.5,'F');
- // Adresseikon og adresse.
+ doc.rect(152,0,58,45.5,'F');
+ // Original location symbol, drawn as one curved filled path with white center.
  doc.setFillColor(255,255,255);doc.circle(9,15,5.5,'F');
- doc.setFillColor(118,119,121);doc.circle(9,13.8,1.45,'F');doc.triangle(6.5,15.4,11.5,15.4,9,19,'F');
+ doc.setFillColor(118,119,121);
+ doc.lines([[-0.8,-1.05,-2.95,-3.4,-2.95,-5.05],[0,-1.75,1.3,-3,2.95,-3],[1.65,0,2.95,1.25,2.95,3],[0,1.65,-2.15,4,-2.95,5.05]],9,19.2,[1,1],'F',true);
+ doc.setFillColor(255,255,255);doc.circle(9,14,1.38,'F');
  doc.setFont('Roboto','normal');doc.setFontSize(8.3);doc.setTextColor(255,255,255);
  doc.text('Jacob Holm Blæhr',9.5,27.8);
  doc.setFontSize(8.1);doc.text('Rolighedsvej 18, 4. tv.',9.5,35.2);doc.text('1958 Frederiksberg C.',9.5,42.4);
  // Kontaktikon og kontaktoplysninger.
- doc.setFillColor(255,255,255);doc.circle(83,11.5,4.8,'F');
- doc.setFillColor(177,177,177);doc.circle(83,10.1,1.35,'F');doc.ellipse(83,13.2,2.7,1.7,'F');
+ const contactIconX=joinX+9,contactIconY=joinTop+7.5,iconScale=5.5/4.8;
+ doc.setFillColor(255,255,255);doc.circle(contactIconX,contactIconY,5.5,'F');
+ doc.setFillColor(177,177,177);doc.circle(contactIconX,contactIconY-1.4*iconScale,1.35*iconScale,'F');doc.ellipse(contactIconX,contactIconY+1.7*iconScale,2.7*iconScale,1.7*iconScale,'F');
  const contactX=82;
  const linkColor=[20,39,65];
  const underline=(label,x,baseline)=>{
@@ -3337,16 +3344,23 @@ async function handleApplicationPortraitUpload(input){
   });
   const image=await loadApplicationPortraitImage(source);
   const originalWidth=image.naturalWidth||image.width,originalHeight=image.naturalHeight||image.height;
-  // Preserve enough pixels for a crisp circular portrait when printed in the A4 PDF.
-  const scale=Math.min(1,1400/Math.max(originalWidth,originalHeight));
-  const width=Math.max(1,Math.round(originalWidth*scale)),height=Math.max(1,Math.round(originalHeight*scale));
-  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
-  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Browseren kunne ikke behandle billedet.');
-  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(image,0,0,width,height);
-  let compressed=canvas.toDataURL('image/jpeg',0.92);
-  if(compressed.length>1200000)compressed=canvas.toDataURL('image/jpeg',0.88);
-  if(compressed.length>1500000)throw new Error('Billedet fylder stadig for meget efter komprimering. Vælg et mindre foto for at bevare den lokale lagring.');
-  state.applicationPortraitDataUrl=compressed;state.applicationPortraitMode='photo';state.applicationPortraitModeChosen=true;persist();markApplicationPdfOutdated();
+  if(!originalWidth||!originalHeight)throw new Error('Billedet har ingen gyldige dimensioner.');
+  // Keep a supported original image byte-for-byte when it fits in the existing local storage budget.
+  let stored=source;
+  if(!/^data:image\/(?:jpeg|png);base64,/i.test(source)||source.length>1500000){
+   const scale=Math.min(1,1400/Math.max(originalWidth,originalHeight));
+   const width=Math.max(1,Math.round(originalWidth*scale)),height=Math.max(1,Math.round(originalHeight*scale));
+   const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+   const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Browseren kunne ikke behandle billedet.');
+   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(image,0,0,width,height);
+   stored=canvas.toDataURL('image/jpeg',0.92);
+   if(stored.length>1200000)stored=canvas.toDataURL('image/jpeg',0.88);
+  }
+  if(stored.length>1500000)throw new Error('Billedet fylder for meget til lokal lagring. Vælg et mindre foto.');
+  const previous={applicationPortraitDataUrl:state.applicationPortraitDataUrl,applicationPortraitMode:state.applicationPortraitMode,applicationPortraitModeChosen:state.applicationPortraitModeChosen};
+  state.applicationPortraitDataUrl=stored;state.applicationPortraitMode='photo';state.applicationPortraitModeChosen=true;
+  if(!persist()){Object.assign(state,previous);throw new Error('Browserens lokale lagring er fuld eller blokeret. Det tidligere portræt er bevaret.');}
+  markApplicationPdfOutdated();
   if(el('appPortraitMode'))el('appPortraitMode').value='photo';
   updateApplicationPortraitStatus('Dit valgte portrætfoto er gemt lokalt og bruges i PDF’en.');
   if(el('appPreviewModal')&&!el('appPreviewModal').hidden)await renderApplicationPdfPreview(false);

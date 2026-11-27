@@ -2649,7 +2649,7 @@ async function makeProposals(){
   const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-drafts',cv:draftCvContext,candidateClarifications:confirmedClarifications,job:jobText,title:j.title||state.jobtitle||'',company,contactName:contact,greetingLine,authorName:'Jacob',applicationPreferences:{length:p.lengthKey,targetLines:p.lines,includeExamples:p.includeExamples,toneOfVoice:p.toneOfVoice,themes:p.themes,weights:p.weights}}),signal:AbortSignal.timeout(290000)});
   let data;try{data=await response.json()}catch(e){data=null}
   if(!response.ok||!data||!Array.isArray(data.drafts)||data.drafts.length!==3)throw new Error(data&&data.error?data.error:'AI-endpointet returnerede ikke tre gyldige forslag (HTTP '+response.status+').');
-  if(isIsolatedAiPreview()&&data.styleVersion!=='v2')throw new Error('Test-endpointet returnerede ikke den forventede stilprofil v2. Kontrollér deployment.');
+  if(usesSharedProductionAi()&&data.styleVersion!=='v2')throw new Error('Produktions-endpointet returnerede ikke den forventede stilprofil v2. Kontrollér deployment.');
   if(modal)modal.dataset.draftPhase='validating';
   setDraftModalProgress(90,'Kontrollerer svaret','Tre forslag modtaget. Kontrollerer struktur og pladsholdere.',2,false);
   const texts=data.drafts.map(x=>String(x?.text||'').trim());
@@ -3681,28 +3681,24 @@ function panelFacts(text,job){
  const jobTerms=jobWords.filter(w=>w.length>=5);
  return {text,lower,lines,wordCount,headings,actionCount,resultEvidence,genericEvidence,hasDates,hasContact,overlaps,overlapRatio,jobTerms,marketingFound,leadershipFound,commercialFound,uniqueTokens:uniqueTokens.length,repetition,jobProvided:!!job.trim(),hasExperienceHeading:headings.includes('Erfaring'),hasProfileHeading:headings.includes('Profil eller resumé'),hasSkillsHeading:headings.includes('Kompetencer'),hasEducationHeading:headings.includes('Uddannelse')};
 }
-function isIsolatedAiPreview(){
- const h=location.hostname;
- return h.startsWith('get-a-job-hobo-')&&h.endsWith('-get-a-job-hobo.vercel.app');
+function usesSharedProductionAi(){
+ return location.hostname==='get-a-job-hobo-git-prototype-company-prof-f9409f-get-a-job-hobo.vercel.app';
 }
 function getPanelAiSettings(){
  let url='',code='';
  try{url=localStorage.getItem('gajh_ai_endpoint')||'';code=localStorage.getItem('gajh_ai_access_code')||''}catch(e){}
  try{if(!code){code=sessionStorage.getItem('gajh_ai_access_code')||''}}catch(e){}
- if(isIsolatedAiPreview()){
-  const own=location.origin+'/api/panel-review';
-  // Never send old production credentials or silently use the production endpoint on a preview.
-  if(url.replace(/\/$/,'')!==own)code='';
-  return {url:own,code};
- }
- return {url:url||'https://get-a-job-hobo.vercel.app/api/panel-review',code};
+ const productionEndpoint='https://get-a-job-hobo.vercel.app/api/panel-review';
+ // The approved prototype uses the configured production backend. Keep the saved access code.
+ if(usesSharedProductionAi())return {url:productionEndpoint,code};
+ return {url:url||productionEndpoint,code};
 }
 function loadPanelAiSettings(){
  const saved=getPanelAiSettings();
  if(el('panelAiUrl'))el('panelAiUrl').value=saved.url;
  if(el('panelAiCode'))el('panelAiCode').value=saved.code;
  if(el('panelAiStatus')){
-  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-endpoint er fundet. Adgangskoden gemmes kun lokalt i denne browser.':isIsolatedAiPreview()?'Isoleret AI-test: indstil OPENAI_API_KEY og APP_ACCESS_CODE i Vercel Preview for denne branch. Indtast Preview-adgangskoden her, gem og test forbindelsen.':'Vercel-endpointet er udfyldt automatisk. Indtast APP_ACCESS_CODE fra Vercel, gem indstillingerne, og test forbindelsen.';
+  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-endpoint er fundet. Adgangskoden gemmes kun lokalt i denne browser.':'Vercel-endpointet i produktion er udfyldt automatisk. Indtast den eksisterende APP_ACCESS_CODE, gem og test forbindelsen.';
   el('panelAiStatus').className='notice '+(saved.url&&saved.code?'goodbox':'warnbox');
  }
  const settings=el('panelAiSettings');if(settings)settings.open=!(saved.url&&saved.code);
@@ -3720,7 +3716,7 @@ function savePanelAiSettings(silent){
   if(!silent)notify('panelAiStatus','Brug endpointets fulde HTTPS-URL, som skal slutte med /api/panel-review.','warnbox');
   return false;
  }
- if(isIsolatedAiPreview()&&url.replace(/\/$/,'')!==location.origin+'/api/panel-review'){if(!silent)notify('panelAiStatus','Denne prototype bruger kun sit eget AI-testendpoint. Brug den automatisk udfyldte adresse.','warnbox');return false}
+ if(usesSharedProductionAi()&&url.replace(/\/$/,'')!=='https://get-a-job-hobo.vercel.app/api/panel-review'){if(!silent)notify('panelAiStatus','Denne prototype bruger produktions-endpointet. Brug den automatisk udfyldte adresse.','warnbox');return false}
  const previous=getPanelAiSettings();
  const credentialsChanged=previous.url!==url||previous.code!==code;
  try{

@@ -1518,7 +1518,7 @@ body.has-fixed-proposals{padding-bottom:calc(94px + env(safe-area-inset-bottom))
      <h3 id="draftProgressHeading">Klargør materiale</h3>
      <p id="draftProgressCaption">CV og jobopslag samles til sprogmodellen.</p>
      <div class="draft-progress-track" aria-hidden="true"><span id="draftProgressTrackFill"></span></div>
-     <small class="draft-progress-honesty">Visuel statusindikator. 100 % vises, når svaret er modtaget og kontrolleret.</small>
+     <small class="draft-progress-honesty">Trinindikator, ikke et estimat af modellens fremdrift. 100 % vises efter formatkontrol.</small>
     </div>
    </div>
 
@@ -2527,7 +2527,7 @@ function renderApplicationAnalysis(){
  const activeKey=getApplicationAnalysisKey();
  if(stage==='loading'){
   root.innerHTML='<div class="application-analysis-loading"><span class="app-analysis-spinner" aria-hidden="true"></span><div><strong>Analyserer stillingsopslaget</strong><div>Sprogmodellen finder 4–6 konkrete krav og ønsker fra opslaget.</div></div></div>';
- }else if(stage==='ready'&&themes.length>=4&&state.applicationAnalysisJobKey===activeKey){
+ }else if((stage==='ready'||stage==='error')&&themes.length>=4&&state.applicationAnalysisJobKey===activeKey){
   const palette=['theme-blue','theme-green','theme-orange','theme-purple','theme-teal','theme-rose'];
   const icons=['◎','⌁','↔','◇','✳','✓'];
   root.innerHTML=themes.map((theme,index)=>{
@@ -2555,8 +2555,7 @@ async function ensureApplicationAnalysis(force){
   state.applicationAnalysisStatus='error';state.applicationAnalysisNotice='AI-forbindelsen er ikke konfigureret. Gå til “Spørg panelet”, indtast adgangskoden og gem AI-indstillingerne.';renderApplicationAnalysis();return false;
  }
  const sameJob=state.applicationAnalysisJobKey===key;
- if(!sameJob){state.applicationThemes=[];state.applicationThemeWeights={};}
- state.applicationAnalysisJobKey=key;state.applicationAnalysisStatus='loading';state.applicationAnalysisNotice='Sprogmodellen læser stillingsopslaget og udleder de vigtigste krav og ønsker…';
+ state.applicationAnalysisStatus='loading';state.applicationAnalysisNotice='Sprogmodellen læser stillingsopslaget og udleder de vigtigste krav og ønsker…';
  applicationAnalysisInFlight=true;persist();renderApplicationAnalysis();
  try{
   const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-analysis',job:j.job,title:j.title,company:j.company})});
@@ -2590,7 +2589,7 @@ function getApplicationPreferences(){
  const lengthKey=el('applicationLength')?String(el('applicationLength').value||'short'):'short';
  const includeExamples=el('appIncludeExamples')?!!el('appIncludeExamples').checked:true;
  const presets={short:{label:'Kort',lines:'6–8 linjer'},medium:{label:'Mellem',lines:'10–12 linjer'},long:{label:'Lang',lines:'14–16 linjer'}};
- return {lengthKey:['short','medium','long'].includes(lengthKey)?lengthKey:'short',includeExamples,toneOfVoice:'Direkte, personlig og let uformel – baseret på Jacobs vedhæftede ansøgning',structure:['Motivation for jobbet','Relevant erfaring og bidrag','Konkrete CV-eksempler hvis valgt','Arbejdsform og samarbejde','Personlig afslutning'],themes:Array.isArray(state.applicationThemes)?state.applicationThemes:[],weights:state.applicationThemeWeights&&typeof state.applicationThemeWeights==='object'?state.applicationThemeWeights:{},...(presets[lengthKey]||presets.short)};
+ return {lengthKey:['short','medium','long'].includes(lengthKey)?lengthKey:'short',includeExamples,toneOfVoice:'Selvsikker, men afbalanceret; personlig, jordnær, præcis og respektfuld. Stilprofil v2.',themes:Array.isArray(state.applicationThemes)?state.applicationThemes:[],weights:state.applicationThemeWeights&&typeof state.applicationThemeWeights==='object'?state.applicationThemeWeights:{},...(presets[lengthKey]||presets.short)};
 }
 function selectApplicationLength(lengthKey){
  if(!['short','medium','long'].includes(lengthKey))lengthKey='short';
@@ -2603,140 +2602,56 @@ function updateApplicationExampleSetting(){
  const step=document.querySelector('.app-example-step');if(step)step.classList.toggle('is-disabled',!checked);
  const hint=el('appExampleHint');if(hint)hint.innerHTML=checked?'<span aria-hidden="true">ⓘ</span> Eksemplerne tilpasses den valgte længde og udelades, hvis der ikke findes et relevant belæg i dit CV.':'<span aria-hidden="true">ⓘ</span> Ansøgningen skrives uden særskilte eksempler fra CV’et.';
 }
-function buildLocalApplicationDrafts(job){
- const cv=String(state.cv||el('cvtext').value||'').trim();
- const prefs=getApplicationPreferences();
- const assessment=job&&job.competencyAssessment||{};
- const company=getApplicationCompany(job);
- const contact=getApplicationContact(job);
- const greeting=getApplicationGreeting(job,company,contact);
- const title=String(job&&job.title||state.jobtitle||'stillingen').trim();
- const tasks=extractApplicationTasks(job&&job.job||state.jobtext||'');
- const taskStarts=tasks.slice(0,2).map(task=>task.replace(/[.!?]$/,'').replace(/^([A-ZÆØÅ])/,letter=>letter.toLowerCase()));
- const taskPhrase=taskStarts.length?'at '+taskStarts[0]+(taskStarts[1]?' og at '+taskStarts[1]:''):'at arbejde med de centrale opgaver i stillingen';
- const evidence=extractApplicationCvEvidence(cv,assessment);
- const areas=joinDanish(evidence.areas.slice(0,3));
- const employer=company?' hos '+company:'';
- const roleLine=title&&title!=='stillingen'?'stillingen som '+title:'stillingen';
- const low=assessment.coverageScore!=null&&assessment.coverageScore<35;
- const exampleText=prefs.includeExamples&&evidence.evidence&&evidence.evidence[0]?'Et konkret eksempel fra mit CV er: “'+String(evidence.evidence[0]).trim().replace(/^[-•*\s]+/,'').slice(0,360)+'”.':'';
- const collaboration=/samarbejd|team|bureau|kollega|tværfag|partner|stakeholder|inhouse/i.test(cv);
- const workStyle=collaboration?'Jeg trives med at samarbejde med forskellige fagligheder, tage ansvar for mine egne opgaver og få tingene til at fungere med resten af teamet.':'Jeg lægger vægt på at forstå opgaven, tage ansvar og få forventningerne afstemt, så arbejdet giver mening for dem, der skal bruge resultatet.';
- const openings=[
-  low?'Det, der især fanger min interesse ved '+roleLine+employer+', er muligheden for '+taskPhrase+'.':'Jeg har læst '+roleLine+employer+', og jeg synes især, at '+taskPhrase+' lyder spændende.',
-  'Jeg søger '+roleLine+employer+', fordi opgaverne med '+taskPhrase.replace(/^at /,'')+' tiltaler mig.',
-  'Jeg kan godt se mig selv i '+roleLine+employer+'. Det er især '+taskPhrase+', der gør stillingen interessant for mig.'
- ];
- const contributions=[
-  areas?'Jeg kan bidrage med min erfaring inden for '+areas+' og bruge den til at løse de opgaver, I beskriver.':'Jeg vil gerne bringe mine tidligere erfaringer i spil og lære de dele af arbejdet, som er nye for mig.',
-  areas?'Fra mine tidligere jobs har jeg erfaring med '+areas+'. Jeg kan især bidrage med en struktureret tilgang og blik for, hvad der skal til for at få opgaverne løst.':'Jeg er vant til at sætte mig ind i opgaver, koordinere mit arbejde og samarbejde om at få tingene helt i mål.',
-  areas?'Min baggrund inden for '+areas+' har lært mig at omsætte planer til konkret arbejde og samarbejde med de mennesker, der skal have det til at fungere.':'Jeg vil bidrage med nysgerrighed, ansvarlighed og en praktisk tilgang til de opgaver, stillingen rummer.'
- ];
- const closings=['Jeg ser frem til muligheden for at fortælle mere – gerne over en kop kaffe.','Jeg håber, vi kan mødes til en samtale og tale om, hvordan jeg kan bidrage hos jer.','Jeg vil gerne uddybe min erfaring og høre mere om jeres forventninger til rollen.'];
- const signoff='Mange hilsner\n//Jacob';
- const definitions=[
-  {title:'Faglig motivation og bidrag',focus:'Direkte åbning, relevant erfaring og en enkel afslutning.'},
-  {title:'Samarbejde og arbejdsform',focus:'Vægter din arbejdsform, samarbejde og det praktiske bidrag.'},
-  {title:'Personlig motivation',focus:'En lidt mere personlig indgang, stadig kort og konkret.'}
- ];
- const drafts=definitions.map((definition,i)=>{
-  const p=[greeting,openings[i],contributions[i]];
-  if(exampleText)p.push(exampleText);
-  if(prefs.lengthKey!=='short')p.push(workStyle);
-  if(prefs.lengthKey==='long'){
-   p.push(areas?'Jeg har også erfaring med '+areas+', og jeg vil gerne bruge den viden på en måde, der passer til jeres hverdag.':'Jeg vil først sætte mig grundigt ind i jeres arbejdsgange og derefter tage ansvar for de opgaver, jeg kan løse.');
-   if(!low)p.push('For mig handler det om at være grundig, holde en god dialog og få opgaverne videre uden at gøre tingene mere komplicerede end nødvendigt.');
-  }
-  p.push(closings[i],signoff);
-  return {...definition,text:p.filter(Boolean).join('\n\n')};
- });
- return {drafts,company,contact,greeting,preferences:prefs};
-}
 async function makeProposals(){
  if(state.generatingProposals)return;
  const j=state.activeJob;if(!j){notify('proposalState','Analysér et job først, så forslagene kan målrettes det konkrete stillingsopslag.','warnbox');return}
- state.selectedProposal=-1;
  const cv=String(state.cv||el('cvtext').value||'').trim();
  if(cv.length<80){notify('proposalState','Indsæt og gem dit CV under “Mit CV”, før du laver en motiveret ansøgning.','warnbox');return}
  const jobText=String(j.job||state.jobtext||'');
  const confirmedClarifications=(j.competencyAssessment&&Array.isArray(j.competencyAssessment.rows)?j.competencyAssessment.rows:[]).filter(row=>row.candidateAnswer).map(row=>({requirement:row.jobEvidence||row.label,competence:row.label,answer:row.candidateAnswer,status:row.statusLabel}));
  const draftCvContext=confirmedClarifications.length?cv+'\n\nSUPPLERENDE OPLYSNINGER BEKRÆFTET AF KANDIDATEN EFTER CV-VURDERING (ikke direkte CV-dokumentation):\n'+confirmedClarifications.map(row=>'- '+row.competence+': '+row.answer).join('\n'):cv;
- const company=getApplicationCompany(j);
- const contact=getApplicationContact(j);
- const greetingLine=getApplicationGreeting(j,company,contact);
- const settings=typeof getPanelAiSettings==='function'?getPanelAiSettings():{url:'',code:''};
- const currentPreferences=getApplicationPreferences();
- const hasCustomThemeWeights=currentPreferences.themes.some(theme=>Number(currentPreferences.weights[theme.id]||0)>0);
- if(hasCustomThemeWeights&&(!settings.url||!settings.code)){
-  state.generatingProposals=false;state.proposalNotice='Dine tema-vægtninger kræver en aktiv AI-forbindelse. Vægtningerne er gemt, men ikke anvendt.';persist();renderProposals();
-  notify('proposalState','Dine tema-vægtninger kræver en aktiv AI-forbindelse. Gå til “Spørg panelet”, og kontrollér AI-indstillingerne. Vægtningerne er gemt, men er ikke anvendt.','warnbox');return;
+ const company=getApplicationCompany(j),contact=getApplicationContact(j),greetingLine=getApplicationGreeting(j,company,contact);
+ const settings=getPanelAiSettings();
+ function reportFailure(message){
+  state.generatingProposals=false;
+  state.proposalNotice='AI-genereringen fejlede: '+String(message||'Ukendt fejl').slice(0,450)+' Tidligere forslag og redigeret tekst er bevaret. Ingen lokale ansøgninger er genereret. Ret fejlen og prøv igen.';
+  try{const now=new Date().toISOString();sessionStorage.setItem('gajh_ai_last_error',now);sessionStorage.setItem('gajh_ai_application_error',now)}catch(e){}
+  persist();if(!el('aiThinkingModal')?.hidden)hideAiThinkingModal();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');updateModelIntegrationStatus();
  }
- state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.generatingProposals=true;state.proposalMode=settings.url&&settings.code?'ai':'local';
- state.proposalNotice=settings.url&&settings.code?'Forbereder en frisk jobanalyse og tre nye forslag…':'AI-forbindelsen mangler. Der sendes ingen AI-forespørgsel; appen laver lokale forslag.';
- persist();renderProposals();
- showAiThinkingModal('proposals');
- await runProposalCountdown();
- if(settings.url&&settings.code){
-  const analysisReady=await ensureApplicationAnalysis(true);
-  if(!analysisReady){state.generatingProposals=false;state.proposalNotice='Jobopslaget kunne ikke analyseres på ny. Kontrollér AI-forbindelsen, og prøv igen.';persist();hideAiThinkingModal();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');return}
- }
- if(settings.url&&settings.code){
-  state.proposalMode='ai';state.proposalNotice='Jobopslaget er genanalyseret. Sprogmodellen skriver nu tre nye udkast…';
+ if(!settings.url||!settings.code){reportFailure('AI-forbindelsen er ikke konfigureret. Gå til “Spørg panelet”, gem endpoint og adgangskode, og test forbindelsen.');return}
+ state.generatingProposals=true;state.proposalNotice='Klargør jobanalyse og tre nye forslag…';
+ persist();renderProposals();showAiThinkingModal('proposals');
+ try{
+  const analysisReady=await ensureApplicationAnalysis(false);
+  if(!analysisReady)throw new Error(state.applicationAnalysisNotice||'Jobopslaget kunne ikke analyseres.');
+  const p=getApplicationPreferences();
+  state.proposalNotice='Jobanalysen er klar. Sprogmodellen skriver og gennemgår tre udkast.';
   persist();renderProposals();
-  if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Analysen er klar. Nu sendes en ny forespørgsel om tre ansøgningsforslag…';
+  const modal=el('aiThinkingModal');if(modal)modal.dataset.draftPhase='writing';
+  setDraftModalProgress(50,'Skriver og redigerer','Forespørgslen sendes nu til sprogmodellen.',1,false);
+  if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Afventer svar fra AI-generatoren…';
+  const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-drafts',cv:draftCvContext,candidateClarifications:confirmedClarifications,job:jobText,title:j.title||state.jobtitle||'',company,contactName:contact,greetingLine,authorName:'Jacob',applicationPreferences:{length:p.lengthKey,targetLines:p.lines,includeExamples:p.includeExamples,toneOfVoice:p.toneOfVoice,themes:p.themes,weights:p.weights}}),signal:AbortSignal.timeout(290000)});
+  let data;try{data=await response.json()}catch(e){data=null}
+  if(!response.ok||!data||!Array.isArray(data.drafts)||data.drafts.length!==3)throw new Error(data&&data.error?data.error:'AI-endpointet returnerede ikke tre gyldige forslag (HTTP '+response.status+').');
+  if(isIsolatedAiPreview()&&data.styleVersion!=='v2')throw new Error('Test-endpointet returnerede ikke den forventede stilprofil v2. Kontrollér deployment.');
+  if(modal)modal.dataset.draftPhase='validating';
+  setDraftModalProgress(90,'Kontrollerer svaret','Tre forslag modtaget. Kontrollerer struktur og pladsholdere.',2,false);
+  const texts=data.drafts.map(x=>String(x?.text||'').trim());
+  if(texts.some(t=>!t||/\[Dit navn\]|Eksempelvirksomhed|MANGLER INFO/i.test(t)))throw new Error('Et forslag var tomt eller indeholdt en pladsholder.');
+  if(new Set(texts).size!==3)throw new Error('AI returnerede ikke tre forskellige forslag.');
+  // Only replace the previous suggestions after all three are valid. Keep the edited application.
+  state.proposalTexts=texts;state.proposalTitles=data.drafts.map(x=>String(x.title||''));state.proposalFocuses=data.drafts.map(x=>String(x.focus||''));
+  state.selectedProposal=-1;state.proposalMode='ai';state.generatingProposals=false;
+  state.proposalNotice='Tre AI-udkast er klar'+(data.model?' ('+String(data.model)+')':'')+'. Gennemgå fakta og formuleringer. Din eksisterende redigerede ansøgning er bevaret.';
   try{
-   const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-drafts',cv:draftCvContext,candidateClarifications:confirmedClarifications,job:jobText,title:j.title||state.jobtitle||'',company,contactName:contact,greetingLine,authorName:'Jacob',applicationPreferences:(()=>{const p=getApplicationPreferences();return {length:p.lengthKey,targetLines:p.lines,includeExamples:p.includeExamples,toneOfVoice:p.toneOfVoice,paragraphStructure:p.structure,themes:p.themes,weights:p.weights,instructions:"Skriv på dansk i Jacobs direkte, personlige og let uformelle stil. Hold afsnit korte og adskilte. Rækkefølge: motivation, bidrag/relevant erfaring, konkrete eksempler kun hvis valgt og CV’et understøtter dem, arbejdsform/samarbejde, naturlig afslutning. Undgå generiske salgspåstande og opfundne fakta."}})()})});
-   let data;try{data=await response.json()}catch(e){data=null}
-   if(response.ok&&data&&Array.isArray(data.drafts)&&data.drafts.length>=3){
-    setDraftModalProgress(95,'Kontrollerer de tre forslag','Svaret er modtaget. Jeg kontrollerer længde og eventuelle pladsholdere.',2,false);
-    if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Svaret er modtaget. Kontrollerer alle tre udkast…';
-   }
-   if(!response.ok||!data||!Array.isArray(data.drafts)||data.drafts.length<3)throw new Error(data&&data.error?data.error:'AI-endpointet returnerede ikke tre gyldige forslag.');
-   state.proposalTexts=data.drafts.slice(0,3).map(x=>removeMissingInfoPlaceholder(x.text));
-   state.proposalTitles=data.drafts.slice(0,3).map(x=>String(x.title||''));
-   state.proposalFocuses=data.drafts.slice(0,3).map(x=>String(x.focus||''));
-   if(state.proposalTexts.some(t=>t.length<160||/\[Dit navn\]|Eksempelvirksomhed/i.test(t)))throw new Error('Et forslag var for kort eller indeholdt en pladsholder.');
-   state.proposalMode='ai';state.proposalNotice='AI-udkast fra sprogmodellen. Gennemgå altid fakta og formuleringer, før du bruger teksten.';state.generatingProposals=false;
-   try{
-    const now=new Date().toISOString();
-    sessionStorage.setItem('gajh_ai_last_success',now);sessionStorage.removeItem('gajh_ai_last_error');
-    sessionStorage.setItem('gajh_ai_application_success',now);sessionStorage.removeItem('gajh_ai_application_error');
-    if(data.model)sessionStorage.setItem('gajh_ai_last_model',String(data.model));
-   }catch(e){}
-   updateModelIntegrationStatus();
-   setDraftModalProgress(100,'Alle tre forslag er klar','Tre udkast er modtaget og kontrolleret. Vælg det forslag, du vil arbejde videre med.',2,true);
-   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Alle tre udkast er klar.';
-   if(el('aiThinkingFooter'))el('aiThinkingFooter').textContent='Færdig — de tre udkast er vist på siden. Husk at kontrollere fakta, navne og formuleringer.';
-   await new Promise(resolve=>setTimeout(resolve,550));
-   hideAiThinkingModal();
-   state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'goodbox');return;
-  }catch(error){
-   hideAiThinkingModal();
-   state.generatingProposals=false;
-   const currentPrefsForFailure=getApplicationPreferences();
-   const customWeightsNow=currentPrefsForFailure.themes.some(theme=>Number(currentPrefsForFailure.weights[theme.id]||0)>0);
-   if(customWeightsNow){
-    try{const now=new Date().toISOString();sessionStorage.setItem('gajh_ai_last_error',now);sessionStorage.setItem('gajh_ai_application_error',now)}catch(e){}
-    state.proposalTexts=[];state.proposalTitles=[];state.proposalFocuses=[];state.proposalMode='local';
-    state.proposalNotice='AI-genereringen fejlede ('+String(error&&error.message||'ukendt fejl').slice(0,150)+'). De valgte vægtninger er ikke anvendt. Ret fejlen, og klik “Lav tre nye forslag” igen.';
-    state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');updateModelIntegrationStatus();return;
-   }
-   try{
-    const now=new Date().toISOString();
-    sessionStorage.setItem('gajh_ai_last_error',now);sessionStorage.setItem('gajh_ai_application_error',now);
-   }catch(e){}
-   updateModelIntegrationStatus();
-   const fallback=buildLocalApplicationDrafts(j);
-   state.proposalTexts=fallback.drafts.map(d=>removeMissingInfoPlaceholder(d.text));state.proposalTitles=fallback.drafts.map(d=>d.title);state.proposalFocuses=fallback.drafts.map(d=>d.focus);state.proposalMode='local';
-   state.proposalNotice='AI kunne ikke nås ('+String(error&&error.message||'ukendt fejl').slice(0,180)+'). Der vises derfor lokale, stiltilpassede udkast i stedet — de er ikke genereret af sprogmodellen.';
-   state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');return;
-  }
- }
- const fallback=buildLocalApplicationDrafts(j);
- state.proposalTexts=fallback.drafts.map(d=>d.text);state.proposalTitles=fallback.drafts.map(d=>d.title);state.proposalFocuses=fallback.drafts.map(d=>d.focus);state.proposalMode='local';state.generatingProposals=false;
- state.proposalNotice='Der blev ikke sendt en ny AI-forespørgsel, fordi AI-endpoint og adgangskode ikke er konfigureret. Her er i stedet lokale, stiltilpassede forslag. Opsæt AI under “Spørg panelet” for at få nye forslag skrevet af sprogmodellen.';
- setDraftModalProgress(100,'Tre lokale forslag er klar','Forslagene er lavet ud fra CV’et og opslaget. De er lokale skabeloner, ikke svar fra sprogmodellen.',2,true);
- hideAiThinkingModal();state.application='';el('apptext').value='';persist();renderProposals();notify('proposalState',state.proposalNotice,'warnbox');
+   const now=new Date().toISOString();
+   sessionStorage.setItem('gajh_ai_last_success',now);sessionStorage.removeItem('gajh_ai_last_error');
+   sessionStorage.setItem('gajh_ai_application_success',now);sessionStorage.removeItem('gajh_ai_application_error');
+   if(data.model)sessionStorage.setItem('gajh_ai_last_model',String(data.model));
+  }catch(e){}
+  setDraftModalProgress(100,'Alle tre forslag er klar','Svaret er modtaget og formatkontrolleret.',2,true);
+  persist();hideAiThinkingModal();renderProposals();updateModelIntegrationStatus();notify('proposalState',state.proposalNotice,'goodbox');
+ }catch(error){reportFailure(error?.name==='TimeoutError'?'Forespørgslen tog for lang tid.':error?.message||'Netværksfejl.')}
 }
 
 function sourceTrustAssessment(source,research){
@@ -3137,13 +3052,13 @@ function exportJob(){
 function renderProposals(){
  const trigger=el('makeJobProposals');if(trigger){trigger.disabled=!state.activeJob||!!state.generatingProposals;trigger.textContent=state.generatingProposals?'Skriver forslag…':'Lav 3 ansøgningsforslag'}
  const p=state.proposalTexts||[];
- const defaultTitles=['Fagligt match og motivation','Samarbejde og arbejdsform','Personlig motivation og bidrag'];
+ const defaultTitles=['Fagligt velfunderet','Personlig faglighed','Fremadrettet bidrag'];
  if(state.generatingProposals){
-  el('proposalState').textContent='Sprogmodellen skriver tre længere udkast i din stil…';
+  el('proposalState').textContent=state.proposalNotice||'AI-genereringen er i gang…';
   el('proposalState').className='notice';
  }else{
   el('proposalState').textContent=state.proposalNotice||(p.length?'Vælg et forslag. Hele ansøgningen vises herunder; teksten kopieres først til editoren, når du aktivt vælger et forslag.':'Ingen forslag endnu. Analysér et job under Jobopslag først.');
-  el('proposalState').className='notice '+(state.proposalMode==='ai'?'goodbox':p.length?'':'warnbox');
+  el('proposalState').className='notice '+(String(state.proposalNotice||'').startsWith('AI-genereringen fejlede:')?'warnbox':state.proposalMode==='ai'?'goodbox':p.length?'':'warnbox');
  }
  el('proposals').className='grid proposal-stack';
  el('proposals').innerHTML=p.length?p.map((text,i)=>{
@@ -3749,30 +3664,28 @@ function panelFacts(text,job){
  const jobTerms=jobWords.filter(w=>w.length>=5);
  return {text,lower,lines,wordCount,headings,actionCount,resultEvidence,genericEvidence,hasDates,hasContact,overlaps,overlapRatio,jobTerms,marketingFound,leadershipFound,commercialFound,uniqueTokens:uniqueTokens.length,repetition,jobProvided:!!job.trim(),hasExperienceHeading:headings.includes('Erfaring'),hasProfileHeading:headings.includes('Profil eller resumé'),hasSkillsHeading:headings.includes('Kompetencer'),hasEducationHeading:headings.includes('Uddannelse')};
 }
+function isIsolatedAiPreview(){
+ const h=location.hostname;
+ return h.startsWith('get-a-job-hobo-')&&h.endsWith('-get-a-job-hobo.vercel.app');
+}
 function getPanelAiSettings(){
  let url='',code='';
- // The shared production endpoint owns the configured server-side secrets. The prototype calls it for AI tasks too.
- try{
-  url=localStorage.getItem('gajh_ai_endpoint')||'';
-  code=localStorage.getItem('gajh_ai_access_code')||'';
- }catch(e){}
- try{
-  const legacyUrl=sessionStorage.getItem('gajh_ai_endpoint')||'';
-  const legacyCode=sessionStorage.getItem('gajh_ai_access_code')||'';
-  if(!code&&legacyCode){code=legacyCode;try{localStorage.setItem('gajh_ai_access_code',code)}catch(e){}}
- }catch(e){}
- const productionEndpoint='https://get-a-job-hobo.vercel.app/api/panel-review';
- // Redirect only the prototype's previously auto-selected preview endpoint to the working shared endpoint.
- const previewEndpoint='https://get-a-job-hobo-git-prototype-company-prof-f9409f-get-a-job-hobo.vercel.app/api/panel-review';
- if(!url||url.replace(/\/$/,'')===previewEndpoint)url=productionEndpoint;
- return {url,code};
+ try{url=localStorage.getItem('gajh_ai_endpoint')||'';code=localStorage.getItem('gajh_ai_access_code')||''}catch(e){}
+ try{if(!code){code=sessionStorage.getItem('gajh_ai_access_code')||''}}catch(e){}
+ if(isIsolatedAiPreview()){
+  const own=location.origin+'/api/panel-review';
+  // Never send old production credentials or silently use the production endpoint on a preview.
+  if(url.replace(/\/$/,'')!==own)code='';
+  return {url:own,code};
+ }
+ return {url:url||'https://get-a-job-hobo.vercel.app/api/panel-review',code};
 }
 function loadPanelAiSettings(){
  const saved=getPanelAiSettings();
  if(el('panelAiUrl'))el('panelAiUrl').value=saved.url;
  if(el('panelAiCode'))el('panelAiCode').value=saved.code;
  if(el('panelAiStatus')){
-  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-endpoint er fundet. Adgangskoden gemmes kun lokalt i denne browser.':'Vercel-endpointet er udfyldt automatisk. Indtast APP_ACCESS_CODE fra Vercel, gem indstillingerne, og test forbindelsen.';
+  el('panelAiStatus').textContent=saved.url&&saved.code?'AI-endpoint er fundet. Adgangskoden gemmes kun lokalt i denne browser.':isIsolatedAiPreview()?'Isoleret AI-test: indstil OPENAI_API_KEY og APP_ACCESS_CODE i Vercel Preview for denne branch. Indtast Preview-adgangskoden her, gem og test forbindelsen.':'Vercel-endpointet er udfyldt automatisk. Indtast APP_ACCESS_CODE fra Vercel, gem indstillingerne, og test forbindelsen.';
   el('panelAiStatus').className='notice '+(saved.url&&saved.code?'goodbox':'warnbox');
  }
  const settings=el('panelAiSettings');if(settings)settings.open=!(saved.url&&saved.code);
@@ -3790,6 +3703,7 @@ function savePanelAiSettings(silent){
   if(!silent)notify('panelAiStatus','Brug endpointets fulde HTTPS-URL, som skal slutte med /api/panel-review.','warnbox');
   return false;
  }
+ if(isIsolatedAiPreview()&&url.replace(/\/$/,'')!==location.origin+'/api/panel-review'){if(!silent)notify('panelAiStatus','Denne prototype bruger kun sit eget AI-testendpoint. Brug den automatisk udfyldte adresse.','warnbox');return false}
  const previous=getPanelAiSettings();
  const credentialsChanged=previous.url!==url||previous.code!==code;
  try{
@@ -3914,22 +3828,15 @@ function updateAiThinkingModal(){
  if(el('aiThinkingTimer'))el('aiThinkingTimer').textContent=minutes+':'+seconds;
  const modal=el('aiThinkingModal');
  if(modal&&modal.dataset.mode==='proposals'){
-  // The model does not expose token-level progress. This is an indicative wait-state,
-  // capped below completion until the server has returned all three drafts.
-  const percent=Math.min(88,12+elapsed*2.2);
-  let heading='Sender de tre udkast';
-  let caption='CV, jobopslag og jobdetaljer er sendt til sprogmodellen.';
-  let status='Forespørgslen er sendt. Venter på svar fra sprogmodellen…';
-  if(elapsed>=8){heading='Sprogmodellen skriver';caption='De tre forslag formes med forskellige vinkler og din personlige tone.';status='Sprogmodellen arbejder stadig. Tiden afhænger blandt andet af tekstmængden…'}
-  if(elapsed>=24){heading='Afventer de færdige forslag';caption='Svaret samles på serveren. Jeg viser først 100 %, når alle tre udkast er modtaget og kontrolleret.';status='Det tager lidt længere tid end normalt. Forbindelsen er stadig i gang…'}
-  setDraftModalProgress(percent,heading,caption,1,false);
-  if(el('draftProgressCaption'))el('draftProgressCaption').textContent=caption;
-  if(proposalCountdownRemaining>0){
-   const countdown=el('proposalCountdownValue');if(countdown)countdown.textContent=String(proposalCountdownRemaining);
-   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Vi starter analysen om '+proposalCountdownRemaining+'…';
-   return;
+  // Actual client stages only, never infer model progress from elapsed time.
+  const phase=modal.dataset.draftPhase;
+  if(phase==='analysis'){
+   setDraftModalProgress(15,'Jobanalyse','Kontrollerer om jobanalysen er klar; henter den om nødvendigt.',0,false);
+   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Afventer jobanalyse…';
+  }else if(phase==='writing'){
+   setDraftModalProgress(50,'Afventer AI-svar','Forespørgslen er sendt. Den interne fremdrift er ikke kendt.',1,false);
+   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Afventer svar fra AI-generatoren…';
   }
-  if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent=status;
   return;
  }
  let status='Sender forespørgslen til sprogmodellerne…';
@@ -3945,6 +3852,7 @@ function showAiThinkingModal(mode,config){
  const displayMode=mode==='proposals'?'proposals':'panel';
  const options=config||{};
  modal.dataset.mode=displayMode;
+ modal.dataset.draftPhase='analysis';
  const footerContainer=el('aiThinkingFooterContainer');
  if(footerContainer)footerContainer.hidden=displayMode!=='proposals';
  aiThinkingStartedAt=Date.now();
@@ -3954,10 +3862,10 @@ function showAiThinkingModal(mode,config){
   if(el('aiThinkingEyebrow'))el('aiThinkingEyebrow').textContent='ANSØGNING · AI-SKRIVEVÆRKSTED';
   if(el('aiThinkingEyebrow'))el('aiThinkingEyebrow').style.color='#7957dd';
   if(el('aiThinkingTitle'))el('aiThinkingTitle').textContent='Vi skriver tre forslag til dig';
-  if(el('aiThinkingDescription'))el('aiThinkingDescription').textContent='Jeg gennemgår stillingsopslaget og dit CV, finder de mest relevante krav og erfaringer og skriver derefter tre forskellige ansøgningsforslag. Nedtællingen viser, at klargøringen er i gang.';
+  if(el('aiThinkingDescription'))el('aiThinkingDescription').textContent='Jeg gennemgår stillingsopslaget og dit CV, finder de mest relevante krav og erfaringer og skriver derefter tre forskellige ansøgningsforslag. Fremdriften viser de faktiske trin i processen.';
   if(el('aiThinkingStatus'))el('aiThinkingStatus').textContent='Klargør materiale og sender forespørgslen…';
   if(el('draftLiveProgress'))el('draftLiveProgress').hidden=false;
-  if(el('aiThinkingFooter'))el('aiThinkingFooter').textContent='Der søges ikke på nettet i dette trin. Procenten er en visuel procesindikator og går først til 100 %, når de tre udkast er modtaget og kontrolleret.';
+  if(el('aiThinkingFooter'))el('aiThinkingFooter').textContent='Der søges ikke på nettet i dette trin. Procenten angiver procestrin, ikke modelintern fremdrift. 100 % vises efter formatkontrol.';
   setDraftModalProgress(12,'Klargør materiale','CV og jobopslag er samlet. Nu sendes de til sprogmodellen.',0,false);
  }else{
   if(el('aiThinkingEyebrow'))el('aiThinkingEyebrow').textContent='ANALYSERER';

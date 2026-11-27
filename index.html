@@ -2485,6 +2485,7 @@ function joinDanish(items){
  return clean.slice(0,-1).join(', ')+' og '+clean[clean.length-1];
 }
 let applicationAnalysisInFlight=false;
+let applicationAnalysisPending=null;
 function getApplicationJobForAnalysis(){
  const active=state.activeJob&&typeof state.activeJob==='object'?state.activeJob:{};
  return {title:String(active.title||state.jobtitle||'').trim(),company:String(active.company||state.company||'').trim(),job:String(active.job||state.jobtext||'').trim()};
@@ -2543,7 +2544,19 @@ function renderApplicationAnalysis(){
  }
  updateApplicationPriorityStatus();
 }
-async function ensureApplicationAnalysis(force){
+function ensureApplicationAnalysis(force){
+ const key=getApplicationAnalysisKey();
+ if(applicationAnalysisPending){
+  if(applicationAnalysisPending.key===key)return applicationAnalysisPending.promise;
+  return applicationAnalysisPending.promise.then(()=>ensureApplicationAnalysis(force));
+ }
+ const promise=performApplicationAnalysis(force).finally(()=>{
+  if(applicationAnalysisPending?.promise===promise)applicationAnalysisPending=null;
+ });
+ applicationAnalysisPending={key,promise};
+ return promise;
+}
+async function performApplicationAnalysis(force){
  const j=getApplicationJobForAnalysis(),key=getApplicationAnalysisKey();
  if(!j.job||j.job.length<30){
   state.applicationAnalysisStatus='idle';state.applicationAnalysisNotice='Indsæt eller analysér først et stillingsopslag under “Jobopslag”.';renderApplicationAnalysis();return false;
@@ -2558,7 +2571,7 @@ async function ensureApplicationAnalysis(force){
  state.applicationAnalysisStatus='loading';state.applicationAnalysisNotice='Sprogmodellen læser stillingsopslaget og udleder de vigtigste krav og ønsker…';
  applicationAnalysisInFlight=true;persist();renderApplicationAnalysis();
  try{
-  const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-analysis',job:j.job,title:j.title,company:j.company})});
+  const response=await fetch(settings.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.code},body:JSON.stringify({task:'application-analysis',job:j.job,title:j.title,company:j.company}),signal:AbortSignal.timeout(290000)});
   let data;try{data=await response.json()}catch(e){data=null}
   if(!response.ok||!data||!Array.isArray(data.themes)||data.themes.length<4)throw new Error(data&&data.error?data.error:'AI-endpointet returnerede ikke en gyldig analyse.');
   const clean=data.themes.slice(0,6).map((theme,index)=>({
@@ -2568,6 +2581,7 @@ async function ensureApplicationAnalysis(force){
    bullets:Array.isArray(theme.bullets)?theme.bullets.slice(0,2).map(x=>String(x||'').trim().slice(0,120)).filter(Boolean):[]
   })).filter(theme=>theme.id&&theme.title&&theme.summary);
   if(clean.length<4)throw new Error('Analysen indeholdt færre end fire brugbare temaer.');
+   if(getApplicationAnalysisKey()!==key)return false;
   state.applicationThemes=clean;
   if(!sameJob){state.applicationThemeWeights=Object.fromEntries(clean.map(theme=>[theme.id,0]))}
   else{
@@ -2608,6 +2622,7 @@ async function makeProposals(){
  const cv=String(state.cv||el('cvtext').value||'').trim();
  if(cv.length<80){notify('proposalState','Indsæt og gem dit CV under “Mit CV”, før du laver en motiveret ansøgning.','warnbox');return}
  const jobText=String(j.job||state.jobtext||'');
+ const targetJobKey=getApplicationAnalysisKey();
  const confirmedClarifications=(j.competencyAssessment&&Array.isArray(j.competencyAssessment.rows)?j.competencyAssessment.rows:[]).filter(row=>row.candidateAnswer).map(row=>({requirement:row.jobEvidence||row.label,competence:row.label,answer:row.candidateAnswer,status:row.statusLabel}));
  const draftCvContext=confirmedClarifications.length?cv+'\n\nSUPPLERENDE OPLYSNINGER BEKRÆFTET AF KANDIDATEN EFTER CV-VURDERING (ikke direkte CV-dokumentation):\n'+confirmedClarifications.map(row=>'- '+row.competence+': '+row.answer).join('\n'):cv;
  const company=getApplicationCompany(j),contact=getApplicationContact(j),greetingLine=getApplicationGreeting(j,company,contact);
@@ -2624,6 +2639,7 @@ async function makeProposals(){
  try{
   const analysisReady=await ensureApplicationAnalysis(false);
   if(!analysisReady)throw new Error(state.applicationAnalysisNotice||'Jobopslaget kunne ikke analyseres.');
+  if(getApplicationAnalysisKey()!==targetJobKey)throw new Error('Det aktive jobopslag er ændret. Start genereringen igen.');
   const p=getApplicationPreferences();
   state.proposalNotice='Jobanalysen er klar. Sprogmodellen skriver og gennemgår tre udkast.';
   persist();renderProposals();
@@ -2639,6 +2655,7 @@ async function makeProposals(){
   const texts=data.drafts.map(x=>String(x?.text||'').trim());
   if(texts.some(t=>!t||/\[Dit navn\]|Eksempelvirksomhed|MANGLER INFO/i.test(t)))throw new Error('Et forslag var tomt eller indeholdt en pladsholder.');
   if(new Set(texts).size!==3)throw new Error('AI returnerede ikke tre forskellige forslag.');
+  if(getApplicationAnalysisKey()!==targetJobKey)throw new Error('Det aktive jobopslag er ændret. De tidligere forslag er bevaret.');
   // Only replace the previous suggestions after all three are valid. Keep the edited application.
   state.proposalTexts=texts;state.proposalTitles=data.drafts.map(x=>String(x.title||''));state.proposalFocuses=data.drafts.map(x=>String(x.focus||''));
   state.selectedProposal=-1;state.proposalMode='ai';state.generatingProposals=false;
